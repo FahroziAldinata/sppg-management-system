@@ -1,0 +1,1068 @@
+// =============================================================================
+// SISTEM KEUANGAN & OPERASIONAL SPPG MBG — schema.prisma (DRAFT v5.4)
+// =============================================================================
+// - ⚠️ KODE AKUN BENTROK DI SUMBER ASLI (belum bisa diverifikasi lebih
+//   lanjut lewat chat — user cuma re-paste data yg sama, bentrok 2120 dipake
+//   2x tetap ada). KEPUTUSAN SEMENTARA biar seed bisa jalan: Biaya
+//   Operasional = 2200 (bukan 2120), Biaya Insentif Fasilitas = 2210 (bukan
+//   2121) — ngikutin pola +10 dari seri Dana. INI BUKAN FINAL, wajib
+//   dikonfirmasi ke akuntan SPPG langsung (bukan cuma relay chat) sebelum
+//   dipakai di laporan resmi (LPA/SPTJ/BAPSD/BKU).
+//
+// - KLARIFIKASI (v5.5): kode akun 2120 BUKAN bentrok/bug — dikonfirmasi
+//   akuntan asli: Operasional SENGAJA cuma punya 1 akun gabungan (2120,
+//   dana masuk & biaya keluar dicatat di akun yg sama, "dananya sama"),
+//   BEDA dari Bahan Baku & Insentif Fasilitas yg dipisah Dana vs Biaya.
+//   Seed final: 2110=Dana Bahan Baku(DANA), 2190=Biaya Bahan Baku(BIAYA),
+//   2120=Operasional(BIAYA, satu2nya akun operasional — dana & biaya sama),
+//   2130=Dana Insentif Fasilitas(DANA), 2121=Biaya Insentif Fasilitas(BIAYA).
+//   Semua kategoriDana diisi sesuai kategori masing2. Tidak ada perubahan
+//   schema — cuma koreksi rencana seed data.
+//
+// v5.4 CHANGELOG (vs v5.3):
+// - GAP TERTUTUP: nomor bukti jurnal RESET per periode (sesuai desain lama,
+//   @@unique([periodeId, nomorBukti]) sudah pas) — history tetap bisa
+//   ditelusuri lintas periode krn selalu simpan periodeId.
+// - GAP TERTUTUP: jenisPorsi staf (Pendidik/TenagaKependidikan/KaderPosyandu)
+//   = BESAR, ATS_9_18TH = BESAR, ATS_KURANG_9TH = KECIL — DIKONFIRMASI BGN +
+//   akuntan (bukan rekomendasi Claude lagi).
+// - KONFIRMASI: struktur LPA/SPTJ/BAPSD dicek ke surat asli — SEMUA field
+//   pejabat/lembaga sudah ada di `SetupLembaga`, tidak perlu tabel/field
+//   baru. Angka finansial dihitung LIVE (lihat komentar di `DokumenResmi`).
+// - Kode akun final: 2110/2190 (Bahan Baku Dana/Biaya), 2120 (Operasional,
+//   1 akun gabungan), 2130/2121 (Insentif Fasilitas Dana/Biaya). Lihat v5.5.
+//
+// v5.3 CHANGELOG (vs v5.2) — sesi tutup gap 03-DECISIONS.md:
+// - GAP #1 & #6 TERTUTUP: chart of accounts asli dikasih user (kode 4-digit).
+//   Tambah `Akun.kategoriDana` (nullable, map ke KategoriDana) supaya
+//   AnggaranHarian.aktual bisa auto-SUM dari JurnalTransaksi. CATATAN BUG DI
+//   DATA USER: kode 2120 dipakai 2x ("Dana Operasional" & "Biaya
+//   Operasional") — asumsi sementara "Biaya Operasional" = 2200 dan "Biaya
+//   Insentif Fasilitas" = 2210 (ngikutin pola seri Dana 2110-2130), TOLONG
+//   DIKONFIRMASI ULANG ke user sebelum seed.
+// - GAP #3 TERTUTUP: `KelompokUmurMenu` <-> `KategoriPenerima` diubah dari
+//   1 FK jadi MANY-TO-MANY. Dikonfirmasi: SMP & SMA/SMK 1 menu yg sama (cuma
+//   SD yg beda per level 1-3/4-6); Pendidik & Tenaga Kependidikan 1 menu yg
+//   sama (grup "PIC_SEKOLAH").
+// - GAP #4 (rekomendasi, blm 100% final): jenisPorsi staf (Pendidik/Tenaga
+//   Kependidikan/Kader Posyandu) = BESAR krn ikut usia orangnya bukan level
+//   sekolah. ATS_9_18TH=BESAR, ATS_KURANG_9TH=KECIL. Data ATS historis
+//   kosong di Excel — pakai default ini kalau nanti ada input real.
+// - GAP #7 TERTUTUP (KOREKSI): MasterMenuMingguan BUKAN template wajib —
+//   menu bisa ganti tiap hari ikut anggaran & porsi tersedia. MenuHarianBlok
+//   adalah satu-satunya sumber kebenaran, tidak divalidasi terhadap master.
+// - GAP #8 TERTUTUP: approval Menu dikonfirmasi di level HARI, semua blok
+//   kelompok umur sekaligus (approve/reject bersamaan) — sesuai desain lama.
+// - GAP #9 TERTUTUP: dev tetap pakai PostgreSQL lokal (bukan pindah Supabase
+//   dulu).
+//
+// v5 CHANGELOG (vs v4) — sumber: dump detail workflow Aslap (chat manual, bukan
+// file baru) — beberapa poin KONFIRMASI, beberapa KONFLIK sama keputusan lama:
+// - KONFLIK dgn keputusan final sebelumnya: granularitas hari input Aslap
+//   TERNYATA bukan cuma 2 opsi (SENIN_JUMAT | SABTU) — user bilang eksplisit
+//   bisa "Senin-Jumat", "Sabtu saja", ATAU "Selasa & Kamis saja" (kombinasi
+//   bebas). Enum KelompokHari DIHAPUS, diganti `hariAktif HariMenu[]` (array
+//   hari bebas) di InputPenerimaManfaat. @@unique lama (periodeId,kelompokHari)
+//   ikut dihapus krn kombinasi hari sekarang bebas, bukan 2 nilai tetap —
+//   validasi hari tidak overlap antar-row pindah ke app-layer.
+// - BARU: modul pengiriman — "Kebutuhan Belanja Bahan" per porsi
+//   (KECIL/BESAR) diantar pakai salah 1 dari 3 mobil. Tambah `Kendaraan` +
+//   `PengirimanHarian` (relasi ke MenuHarian, sejajar approval hari itu).
+// - BARU: `AlergiCatatan` per blok menu (jenis alergi, jumlah siswa terdampak,
+//   bahan pengganti) — sebelumnya tidak ada sama sekali di schema.
+// - MODUL STOK TIDAK LAGI SPEKULATIF: user kasih field asli 4 sheet
+//   (Saldo_Brg/Masuk/Keluar/Stock_Brg). Perubahan:
+//   * BARU `SaldoAwalBarang` — saldo awal + harga beli awal per bahan, per
+//     PERIODE (bukan sekali selamanya) — beda dari saldo global on-the-fly v4.
+//   * `MutasiStok` ditambah field opsional: `supplierId` + `hargaBeli` (utk
+//     MASUK — asal dari "Masuk Barang"), `kelompokPenerima` (utk KELUAR —
+//     "Keluar" dikelompokkan per penerima: SISWA/B3).
+//   * "REFRESH harga beli" (teknik row-labels/pivot cari harga terbaru per
+//     barang) TIDAK dibikin tabel — cukup query MAX(tanggal) per bahanPokokId
+//     dari MutasiStok jenis MASUK. Tabel bantuan "No Max/Dt Harga Beli" di
+//     Excel = hasil pivot itu sendiri, bukan tabel tersimpan.
+//   * Saldo Akhir laporan Stock_Brg = SaldoAwalBarang.saldoAwalQty +
+//     SUM(MASUK) - SUM(KELUAR), dihitung app-layer/query, bukan kolom.
+// - GAP TERTUTUP (v5.1, dari screenshot header sheet asli): kolom HONORARIUM
+//   SUKARELAWAN, DANA KESEHATAN, TK, PJ, TOTAL UPAH itu level per-relawan
+//   per-periode (BUKAN per-hari). Honorarium & Total tetap dihitung
+//   app-layer (SUM), cuma danaKesehatan/tk/pj yg jadi field manual.
+// - GAP TERTUTUP (v5.2): "Jumlah Per Kelas" DIKONFIRMASI cuma tabel
+//   pembantu/audit-trail (angka mentah per kelas yg Aslap jumlah manual jadi
+//   bucket KategoriPenerima) — bukan sumber baca modul lain. Tambah
+//   `SekolahKelasDetail` (periodeId+sekolahId+namaKelas+jumlah), tidak
+//   dihubungkan ke perhitungan Menu/RAB/Akuntansi manapun.
+//
+// v4 CHANGELOG (vs v3):
+// - KategoriRAB DIHAPUS. Awalnya saya kira Akuntan punya taksonomi kasar (8
+//   kategori) terpisah dari taksonomi Aslap (13 kategori). Klarifikasi user:
+//   Akuntan tidak memiliki/mendefinisikan kategori penerima manfaat sendiri
+//   — dia cuma mencatat keuangan, pakai kategori resmi yang sama. 13 kategori
+//   dari Aslap ternyata = daftar resmi "Sasaran Penerima Manfaat" standar BGN
+//   (9 Peserta Didik + 4 Non-Peserta Didik/B3), bukan "versi paling detail
+//   dari beberapa versi" — jadi cuma ada 1 taksonomi, bukan 2 yg perlu
+//   direkonsiliasi. `HargaPaketKategoriPeriode` & `AnggaranBahanMakananDetail`
+//   sekarang langsung pakai `KategoriPenerima`. `jenisPorsi` (KECIL/BESAR,
+//   utk validasi batas harga) pindah jadi field di `KategoriPenerima`.
+// - LPA yg cuma tampilkan 3 baris kasar (Bahan Baku/Operasional/Sewa) itu
+//   levelnya beda sumbu (jenis DANA, bukan kategori penerima) — breakdown 13
+//   kategori tetap ada di data, LPA cuma laporan ringkasan/agregasi tampilan.
+//
+// v3 CHANGELOG (vs v2) — sumber tambahan: spek workflow Ahli Gizi (dari
+// MENU_12_17I__JANUARI.xlsx) + spek workflow Aslap (dari LAPORAN_ASLAP_BARU.xlsx)
+//
+// - KOREKSI BESAR: granularitas input penerima manfaat BUKAN per-tanggal,
+//   tapi per (periode, kelompokHari: SENIN_JUMAT | SABTU) — ASLAP cuma isi
+//   2 kolom hari per periode, bukan 6. InputPenerimaManfaat didesain ulang.
+// - BARU: master `Sekolah` & `Posyandu` — angka penerima manfaat dipecah per
+//   institusi, bukan cuma per kategori umur. Plus split Laki-laki/Perempuan.
+// - BARU: modul Menu penuh — MasterMenuMingguan (template rotasi), MenuHarian
+//   (amplop approval per hari, sejajar RabHarian), MenuHarianBlok (per
+//   tanggal+kelompokUmurMenu), MenuItem (nama menu, mis. "Nasi Putih"),
+//   MenuItemBahan (baris bahan: berat, gizi, harga — SEMUA MANUAL kecuali
+//   Berat Kotor & Total Harga yg formula). Nilai gizi (kalori/protein/dst)
+//   EKSPLISIT tidak boleh dihitung sistem — itu keahlian ahli gizi dari
+//   rujukan TKPI di luar sistem, bukan hasil lookup BahanPokok.
+// - DIHAPUS: field kaloriPer100/proteinPer100/dst di BahanPokok (v1/v2) —
+//   salah asumsi, gizi ternyata input manual per baris menu, bukan properti
+//   tetap bahan.
+// - BARU (spekulatif, lihat catatan): modul stok sederhana (MutasiStok) utk
+//   bahan yg TIDAK habis hari itu juga (mis. beras/minyak/bumbu kering/ATK).
+//   Field BahanPokok.tipePenyimpanan menentukan jalur JIT vs stok.
+//   INI INFERENSI dari nama sheet (Saldo_Brg/Masuk/Keluar/Stock_Brg) yang
+//   BELUM PERNAH dilihat isinya — struktur ini harus direvisi begitu file
+//   aslinya bisa didapat.
+// - BARU: `KategoriPenerima.jenisPorsi` (KECIL/BESAR) + `BatasHargaPorsi` —
+//   utk validasi harga paket tidak melebihi batas (kecil maks 8rb, besar
+//   maks 10rb — disimpan sbg data, bukan hardcode, krn kebijakan BGN bisa berubah).
+// - BARU: `Periode.totalDanaDiterima` — field manual (input akuntan), beda
+//   dari `anggaranAlokasi` (pagu/plafon). Dipakai di SPTJ.
+// - BARU: `DokumenResmi` — nomor dokumen resmi (LPA/SPTJ/BAPSD), input
+//   manual/fleksibel akuntan, data tetap LIVE (bukan snapshot terkunci).
+//
+// [ASUMSI] masih terbuka, MASIH BELUM terjawab:
+// - Nomor bukti jurnal reset per periode atau lanjut terus?
+// - Kode akun 4-digit utk Biaya Bahan Baku/Operasional/Fasilitas.
+// - Mapping KelompokUmurMenu (Ahli Gizi) -> KategoriPenerima utk SMA, PIC
+//   Sekolah, Busui — BELUM JELAS, field dibiarkan nullable, JANGAN diisi
+//   paksa sebelum dikonfirmasi ahli gizi.
+// - jenisPorsi (KECIL/BESAR) utk ATS, Pendidik, Tenaga Kependidikan, Kader
+//   Posyandu belum jelas — field nullable.
+// - Modul stok (MutasiStok) murni dugaan dari nama sheet — belum terverifikasi.
+// - Struktur file eksternal Menu_Logistik_SPPG belum diketahui sama sekali,
+//   TransaksiPembelian dipakai sbg pengganti sementara.
+// - Apakah MasterMenuMingguan benar-benar diulang tiap periode, atau siklus
+//   yang lebih panjang (mis. bulanan) — sementara diikat ke Periode.
+// - Approval Menu: saya asumsikan di level HARI (MenuHarian, sejajar
+//   RabHarian, mencakup semua blok kelompok umur hari itu sekaligus) bukan
+//   per-blok — belum dikonfirmasi eksplisit, cek ulang saat desain API.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// ENUM
+// -----------------------------------------------------------------------------
+
+enum Role {
+  ASLAP
+  MITRA
+  AHLI_GIZI
+  AKUNTAN
+  KEPALA_SPPG
+}
+
+enum StatusPeriode {
+  DRAFT
+  AKTIF
+  SELESAI
+}
+
+enum StatusApproval {
+  DRAFT
+  DIAJUKAN
+  DISETUJUI
+  DITOLAK
+}
+
+enum AksiAudit {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  KOREKSI
+}
+
+enum TipeAkun {
+  KAS
+  DANA
+  BIAYA
+  PAJAK
+}
+
+enum JenisTransaksi {
+  MASUK
+  KELUAR
+}
+
+enum KategoriDana {
+  BAHAN_MAKANAN
+  OPERASIONAL
+  INSENTIF_FASILITAS
+}
+
+enum JenisPorsi {
+  KECIL
+  BESAR
+}
+
+enum JenisSasaran {
+  PESERTA_DIDIK
+  NON_PESERTA_DIDIK
+}
+
+enum JenisPenerimaKeluar {
+  SISWA
+  B3
+}
+
+enum JalurMenu {
+  SISWA
+  TIGA_B
+}
+
+enum HariMenu {
+  SENIN
+  SELASA
+  RABU
+  KAMIS
+  JUMAT
+  SABTU
+}
+
+enum KomponenMenu {
+  KARBOHIDRAT
+  LAUK_HEWANI
+  LAUK_NABATI
+  SAYUR
+  BUAH
+}
+
+enum TipePenyimpanan {
+  HABIS_HARI_ITU // JIT — sayur/daging segar
+  STOK_GUDANG    // disimpan bertahap — beras/minyak/bumbu kering/ATK/gas [SPEKULATIF]
+}
+
+enum JenisMutasiStok {
+  MASUK
+  KELUAR
+}
+
+enum JenisDokumenResmi {
+  LPA
+  SPTJ
+  BAPSD
+}
+
+// -----------------------------------------------------------------------------
+// USER & AUTH
+// -----------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  nama         String
+  username     String   @unique
+  passwordHash String
+  role         Role
+  aktif        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  hargaBahanDiinput      HargaBahanPeriode[]         @relation("MitraInputHargaBahan")
+  hargaPaketDiinput      HargaPaketKategoriPeriode[] @relation("PenginputHargaPaket")
+  menuBlokDibuat         MenuHarianBlok[]            @relation("AhliGiziBuatBlok")
+  masterMenuDibuat       MasterMenuMingguan[]        @relation("AhliGiziBuatMaster")
+  rabHarianDibuat        RabHarian[]                 @relation("AkuntanBuatRab")
+  jurnalDibuat           JurnalTransaksi[]           @relation("AkuntanBuatJurnal")
+  approvalDilakukan      Approval[]                  @relation("KepalaSPPGApprove")
+  validasiStokDilakukan  ValidasiStok[]              @relation("PelaksanaValidasi")
+  mutasiStokDicatat      MutasiStok[]                @relation("PencatatMutasiStok")
+  dokumenDiterbitkan     DokumenResmi[]              @relation("PenerbitDokumen")
+  inputPenerimaManfaat   InputPenerimaManfaat[]      @relation("AslapInputPM")
+  auditLogs              AuditLog[]
+  notifikasi             Notifikasi[]
+
+  @@index([role])
+}
+
+// -----------------------------------------------------------------------------
+// PERIODE
+// -----------------------------------------------------------------------------
+
+model Periode {
+  id               String        @id @default(cuid())
+  tanggalMulai     DateTime      @db.Date
+  tanggalSelesai   DateTime      @db.Date
+  status           StatusPeriode @default(DRAFT)
+  anggaranAlokasi  Decimal       @db.Decimal(14, 2) // pagu/plafon dari BGN
+  totalDanaDiterima Decimal?     @db.Decimal(14, 2) // manual, diisi akuntan — dipakai di SPTJ, beda dari pagu
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  setupLembaga          SetupLembaga?
+  saldoAwal             SaldoAwalPeriode[]
+  penerimaManfaatHarian InputPenerimaManfaat[]
+  hargaBahan            HargaBahanPeriode[]
+  hargaPaketKategori    HargaPaketKategoriPeriode[]
+  masterMenuMingguan    MasterMenuMingguan[]
+  menuHarian            MenuHarian[]
+  rabHarian             RabHarian[]
+  anggaranHarian        AnggaranHarian[]
+  jurnalTransaksi       JurnalTransaksi[]
+  daftarNominatifUpah   DaftarNominatifUpah[]
+  dokumenResmi          DokumenResmi[]
+  saldoAwalBarang       SaldoAwalBarang[]
+  sekolahKelasDetail    SekolahKelasDetail[]
+
+  @@index([tanggalMulai, tanggalSelesai])
+}
+
+model SetupLembaga {
+  id                    String   @id @default(cuid())
+  periodeId             String   @unique
+  periode               Periode  @relation(fields: [periodeId], references: [id])
+  namaLembaga           String
+  alamat                String
+  namaKepalaSPPG        String
+  namaAkuntanSPPG       String
+  namaYayasan           String
+  ketuaYayasan          String
+  nomorRekeningVA       String
+  tahunAnggaran         Int
+  awalPeriodeBerikutnya DateTime @db.Date
+  tanggalPelaporan      DateTime @db.Date
+  tempatPelaporan       String
+  createdAt             DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// TAKSONOMI KATEGORI PENERIMA — 1 taksonomi resmi (13 kategori, sesuai standar
+// "Sasaran Penerima Manfaat" BGN: 9 Peserta Didik + 4 Non-Peserta Didik/B3).
+// v4: KategoriRAB DIHAPUS — Akuntan tidak memiliki/mendefinisikan kategori
+// sendiri, dia cuma mencatat keuangan pakai kategori resmi yang sama dgn
+// Aslap. Tidak ada lagi 2 taksonomi yg perlu direkonsiliasi.
+// KelompokUmurMenu (struktur Ahli Gizi) tetap map ke sini, terpisah.
+// -----------------------------------------------------------------------------
+
+model BatasHargaPorsi {
+  id            String     @id @default(cuid())
+  jenisPorsi    JenisPorsi @unique
+  batasMaksimal Decimal    @db.Decimal(12, 2) // KECIL=8000, BESAR=10000 (kebijakan BGN, bisa berubah)
+  updatedAt     DateTime   @updatedAt
+}
+
+// Master resmi — 13 kategori, sesuai standar "Sasaran Penerima Manfaat" BGN.
+// A. Peserta Didik: PAUD/TK/RA/TKLB, SD/MI/SDLB 1-3, SD/MI/SDLB 4-6,
+//    SMP/MTs/SMPLB/Pesantren 1-3, SMA/MA/SMK/SMALB/Pesantren 4-6,
+//    ATS <9th, ATS 9-18th, Pendidik, Tenaga Kependidikan
+// B. Non-Peserta Didik (B3): Bumil, Busui, Balita, Kader Posyandu
+model KategoriPenerima {
+  id           String       @id @default(cuid())
+  kode         String       @unique // PAUD_TK, SD_1_3, SD_4_6, SMP_1_3, SMA_SMK_4_6, ATS_KURANG_9TH, ATS_9_18TH, PENDIDIK, TENAGA_KEPENDIDIKAN, BALITA, BUMIL, BUSUI, KADER_POSYANDU
+  nama         String
+  jenisSasaran JenisSasaran // PESERTA_DIDIK (terikat Sekolah) | NON_PESERTA_DIDIK (terikat Posyandu)
+  jenisPorsi   JenisPorsi?  // v5.4 DIKONFIRMASI BGN & akuntan (bukan rekomendasi lagi): staf/dewasa
+  // (PENDIDIK, TENAGA_KEPENDIDIKAN, KADER_POSYANDU) = BESAR; ATS_9_18TH =
+  // BESAR; ATS_KURANG_9TH = KECIL.
+  urutan       Int          @default(0)
+
+  inputDetail                InputPenerimaManfaatDetail[]
+  kelompokUmurMenu           KelompokUmurMenu[]
+  hargaPaket                 HargaPaketKategoriPeriode[]
+  anggaranBahanMakananDetail AnggaranBahanMakananDetail[]
+}
+
+model KelompokUmurMenu {
+  id          String    @id @default(cuid())
+  jalur       JalurMenu // SISWA | TIGA_B
+  kode        String    @unique // TK_PAUD, SD_1_3, SD_4_6, SMP_SMA, PIC_SEKOLAH, BALITA_6_11BLN, BALITA_1_3TH, BUMIL, BUSUI
+  nama        String
+  rentangUsia String?
+
+  // v5.3 KONFIRMASI (gap #3 ditutup): RELASI MANY-TO-MANY, bukan 1 FK.
+  // User konfirmasi: hanya SD yg punya menu beda per level (1-3 vs 4-6).
+  // SMP & SMA/SMK TIDAK dibedakan menunya (1 KelompokUmurMenu "SMP_SMA" utk
+  // 2 KategoriPenerima: SMP_1_3 + SMA_SMK_4_6). Sama dgn staf: Pendidik &
+  // Tenaga Kependidikan sama-sama masuk 1 KelompokUmurMenu "PIC_SEKOLAH".
+  kategoriPenerima KategoriPenerima[]
+
+  blok MenuHarianBlok[]
+}
+
+// -----------------------------------------------------------------------------
+// INPUT PENERIMA MANFAAT (ASLAP) — per (periode, kelompokHari), BUKAN per tanggal
+// -----------------------------------------------------------------------------
+
+model Sekolah {
+  id     String  @id @default(cuid())
+  nama   String
+  npsn   String?
+  alamat String?
+  aktif  Boolean @default(true)
+
+  inputDetail InputPenerimaManfaatDetail[]
+  kelasDetail SekolahKelasDetail[]
+}
+
+model Posyandu {
+  id     String  @id @default(cuid())
+  nama   String
+  alamat String?
+  aktif  Boolean @default(true)
+
+  inputDetail InputPenerimaManfaatDetail[]
+}
+
+model InputPenerimaManfaat {
+  id          String     @id @default(cuid())
+  periodeId   String
+  periode     Periode    @relation(fields: [periodeId], references: [id])
+  hariAktif   HariMenu[] // v5: kombinasi hari BEBAS (mis. [SELASA,KAMIS]), bukan cuma 2 opsi tetap — validasi non-overlap antar-row di app-layer
+  createdById String
+  createdBy   User       @relation("AslapInputPM", fields: [createdById], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  detail InputPenerimaManfaatDetail[]
+
+  @@index([periodeId])
+}
+
+model InputPenerimaManfaatDetail {
+  id                     String               @id @default(cuid())
+  inputPenerimaManfaatId String
+  inputPenerimaManfaat   InputPenerimaManfaat @relation(fields: [inputPenerimaManfaatId], references: [id], onDelete: Cascade)
+  kategoriId             String
+  kategori               KategoriPenerima     @relation(fields: [kategoriId], references: [id])
+
+  // tepat satu dari dua ini terisi, tergantung kategori.jenisSasaran (divalidasi app-layer)
+  sekolahId  String?
+  sekolah    Sekolah?  @relation(fields: [sekolahId], references: [id])
+  posyanduId String?
+  posyandu   Posyandu? @relation(fields: [posyanduId], references: [id])
+
+  lakiLaki    Int
+  perempuan   Int
+  // jumlahTotal = lakiLaki + perempuan, dihitung app-layer, tidak disimpan
+
+  @@index([inputPenerimaManfaatId, kategoriId])
+}
+
+// v5.2 KONFIRMASI: tabel PEMBANTU, audit-trail — sumber angka mentah per
+// kelas yg dijumlah Aslap jadi bucket KategoriPenerima (mis. kelas 1+2+3 =
+// KECIL 1-3). Tidak dipakai modul lain (Menu/RAB/Akuntansi) — mereka semua
+// baca dari InputPenerimaManfaatDetail (agregat), bukan dari sini.
+model SekolahKelasDetail {
+  id        String   @id @default(cuid())
+  periodeId String
+  periode   Periode  @relation(fields: [periodeId], references: [id])
+  sekolahId String
+  sekolah   Sekolah  @relation(fields: [sekolahId], references: [id])
+  namaKelas String   // "1".."6", "TK A-B", "PIC"
+  jumlah    Int
+
+  @@unique([periodeId, sekolahId, namaKelas])
+}
+
+// Harga satuan paket MBG per kategori penerima resmi, per periode
+model HargaPaketKategoriPeriode {
+  id          String           @id @default(cuid())
+  periodeId   String
+  periode     Periode          @relation(fields: [periodeId], references: [id])
+  kategoriId  String
+  kategori    KategoriPenerima @relation(fields: [kategoriId], references: [id])
+  hargaSatuan Decimal          @db.Decimal(12, 2)
+  createdById String
+  createdBy   User             @relation("PenginputHargaPaket", fields: [createdById], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([periodeId, kategoriId])
+}
+
+// -----------------------------------------------------------------------------
+// BAHAN POKOK & HARGA
+// -----------------------------------------------------------------------------
+
+model BahanPokok {
+  id              String          @id @default(cuid())
+  nama            String          @unique
+  satuan          String
+  tipePenyimpanan TipePenyimpanan @default(HABIS_HARI_ITU) // [SPEKULATIF] lihat changelog
+
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  hargaPeriode    HargaBahanPeriode[]
+  menuItemBahan   MenuItemBahan[]
+  transaksiItem   TransaksiPembelianItem[]
+  validasiStok    ValidasiStok[]
+  mutasiStok      MutasiStok[]
+  saldoAwalBarang SaldoAwalBarang[]
+
+  @@index([nama])
+}
+
+model HargaBahanPeriode {
+  id           String     @id @default(cuid())
+  periodeId    String
+  periode      Periode    @relation(fields: [periodeId], references: [id])
+  bahanPokokId String
+  bahanPokok   BahanPokok @relation(fields: [bahanPokokId], references: [id])
+  harga        Decimal    @db.Decimal(12, 2)
+  isFallback   Boolean    @default(false)
+  createdById  String
+  createdBy    User       @relation("MitraInputHargaBahan", fields: [createdById], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([periodeId, bahanPokokId])
+}
+
+// v5: SUDAH DIKONFIRMASI dari field asli sheet Saldo_Brg — saldo awal +
+// harga beli awal per bahan, per PERIODE (bukan sekali selamanya).
+model SaldoAwalBarang {
+  id            String     @id @default(cuid())
+  periodeId     String
+  periode       Periode    @relation(fields: [periodeId], references: [id])
+  bahanPokokId  String
+  bahanPokok    BahanPokok @relation(fields: [bahanPokokId], references: [id])
+  saldoAwalQty  Decimal    @db.Decimal(10, 3)
+  hargaBeliAwal Decimal    @db.Decimal(12, 2)
+  createdAt     DateTime   @default(now())
+
+  @@unique([periodeId, bahanPokokId])
+}
+
+// Modul stok — v5: SUDAH DIKONFIRMASI (bukan spekulatif lagi), lihat changelog.
+// Saldo Akhir laporan = SaldoAwalBarang.saldoAwalQty + SUM(MASUK) - SUM(KELUAR),
+// dihitung app-layer/query. Harga Beli laporan Stock_Brg = harga dari MASUK
+// dgn tanggal terbaru per bahan (query MAX(tanggal), bukan tabel tersendiri).
+model MutasiStok {
+  id           String          @id @default(cuid())
+  bahanPokokId String
+  bahanPokok   BahanPokok      @relation(fields: [bahanPokokId], references: [id])
+  tanggal      DateTime        @db.Date
+  jenis        JenisMutasiStok
+  qty          Decimal         @db.Decimal(10, 3)
+  keterangan   String?
+
+  // hanya diisi utk jenis MASUK (dari sheet "Masuk Barang")
+  supplierId String?
+  supplier   Supplier? @relation("SupplierMasukBarang", fields: [supplierId], references: [id])
+  hargaBeli  Decimal?  @db.Decimal(12, 2)
+
+  // hanya diisi utk jenis KELUAR (dari sheet "Keluar" — dikelompokkan per penerima)
+  kelompokPenerima JenisPenerimaKeluar?
+
+  createdById String // "Petugas" di sheet Keluar / pencatat Masuk
+  createdBy   User     @relation("PencatatMutasiStok", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([bahanPokokId, tanggal])
+}
+
+// -----------------------------------------------------------------------------
+// MENU — Master Mingguan (rencana AWAL, TIDAK MENGIKAT) + Harian (blok per
+// kelompok umur, per hari — SUMBER KEBENARAN AKTUAL)
+// -----------------------------------------------------------------------------
+// v5.3 KOREKSI (gap #7 ditutup): user konfirmasi menu BISA ganti tiap hari,
+// ikut anggaran & porsi kecil/besar yg tersedia hari itu — bukan template
+// mingguan yg wajib diulang. MasterMenuMingguan tetap dipertahankan sbg
+// rencana awal/acuan (opsional), TAPI MenuHarianBlok/MenuItem yg diinput
+// ahli gizi per hari adalah SATU-SATUNYA sumber kebenaran — tidak wajib
+// selaras dgn MasterMenuMingguan, dan app-layer TIDAK BOLEH validasi/block
+// perubahan harian terhadap master.
+
+model MasterMenuMingguan {
+  id       String    @id @default(cuid())
+  periodeId String
+  periode  Periode   @relation(fields: [periodeId], references: [id])
+  jalur    JalurMenu
+  hari     HariMenu
+
+  menuKarbohidrat String
+  menuLaukHewani  String
+  menuLaukNabati  String
+  menuSayur       String
+  menuBuah        String
+
+  createdById String
+  createdBy   User     @relation("AhliGiziBuatMaster", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([periodeId, jalur, hari])
+}
+
+// Amplop approval harian utk Menu — sejajar RabHarian, mencakup semua blok
+// kelompok umur pada tanggal tsb sekaligus (approval satu hari, bukan per blok)
+model MenuHarian {
+  id        String         @id @default(cuid())
+  periodeId String
+  periode   Periode        @relation(fields: [periodeId], references: [id])
+  tanggal   DateTime       @db.Date
+  status    StatusApproval @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  blok       MenuHarianBlok[]
+  approvals  Approval[]
+  pengiriman PengirimanHarian[]
+
+  @@unique([periodeId, tanggal])
+}
+
+// v5 BARU: "Kebutuhan Belanja Bahan" per porsi (KECIL/BESAR) diantar pakai
+// salah 1 dari 3 mobil yg tersedia.
+model Kendaraan {
+  id           String   @id @default(cuid())
+  namaKendaraan String
+  platNomor    String?
+  aktif        Boolean  @default(true)
+
+  pengiriman PengirimanHarian[]
+}
+
+model PengirimanHarian {
+  id           String     @id @default(cuid())
+  menuHarianId String
+  menuHarian   MenuHarian @relation(fields: [menuHarianId], references: [id])
+  jenisPorsi   JenisPorsi
+  kendaraanId  String
+  kendaraan    Kendaraan  @relation(fields: [kendaraanId], references: [id])
+  catatan      String?
+
+  @@unique([menuHarianId, jenisPorsi])
+}
+
+// 1 blok = 1 (tanggal, kelompok umur) — jantung modul Menu
+model MenuHarianBlok {
+  id                 String           @id @default(cuid())
+  menuHarianId       String
+  menuHarian         MenuHarian       @relation(fields: [menuHarianId], references: [id])
+  kelompokUmurMenuId String
+  kelompokUmurMenu   KelompokUmurMenu @relation(fields: [kelompokUmurMenuId], references: [id])
+
+  createdById String
+  createdBy   User     @relation("AhliGiziBuatBlok", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  menuItem     MenuItem[]
+  targetGizi   MenuTargetGizi?
+  organoleptik MenuOrganoleptik?
+  alergi       AlergiCatatan[]
+
+  @@unique([menuHarianId, kelompokUmurMenuId])
+}
+
+// v5 BARU: sebelumnya tidak ada sama sekali di schema. Dicatat per blok
+// (tanggal + kelompok umur) kalau ada siswa alergi di blok tsb.
+model AlergiCatatan {
+  id             String         @id @default(cuid())
+  blokId         String
+  blok           MenuHarianBlok @relation(fields: [blokId], references: [id], onDelete: Cascade)
+  jenisAlergi    String         // mis. "nasi", "telur"
+  jumlahSiswa    Int
+  bahanPengganti String?
+}
+
+// Nama menu dalam 1 blok, mis. "Nasi Putih", "Ayam Bumbu Kuning" (bisa >1 per blok)
+model MenuItem {
+  id       String        @id @default(cuid())
+  blokId   String
+  blok     MenuHarianBlok @relation(fields: [blokId], references: [id], onDelete: Cascade)
+  namaMenu String
+  komponen KomponenMenu? // opsional, dikaitkan ke kategori Master Menu Mingguan
+
+  bahan MenuItemBahan[]
+}
+
+// Baris bahan per menu item — SEMUA gizi manual, kecuali beratKotor & totalHarga (formula)
+model MenuItemBahan {
+  id           String     @id @default(cuid())
+  menuItemId   String
+  menuItem     MenuItem   @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  bahanPokokId String
+  bahanPokok   BahanPokok @relation(fields: [bahanPokokId], references: [id])
+
+  beratBersihGr Decimal  @db.Decimal(10, 2) // manual
+  beratURT      String?                     // manual, mis. "1 CTNG", "2 SDM"
+  energiKkal    Decimal  @db.Decimal(10, 2) // MANUAL — dari rujukan TKPI, BUKAN dihitung sistem
+  proteinGr     Decimal  @db.Decimal(10, 2) // manual
+  lemakGr       Decimal  @db.Decimal(10, 2) // manual
+  karbohidratGr Decimal  @db.Decimal(10, 2) // manual
+  seratGr       Decimal  @db.Decimal(10, 2) // manual
+  bddPersen     Decimal  @db.Decimal(5, 2)  // manual, "Bagian Dapat Dimakan" %
+
+  beratKotorGr    Decimal @db.Decimal(10, 2) // FORMULA: beratBersihGr / bddPersen * 100
+  hargaSatuan     Decimal @db.Decimal(12, 2) // manual
+  beratSatuanGr   Decimal @db.Decimal(10, 2) // manual, basis harga (umumnya 1000 = per kg)
+  totalHargaBahan Decimal @db.Decimal(14, 2) // FORMULA: beratKotorGr * hargaSatuan / beratSatuanGr
+}
+
+// Target AKG per blok — manual, beda tiap kelompok umur, diisi ulang tiap blok
+model MenuTargetGizi {
+  id     String         @id @default(cuid())
+  blokId String         @unique
+  blok   MenuHarianBlok @relation(fields: [blokId], references: [id], onDelete: Cascade)
+
+  targetEnergi      Decimal @db.Decimal(10, 2)
+  targetProtein     Decimal @db.Decimal(10, 2)
+  targetLemak       Decimal @db.Decimal(10, 2)
+  targetKarbohidrat Decimal @db.Decimal(10, 2)
+  targetSerat       Decimal @db.Decimal(10, 2)
+  // % pemenuhan = SUM(MenuItemBahan terkait blok ini) / target * 100, dihitung app-layer
+}
+
+// Dari wawancara awal (bukan dari file Excel Ahli Gizi — tidak tercakup di
+// spreadsheet, tapi tetap bagian tugas ahli gizi menurut wawancara)
+model MenuOrganoleptik {
+  id             String         @id @default(cuid())
+  blokId         String         @unique
+  blok           MenuHarianBlok @relation(fields: [blokId], references: [id], onDelete: Cascade)
+  rasa           String
+  aroma          String
+  tekstur        String
+  suhuSaji       String
+  catatan        String?
+  ujiPadaTanggal DateTime       @default(now())
+}
+
+// Catatan: "Kebutuhan Belanja Bahan" (agregasi Berat Kotor x Jumlah Pax per
+// bahan, lintas kelompok umur) TIDAK punya tabel sendiri — dihitung app-layer
+// dari MenuItemBahan.beratKotorGr x InputPenerimaManfaatDetail (via mapping
+// KelompokUmurMenu -> KategoriPenerima). Ini laporan/query, bukan input.
+
+// -----------------------------------------------------------------------------
+// RAB HARIAN — amplop approval, uang ada di AnggaranHarian
+// -----------------------------------------------------------------------------
+
+model RabHarian {
+  id        String         @id @default(cuid())
+  periodeId String
+  periode   Periode        @relation(fields: [periodeId], references: [id])
+  tanggal   DateTime       @db.Date
+  status    StatusApproval @default(DRAFT)
+
+  createdById String
+  createdBy   User     @relation("AkuntanBuatRab", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  transaksiPembelian TransaksiPembelian[]
+  approvals          Approval[]
+
+  @@unique([periodeId, tanggal])
+}
+
+model Supplier {
+  id     String  @id @default(cuid())
+  nama   String
+  kontak String?
+  aktif  Boolean @default(true)
+
+  transaksi        TransaksiPembelian[]
+  mutasiStokMasuk  MutasiStok[]          @relation("SupplierMasukBarang")
+}
+
+model TransaksiPembelian {
+  id          String    @id @default(cuid())
+  rabHarianId String
+  rabHarian   RabHarian @relation(fields: [rabHarianId], references: [id])
+  supplierId  String
+  supplier    Supplier  @relation(fields: [supplierId], references: [id])
+  tanggal     DateTime  @db.Date
+  catatan     String?
+  createdAt   DateTime  @default(now())
+
+  items         TransaksiPembelianItem[]
+  jurnalTerkait JurnalTransaksi[] // referensi opsional manual, lihat catatan di JurnalTransaksi
+}
+
+model TransaksiPembelianItem {
+  id           String              @id @default(cuid())
+  transaksiId  String
+  transaksi    TransaksiPembelian  @relation(fields: [transaksiId], references: [id], onDelete: Cascade)
+  bahanPokokId String
+  bahanPokok   BahanPokok          @relation(fields: [bahanPokokId], references: [id])
+  qty          Decimal             @db.Decimal(10, 3)
+  hargaSatuan  Decimal             @db.Decimal(12, 2)
+  subtotal     Decimal             @db.Decimal(14, 2)
+}
+
+// -----------------------------------------------------------------------------
+// ANGGARAN / RAB RESMI — 3 kategori dana, per hari
+// -----------------------------------------------------------------------------
+
+model AnggaranHarian {
+  id           String       @id @default(cuid())
+  periodeId    String
+  periode      Periode      @relation(fields: [periodeId], references: [id])
+  tanggal      DateTime     @db.Date
+  kategoriDana KategoriDana
+
+  jumlahPaket Int
+  hargaSatuan Decimal? @db.Decimal(12, 2) // dipakai OPERASIONAL & INSENTIF_FASILITAS
+
+  rab     Decimal @db.Decimal(14, 2) @default(0)
+  aktual  Decimal @db.Decimal(14, 2) @default(0) // AUTO dari SUM JurnalTransaksi — [TODO] butuh mapping Akun<->KategoriDana, lihat gap tercatat sebelumnya
+  selisih Decimal @db.Decimal(14, 2) @default(0)
+
+  keterangan String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  detailBahanMakanan AnggaranBahanMakananDetail[]
+
+  @@unique([periodeId, tanggal, kategoriDana])
+}
+
+model AnggaranBahanMakananDetail {
+  id               String           @id @default(cuid())
+  anggaranHarianId String
+  anggaranHarian   AnggaranHarian   @relation(fields: [anggaranHarianId], references: [id], onDelete: Cascade)
+  kategoriId       String
+  kategori         KategoriPenerima @relation(fields: [kategoriId], references: [id])
+  jumlahPaket      Int
+  hargaSatuan      Decimal          @db.Decimal(12, 2)
+  subtotal         Decimal          @db.Decimal(14, 2)
+
+  @@unique([anggaranHarianId, kategoriId])
+}
+
+// -----------------------------------------------------------------------------
+// LEDGER — chart of accounts + jurnal umum double-entry
+// -----------------------------------------------------------------------------
+
+model Akun {
+  id    String   @id @default(cuid())
+  kode  String   @unique
+  nama  String
+  tipe  TipeAkun
+  aktif Boolean  @default(true)
+
+  // v5.3 KONFIRMASI (gap #1 ditutup): dari chart of accounts asli user —
+  // akun DANA (2110/2120/2130) & BIAYA (2190/2200/2210) masing2 punya
+  // pasangan KategoriDana. Dipakai buat auto-hitung AnggaranHarian.aktual
+  // (SUM JurnalTransaksi.nominal WHERE akunDanaBiaya.kategoriDana = X).
+  // Null utk akun KAS (1101/1102) & PAJAK (2140-2180) — mereka gak punya
+  // kategori dana MBG.
+  kategoriDana KategoriDana?
+
+  saldoAwal       SaldoAwalPeriode[]
+  jurnalDanaBiaya JurnalTransaksi[] @relation("AkunDanaBiaya")
+  jurnalKas       JurnalTransaksi[] @relation("AkunKas")
+}
+
+model SaldoAwalPeriode {
+  id        String   @id @default(cuid())
+  periodeId String
+  periode   Periode  @relation(fields: [periodeId], references: [id])
+  akunId    String
+  akun      Akun     @relation(fields: [akunId], references: [id])
+  saldoAwal Decimal  @db.Decimal(14, 2)
+  createdAt DateTime @default(now())
+
+  @@unique([periodeId, akunId])
+}
+
+model JurnalTransaksi {
+  id          String         @id @default(cuid())
+  periodeId   String
+  periode     Periode        @relation(fields: [periodeId], references: [id])
+  tanggal     DateTime       @db.Date
+  nomorBukti  Int
+  uraian      String
+  jenis       JenisTransaksi
+  nominal     Decimal        @db.Decimal(14, 2)
+
+  akunDanaBiayaId String
+  akunDanaBiaya   Akun   @relation("AkunDanaBiaya", fields: [akunDanaBiayaId], references: [id])
+  akunKasId       String
+  akunKas         Akun   @relation("AkunKas", fields: [akunKasId], references: [id])
+
+  tagPengeluaran String?
+
+  transaksiPembelianId String?
+  transaksiPembelian   TransaksiPembelian? @relation(fields: [transaksiPembelianId], references: [id])
+
+  createdById String
+  createdBy   User     @relation("AkuntanBuatJurnal", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([periodeId, nomorBukti])
+  @@index([periodeId, tanggal])
+  @@index([akunDanaBiayaId])
+  @@index([akunKasId])
+}
+
+// -----------------------------------------------------------------------------
+// DOKUMEN RESMI — LPA/SPTJ/BAPSD, nomor manual/fleksibel, data tetap live
+// -----------------------------------------------------------------------------
+
+// v5.4 KONFIRMASI: struktur LPA/SPTJ/BAPSD sudah dicek terhadap surat asli.
+// SEMUA data pejabat/lembaga (nama Kepala SPPG, Akuntan, Yayasan, Ketua
+// Yayasan, alamat, no rekening/VA, tempat & tanggal pelaporan, tanggal mulai
+// periode berikutnya) SUDAH ADA di `SetupLembaga` — tidak perlu field
+// tambahan di DokumenResmi. Angka finansial (Dana Diajukan/Terealisasi/Sisa
+// per kategori dana, Jumlah Penerimaan/Pengeluaran) TIDAK disimpan — selalu
+// dihitung LIVE saat generate:
+//   - Dana Diajukan (per KategoriDana)  = SUM(AnggaranHarian.rab) periode ini
+//   - Dana Terealisasi (per KategoriDana) = SUM(JurnalTransaksi.nominal)
+//     WHERE akunDanaBiaya.tipe = BIAYA AND akunDanaBiaya.kategoriDana = X
+//   - Sisa Dana = Diajukan - Terealisasi
+// CATATAN LABEL: LPA pakai label "Sewa" di tabel rincian tapi "Insentif
+// Fasilitas" di bagian keterangan — 2 nama beda utk KategoriDana yg sama
+// (INSENTIF_FASILITAS), warisan istilah lama. Generate laporan pakai label
+// "Sewa" utk LPA baris tabel (ikut format asli), boleh disamakan ke
+// "Insentif Fasilitas" di tempat lain.
+model DokumenResmi {
+  id            String            @id @default(cuid())
+  periodeId     String
+  periode       Periode           @relation(fields: [periodeId], references: [id])
+  jenisDokumen  JenisDokumenResmi
+  nomorDokumen  String?           // manual, format beda-beda per jenis, opsional (SPTJ kadang tanpa nomor)
+  createdById   String
+  createdBy     User              @relation("PenerbitDokumen", fields: [createdById], references: [id])
+  createdAt     DateTime          @default(now())
+
+  @@unique([periodeId, jenisDokumen])
+}
+
+// -----------------------------------------------------------------------------
+// DAFTAR NOMINATIF UPAH SUKARELAWAN
+// -----------------------------------------------------------------------------
+
+model DaftarNominatifUpah {
+  id             String   @id @default(cuid())
+  periodeId      String
+  periode        Periode  @relation(fields: [periodeId], references: [id])
+  jenisPekerjaan String
+  namaRelawan    String
+  createdAt      DateTime @default(now())
+
+  // v5.1 KONFIRMASI dari screenshot: DANA KESEHATAN/TK/PJ = input manual flat
+  // per relawan per periode (bukan per-hari). "HONORARIUM SUKARELAWAN" di
+  // laporan = SUM(detailHarian.nominal), TIDAK disimpan field sendiri.
+  // "TOTAL UPAH" = SUM(detailHarian) + danaKesehatan + tk + pj, dihitung
+  // app-layer, bukan kolom.
+  danaKesehatan Decimal? @db.Decimal(12, 2)
+  tk            Decimal? @db.Decimal(12, 2)
+  pj            Decimal? @db.Decimal(12, 2)
+
+  detailHarian DaftarNominatifUpahHarian[]
+
+  @@index([periodeId])
+}
+
+model DaftarNominatifUpahHarian {
+  id                String              @id @default(cuid())
+  daftarNominatifId String
+  daftarNominatif   DaftarNominatifUpah @relation(fields: [daftarNominatifId], references: [id], onDelete: Cascade)
+  tanggal           DateTime            @db.Date
+  nominal           Decimal             @db.Decimal(12, 2)
+
+  @@unique([daftarNominatifId, tanggal])
+}
+
+// -----------------------------------------------------------------------------
+// APPROVAL — menargetkan MenuHarian (bukan blok) & RabHarian
+// -----------------------------------------------------------------------------
+
+model Approval {
+  id String @id @default(cuid())
+
+  menuHarianId String?
+  menuHarian   MenuHarian? @relation(fields: [menuHarianId], references: [id])
+  rabHarianId  String?
+  rabHarian    RabHarian?  @relation(fields: [rabHarianId], references: [id])
+
+  status       StatusApproval
+  catatan      String?        // wajib diisi kalau DITOLAK (app-layer)
+  approvedById String
+  approvedBy   User           @relation("KepalaSPPGApprove", fields: [approvedById], references: [id])
+  createdAt    DateTime       @default(now())
+
+  @@index([menuHarianId])
+  @@index([rabHarianId])
+}
+
+// -----------------------------------------------------------------------------
+// VALIDASI STOK — [ASUMSI] pelaksana = Akuntan
+// -----------------------------------------------------------------------------
+
+model ValidasiStok {
+  id            String     @id @default(cuid())
+  bahanPokokId  String
+  bahanPokok    BahanPokok @relation(fields: [bahanPokokId], references: [id])
+  tanggal       DateTime   @db.Date
+  qtyDibeli     Decimal    @db.Decimal(10, 3)
+  qtyTerpakai   Decimal    @db.Decimal(10, 3)
+  selisih       Decimal    @db.Decimal(10, 3)
+  catatan       String?
+  validatedById String
+  validatedBy   User       @relation("PelaksanaValidasi", fields: [validatedById], references: [id])
+  createdAt     DateTime   @default(now())
+
+  @@index([tanggal])
+}
+
+// -----------------------------------------------------------------------------
+// AUDIT LOG — visible hanya Akuntan & Mitra (app-layer)
+// -----------------------------------------------------------------------------
+
+model AuditLog {
+  id         String    @id @default(cuid())
+  entityType String
+  entityId   String
+  aksi       AksiAudit
+  dataLama   Json?
+  dataBaru   Json?
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  createdAt  DateTime  @default(now())
+
+  @@index([entityType, entityId])
+  @@index([userId])
+}
+
+// -----------------------------------------------------------------------------
+// NOTIFIKASI
+// -----------------------------------------------------------------------------
+
+model Notifikasi {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  judul      String
+  pesan      String
+  entityType String?
+  entityId   String?
+  dibaca     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([userId, dibaca])
+}
