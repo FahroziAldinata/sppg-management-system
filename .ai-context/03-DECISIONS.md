@@ -51,8 +51,8 @@ Database dev: **PostgreSQL lokal** (diinstall di mesin dev, port 5432) dipakai u
 - **Update Jurnal Transaksi ([ASUMSI])**: JurnalTransaksi bersifat editable dengan kebijakan reverse + recalculation (Opsi B) terhadap realisasi anggaran lama dan baru secara otomatis.
 - **Ketiadaan AuditLog di DB ([ASUMSI])**: Tidak ada log audit tertulis saat DELETE dokumen resmi/RAB/anggaran karena skema database saat ini belum mendukung tabel AuditLog.
 
-## Gap yang MASIH terbuka
-
-Tidak ada gap struktural/keputusan terbuka per v5.7. Sisa murni pekerjaan implementasi:
-1. Panggil `recalcAktualAnggaran` di service layer API tiap `JurnalTransaksi` dibuat/diedit/dihapus.
-2. Bikin template docx/PDF LPA/SPTJ/BAPSD yang nyuntik data dari `generateLPA`/`generateSPTJ`/`generateBAPSD` (`06-QUERY-REFERENCE.md`).
+- **`recalcAktualAnggaran` (FINAL)**: Fungsi `recalcAktualAnggaran(tx, periodeId, tanggal, kategoriDana)` sudah diimplementasikan. Dipanggil di dalam `$transaction` yang sama pada setiap POST/PUT/DELETE `JurnalTransaksi`. Filter `tipe: "BIAYA"` diterapkan pada SUM agar jurnal ke akun DANA tidak ikut terhitung sebagai realisasi.
+- **`normalizeDateUTC` (FINAL)**: Helper util untuk normalisasi tanggal ke UTC midnight agar tidak ada timezone drift. Field `tanggal` dari client WAJIB date-only string "YYYY-MM-DD". Dipakai di semua endpoint yang menerima field tanggal (JurnalTransaksi, MutasiStok).
+- **SaldoAwalBarang tanpa pengecekan status Periode ([ASUMSI])**: Pembuatan `SaldoAwalBarang` diizinkan kapan saja tanpa memedulikan status `Periode` (DRAFT/AKTIF/SELESAI). Tidak ada lock berbasis lifecycle periode.
+- **Isolasi field kondisional MutasiStok ([ASUMSI, FINAL])**: Field `supplierId` + `hargaBeli` WAJIB diisi hanya untuk jenis MASUK, dan DIBLOKIR untuk jenis KELUAR. Sebaliknya, `kelompokPenerima` WAJIB diisi hanya untuk jenis KELUAR, dan DIBLOKIR untuk jenis MASUK. Validasi dilakukan app-layer secara ketat (bukan hanya nullable di schema).
+- **Validasi saldo cukup MutasiStok KELUAR ([ASUMSI] — PENDING KEPUTUSAN USER)**: Apakah qty KELUAR perlu divalidasi tidak melebihi saldo tersedia (SaldoAwalBarang.saldoAwalQty + SUM MASUK - SUM KELUAR sebelumnya)? Schema tidak menyebut constraint ini secara eksplisit. Keputusan ditunggu sebelum implementasi MutasiStok KELUAR.

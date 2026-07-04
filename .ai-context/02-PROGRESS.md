@@ -18,11 +18,13 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Modul Ahli Gizi — MenuHarian & MenuHarianBlok selesai** — API CRUD untuk `MenuHarian` (amplop harian) dan `MenuHarianBlok` (per tanggal + kelompok umur) dengan validasi rentang tanggal periode (FINAL, terkonfirmasi), unique constraint validation, transactional rollback, dan integration tests.
 - [x] **Modul Ahli Gizi — Menu Lengkap selesai** — API CRUD untuk `MenuItem`, `MenuItemBahan` (gizi manual, berat kotor & total harga formula), `MenuTargetGizi` (1:1 blok), `MenuOrganoleptik` (1:1 blok), `AlergiCatatan` (1:many blok), `Kendaraan`, `PengirimanHarian` (dengan validasi kendaraan aktif [ASUMSI], FK check P2003, dan unique `[menuHarianId, jenisPorsi]` P2002), serta `MasterMenuMingguan` (dengan createdById menggunakan `req.user.sub`). Pengujian cascade delete (MenuHarian -> blok, approval, pengiriman) & (MenuHarianBlok -> target gizi, organoleptik, alergi, menuItem) lulus 100%.
 - [x] **Modul Akuntan — RAB Harian & Anggaran Harian selesai** — API CRUD untuk `RabHarian` (dengan manual cascade delete, block on linked JurnalTransaksi, and subtotal rounding) dan `AnggaranHarian` (dengan constraint check, BatasHargaPorsi validation, deduplikasi kategori, block on non-zero aktual, dan database cascade delete) selesai diimplementasikan.
+- [x] **Modul Akuntan — JurnalTransaksi, DokumenResmi (LPA/SPTJ/BAPSD), & DaftarNominatifUpah selesai** — Implementasi POST, GET, PUT (Opsi B), DELETE untuk `JurnalTransaksi` dengan validasi akun aktif dan normalisasi timezone. CRUD lengkap `DokumenResmi` (live generator) & `DaftarNominatifUpah` (+ detail harian cascade delete). Semua `createdById` menggunakan `req.user.sub`.
 
 ## Sedang jalan / berikutnya
 
-- [x] **Modul Akuntan — JurnalTransaksi, DokumenResmi (LPA/SPTJ/BAPSD), & DaftarNominatifUpah selesai** — Implementasi POST, GET, PUT (Opsi B), DELETE untuk `JurnalTransaksi`. Serta CRUD lengkap `DokumenResmi` & `DaftarNominatifUpah` (+ detail harian cascade delete).
-- [ ] Sisa API Modul Akuntan (SaldoAwalPeriode, MutasiStok/ValidasiStok, dsb.)
+- [x] **Modul Akuntan — Stok dimulai** — POST `SaldoAwalBarang` (P2002 untuk unique, validasi `bahanPokok.aktif`) selesai. POST `MutasiStok` jenis MASUK selesai (validasi field kondisional ketat: `supplierId`+`hargaBeli` wajib, `kelompokPenerima` diblokir).
+- [ ] MutasiStok jenis KELUAR — validasi `kelompokPenerima` wajib, `supplierId`/`hargaBeli` diblokir, [ASUMSI] validasi saldo cukup menunggu keputusan user.
+- [ ] Sisa API Modul Akuntan (query harga beli terbaru MAX tanggal, dsb.)
 - [ ] Modul Kepala SPPG (Approval harian MenuHarian dan RabHarian).
 
 - [ ] Frontend (React/Vite) — **belum dimulai**, tunggu semua endpoint modul inti selesai.

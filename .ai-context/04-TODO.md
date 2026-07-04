@@ -23,7 +23,7 @@ Urutan disarankan. Jangan lompat ke frontend sebelum backend inti + seed selesai
 - [x] Aslap: CRUD `InputPenerimaManfaat` + detail, CRUD `SekolahKelasDetail` (pembantu).
 - [x] Mitra: CRUD `HargaBahanPeriode`.
 - [x] Ahli Gizi: CRUD `MasterMenuMingguan`, `MenuHarian`/`MenuHarianBlok`/`MenuItem`/`MenuItemBahan`, `MenuTargetGizi`, `MenuOrganoleptik`, `AlergiCatatan`, `PengirimanHarian` (and `Kendaraan`).
-- [ ] Akuntan: CRUD `RabHarian` & `AnggaranHarian` (completed), `JurnalTransaksi` (completed POST/GET/PUT/DELETE), `DokumenResmi` (completed), `DaftarNominatifUpah` (completed), stok (`SaldoAwalBarang`, `MutasiStok`).
+- [ ] Akuntan: CRUD `RabHarian` & `AnggaranHarian` (✅), `JurnalTransaksi` full CRUD (✅), `DokumenResmi` (✅), `DaftarNominatifUpah` (✅), `SaldoAwalBarang` POST (✅), `MutasiStok` MASUK (✅), KELUAR (⬜ pending keputusan validasi saldo), query harga beli terbaru (⬜).
 - [ ] Kepala SPPG: endpoint approval (`Approval` untuk `MenuHarian`/`RabHarian`), view-only laporan.
 - [ ] Endpoint laporan/agregasi (read-only, query-heavy, bukan tabel): Kebutuhan Belanja Bahan, Laporan Per Periode (Pendidikan & Posyandu), Laporan Per Bulan, BKU, BP per jenis dana, LR, LPA, SPTJ, BAPSD, Stock Barang.
 
