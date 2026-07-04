@@ -1958,10 +1958,6 @@ router.post("/mutasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res
       return res.status(400).json({ error: "jenis harus MASUK atau KELUAR" });
     }
 
-    if (jenis === "KELUAR") {
-      return res.status(501).json({ error: "Mutasi KELUAR belum diimplementasikan" });
-    }
-
     const parsedQty = parseFloat(qty);
     if (isNaN(parsedQty) || parsedQty <= 0) {
       return res.status(400).json({ error: "qty harus berupa angka positif" });
@@ -1986,7 +1982,7 @@ router.post("/mutasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res
 
     if (jenis === "MASUK") {
       if (!supplierId) return res.status(400).json({ error: "supplierId wajib diisi untuk mutasi MASUK" });
-      if (hargaBeli === undefined) return res.status(400).json({ error: "hargaBeli wajib diisi untuk mutasi MASUK" });
+      if (hargaBeli === undefined || hargaBeli === null) return res.status(400).json({ error: "hargaBeli wajib diisi untuk mutasi MASUK" });
       
       const parsedHarga = parseFloat(hargaBeli);
       if (isNaN(parsedHarga) || parsedHarga < 0) {
@@ -1997,6 +1993,9 @@ router.post("/mutasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res
       if (!supplier) {
          return res.status(404).json({ error: "Supplier tidak ditemukan" });
       }
+      if (!supplier.aktif) {
+        return res.status(400).json({ error: "Supplier tidak aktif" });
+      }
 
       targetSupplierId = supplierId;
       targetHargaBeli = Math.round(parsedHarga * 100) / 100;
@@ -2004,6 +2003,20 @@ router.post("/mutasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res
       if (kelompokPenerima) {
         return res.status(400).json({ error: "kelompokPenerima tidak boleh diisi untuk mutasi MASUK" });
       }
+    } else if (jenis === "KELUAR") {
+      if (!kelompokPenerima) {
+        return res.status(400).json({ error: "kelompokPenerima wajib diisi untuk mutasi KELUAR" });
+      }
+      if (kelompokPenerima !== "SISWA" && kelompokPenerima !== "B3") {
+        return res.status(400).json({ error: "kelompokPenerima harus SISWA atau B3" });
+      }
+      if (supplierId != null || hargaBeli != null) {
+        return res.status(400).json({ error: "supplierId dan hargaBeli harus null atau tidak diisi untuk mutasi KELUAR" });
+      }
+      
+      targetKelompokPenerima = kelompokPenerima;
+
+      // [ASUMSI] Saldo tidak divalidasi (bisa minus), sistem hanya melakukan pencatatan mutasi.
     }
 
     const created = await prisma.mutasiStok.create({
@@ -2028,6 +2041,184 @@ router.post("/mutasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan mutasi stok" });
+  }
+});
+
+// ==========================================
+// VALIDASI STOK (Akuntan-only)
+// ==========================================
+
+// POST /api/akuntan/validasi-stok - Simpan validasi fisik baru
+router.post("/validasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { bahanPokokId, tanggal, qtyDibeli, qtyTerpakai, catatan } = req.body || {};
+
+    if (!bahanPokokId) {
+      return res.status(400).json({ error: "bahanPokokId wajib diisi" });
+    }
+    if (!tanggal) {
+      return res.status(400).json({ error: "tanggal wajib diisi" });
+    }
+    if (qtyDibeli === undefined || qtyDibeli === null) {
+      return res.status(400).json({ error: "qtyDibeli wajib diisi" });
+    }
+    if (qtyTerpakai === undefined || qtyTerpakai === null) {
+      return res.status(400).json({ error: "qtyTerpakai wajib diisi" });
+    }
+
+    const targetTanggal = normalizeDateUTC(tanggal);
+    if (isNaN(targetTanggal.getTime())) {
+      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    }
+
+    // Pastikan bahanPokok ada di database
+    const bahan = await prisma.bahanPokok.findUnique({ where: { id: bahanPokokId } });
+    if (!bahan) {
+      return res.status(404).json({ error: "Bahan pokok tidak ditemukan" });
+    }
+
+    // Hitung selisih server-side (derived value): selisih = qtyDibeli - qtyTerpakai
+    const selisih = Number(qtyDibeli) - Number(qtyTerpakai);
+
+    const created = await prisma.validasiStok.create({
+      data: {
+        bahanPokokId,
+        tanggal: targetTanggal,
+        qtyDibeli: Number(qtyDibeli),
+        qtyTerpakai: Number(qtyTerpakai),
+        selisih: selisih,
+        catatan: catatan ? String(catatan).trim() : null,
+        validatedById: req.user.sub
+      }
+    });
+
+    res.status(201).json(created);
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2002") {
+      return res.status(409).json({ error: "Validasi stok untuk bahan pokok pada tanggal ini sudah tercatat" });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan data validasi stok" });
+  }
+});
+
+// GET /api/akuntan/validasi-stok - Riwayat validasi stok
+router.get("/validasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { bahanPokokId, tanggal, limit, offset } = req.query;
+
+    let take = limit ? parseInt(limit, 10) : 10;
+    const skip = offset ? parseInt(offset, 10) : 0;
+    if (isNaN(take) || take < 0 || isNaN(skip) || skip < 0) {
+      return res.status(400).json({ error: "Parameter limit dan offset harus berupa angka non-negatif" });
+    }
+    take = Math.min(take, 100);
+
+    const where = {};
+    if (bahanPokokId) {
+      where.bahanPokokId = bahanPokokId;
+    }
+    if (tanggal) {
+      const targetTanggal = normalizeDateUTC(tanggal);
+      if (isNaN(targetTanggal.getTime())) {
+        return res.status(400).json({ error: "Format tanggal tidak valid" });
+      }
+      where.tanggal = targetTanggal;
+    }
+
+    const [list, total] = await Promise.all([
+      prisma.validasiStok.findMany({
+        where,
+        take,
+        skip,
+        orderBy: { tanggal: "desc" },
+        include: {
+          bahanPokok: {
+            select: {
+              id: true,
+              nama: true
+            }
+          },
+          validatedBy: {
+            select: {
+              id: true,
+              nama: true,
+              username: true
+            }
+          }
+        }
+      }),
+      prisma.validasiStok.count({ where })
+    ]);
+
+    res.json({
+      data: list,
+      pagination: {
+        total,
+        limit: take,
+        offset: skip
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data validasi stok" });
+  }
+});
+
+// GET /api/akuntan/validasi-stok/preview - Preview akumulasi MutasiStok s.d. tanggal terpilih
+router.get("/validasi-stok/preview", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { bahanPokokId, tanggal } = req.query;
+
+    if (!bahanPokokId) {
+      return res.status(400).json({ error: "bahanPokokId wajib disertakan pada query parameter" });
+    }
+    if (!tanggal) {
+      return res.status(400).json({ error: "tanggal wajib disertakan pada query parameter" });
+    }
+
+    const targetTanggal = normalizeDateUTC(tanggal);
+    if (isNaN(targetTanggal.getTime())) {
+      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    }
+
+    // Aggregation logic: sum qty dari MutasiStok lte targetTanggal
+    const aggregations = await prisma.mutasiStok.groupBy({
+      by: ["jenis"],
+      where: {
+        bahanPokokId,
+        tanggal: {
+          lte: targetTanggal
+        }
+      },
+      _sum: {
+        qty: true
+      }
+    });
+
+    let qtyDibeli = 0;
+    let qtyTerpakai = 0;
+
+    for (const agg of aggregations) {
+      if (agg.jenis === "MASUK") {
+        qtyDibeli = agg._sum.qty ? Number(agg._sum.qty) : 0;
+      } else if (agg.jenis === "KELUAR") {
+        qtyTerpakai = agg._sum.qty ? Number(agg._sum.qty) : 0;
+      }
+    }
+
+    const sisaSistem = qtyDibeli - qtyTerpakai;
+
+    res.json({
+      bahanPokokId,
+      tanggal: targetTanggal.toISOString().split("T")[0],
+      qtyDibeli,
+      qtyTerpakai,
+      sisaSistem
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat memproses preview validasi stok" });
   }
 });
 

@@ -149,6 +149,14 @@ async function main() {
     }
   }
 
+  const posyanduNama = ["Posyandu Melati", "Posyandu Mawar", "Posyandu Dahlia"];
+  for (const nama of posyanduNama) {
+    const existing = await prisma.posyandu.findFirst({ where: { nama } });
+    if (!existing) {
+      await prisma.posyandu.create({ data: { nama } });
+    }
+  }
+
   // ---------------------------------------------------------------------
   // 8. PERIODE CONTOH + SETUP LEMBAGA — persis data dari surat LPA/SPTJ/BAPSD
   // yang sudah diberikan (8-17 Januari 2026)

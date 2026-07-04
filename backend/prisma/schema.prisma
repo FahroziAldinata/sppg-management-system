@@ -414,7 +414,7 @@ model KelompokUmurMenu {
 
 model Sekolah {
   id     String  @id @default(cuid())
-  nama   String
+  nama   String  // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
   npsn   String?
   alamat String?
   aktif  Boolean @default(true)
@@ -425,7 +425,7 @@ model Sekolah {
 
 model Posyandu {
   id     String  @id @default(cuid())
-  nama   String
+  nama   String  // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
   alamat String?
   aktif  Boolean @default(true)
 

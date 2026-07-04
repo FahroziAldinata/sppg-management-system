@@ -179,18 +179,18 @@ router.post("/menu-harian", requireAuth, requireRole("AHLI_GIZI"), async (req, r
 });
 
 // PUT /api/gizi/menu-harian/:id - Update MenuHarian (e.g. tanggal)
+// PUT /api/gizi/menu-harian/:id - Update MenuHarian (e.g. tanggal atau status)
 router.put("/menu-harian/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
   try {
     const { id } = req.params;
-    const { tanggal } = req.body || {};
+    const { tanggal, status } = req.body || {};
 
-    if (!tanggal) {
-      return res.status(400).json({ error: "tanggal wajib diisi untuk melakukan perubahan" });
+    if (!tanggal && !status) {
+      return res.status(400).json({ error: "tanggal atau status wajib diisi untuk melakukan perubahan" });
     }
 
-    const targetTanggal = new Date(tanggal);
-    if (isNaN(targetTanggal.getTime())) {
-      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    if (status && status !== "DRAFT" && status !== "DIAJUKAN") {
+      return res.status(400).json({ error: "Ahli Gizi hanya dapat mengubah status menjadi DRAFT atau DIAJUKAN" });
     }
 
     const updated = await prisma.$transaction(async (tx) => {
@@ -199,29 +199,49 @@ router.put("/menu-harian/:id", requireAuth, requireRole("AHLI_GIZI"), async (req
         throw new Error("[NOT_FOUND] Data menu harian tidak ditemukan");
       }
 
-      // Validasi: tanggal wajib dalam rentang periode — FINAL, dikonfirmasi user
-      const period = await tx.periode.findUnique({ where: { id: existing.periodeId } });
-      const start = new Date(period.tanggalMulai);
-      const end = new Date(period.tanggalSelesai);
-      if (targetTanggal < start || targetTanggal > end) {
-        throw new Error("[VALIDASI] Tanggal menu harian harus berada di dalam batas rentang periode");
+      // Validasi: Status existing harus DRAFT atau DITOLAK agar bisa diedit
+      if (existing.status !== "DRAFT" && existing.status !== "DITOLAK") {
+        throw new Error("[VALIDASI] Menu harian yang sudah diajukan atau disetujui tidak dapat diubah");
       }
 
-      // Check unique constraint excluding self
-      const conflict = await tx.menuHarian.findFirst({
-        where: {
-          periodeId: existing.periodeId,
-          tanggal: targetTanggal,
-          NOT: { id }
+      const updateData = {};
+
+      if (tanggal) {
+        const targetTanggal = new Date(tanggal);
+        if (isNaN(targetTanggal.getTime())) {
+          throw new Error("[VALIDASI] Format tanggal tidak valid");
         }
-      });
-      if (conflict) {
-        throw new Error("[CONFLICT] Menu harian untuk tanggal ini sudah terdaftar pada periode terpilih");
+
+        // Validasi: tanggal wajib dalam rentang periode
+        const period = await tx.periode.findUnique({ where: { id: existing.periodeId } });
+        const start = new Date(period.tanggalMulai);
+        const end = new Date(period.tanggalSelesai);
+        if (targetTanggal < start || targetTanggal > end) {
+          throw new Error("[VALIDASI] Tanggal menu harian harus berada di dalam batas rentang periode");
+        }
+
+        // Check unique constraint excluding self
+        const conflict = await tx.menuHarian.findFirst({
+          where: {
+            periodeId: existing.periodeId,
+            tanggal: targetTanggal,
+            NOT: { id }
+          }
+        });
+        if (conflict) {
+          throw new Error("[CONFLICT] Menu harian untuk tanggal ini sudah terdaftar pada periode terpilih");
+        }
+
+        updateData.tanggal = targetTanggal;
+      }
+
+      if (status) {
+        updateData.status = status;
       }
 
       return await tx.menuHarian.update({
         where: { id },
-        data: { tanggal: targetTanggal },
+        data: updateData,
         include: {
           blok: {
             include: {

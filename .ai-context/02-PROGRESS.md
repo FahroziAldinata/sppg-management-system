@@ -19,19 +19,16 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Modul Ahli Gizi — Menu Lengkap selesai** — API CRUD untuk `MenuItem`, `MenuItemBahan` (gizi manual, berat kotor & total harga formula), `MenuTargetGizi` (1:1 blok), `MenuOrganoleptik` (1:1 blok), `AlergiCatatan` (1:many blok), `Kendaraan`, `PengirimanHarian` (dengan validasi kendaraan aktif [ASUMSI], FK check P2003, dan unique `[menuHarianId, jenisPorsi]` P2002), serta `MasterMenuMingguan` (dengan createdById menggunakan `req.user.sub`). Pengujian cascade delete (MenuHarian -> blok, approval, pengiriman) & (MenuHarianBlok -> target gizi, organoleptik, alergi, menuItem) lulus 100%.
 - [x] **Modul Akuntan — RAB Harian & Anggaran Harian selesai** — API CRUD untuk `RabHarian` (dengan manual cascade delete, block on linked JurnalTransaksi, and subtotal rounding) dan `AnggaranHarian` (dengan constraint check, BatasHargaPorsi validation, deduplikasi kategori, block on non-zero aktual, dan database cascade delete) selesai diimplementasikan.
 - [x] **Modul Akuntan — JurnalTransaksi, DokumenResmi (LPA/SPTJ/BAPSD), & DaftarNominatifUpah selesai** — Implementasi POST, GET, PUT (Opsi B), DELETE untuk `JurnalTransaksi` dengan validasi akun aktif dan normalisasi timezone. CRUD lengkap `DokumenResmi` (live generator) & `DaftarNominatifUpah` (+ detail harian cascade delete). Semua `createdById` menggunakan `req.user.sub`.
+- [x] **Modul Kepala SPPG — Approval & Notifikasi selesai** — API POST untuk approval/rejection MenuHarian dan RabHarian (menggunakan row-locking SELECT FOR UPDATE pada target fungsional untuk menjamin integritas konkuren) dengan trigger pembuatan Notifikasi otomatis bagi pembuat dokumen, serta GET untuk log riwayat approval filterable dan paginated (limit/offset) selesai diuji berhasil. Silakan cek test integrasi di `backend/src/routes/__tests__/approval.test.js`.
+- [x] **Modul Akuntan — Stok & Validasi Stok selesai** — POST `SaldoAwalBarang` (validasi aktif), POST `MutasiStok` (jenis MASUK/KELUAR dengan kondisional data dan `[ASUMSI]` bypass balance check), serta CRUD & preview `ValidasiStok` (dengan timezone date normalization dan derived server-side `selisih`) selesai diuji berhasil.
+- [x] **Modul Akuntan & Kepala — Seluruh Laporan & Agregasi selesai** — Endpoint untuk BKU, BP per akun, LPA, SPTJ, BAPSD, KebutuhanBelanjaBahan (bebas N+1 query), LaporanPerPeriode (dengan estimasi alokasi proporsional RAB dan flag `metodeAlokasi: "PROPORSIONAL_RAB"`), LaporanPerBulan, dan StockBarang (bebas N+1 query via DISTINCT ON) telah diuji 100% lulus.
+- [x] **CORS Middleware & Setup Frontend (Tahap 0 & Tahap 1) selesai** — Pemasangan CORS di backend, scaffolding Vite + React + React Router v6, implementasi AuthContext, ProtectedRoute, useApi hook, halaman Login, Layout shell, dan CRUD Aslap (Penerima Manfaat) polos.
 
 ## Sedang jalan / berikutnya
 
-- [x] **Modul Akuntan — Stok dimulai** — POST `SaldoAwalBarang` (P2002 untuk unique, validasi `bahanPokok.aktif`) selesai. POST `MutasiStok` jenis MASUK selesai (validasi field kondisional ketat: `supplierId`+`hargaBeli` wajib, `kelompokPenerima` diblokir).
-- [ ] MutasiStok jenis KELUAR — validasi `kelompokPenerima` wajib, `supplierId`/`hargaBeli` diblokir, [ASUMSI] validasi saldo cukup menunggu keputusan user.
-- [ ] Sisa API Modul Akuntan (query harga beli terbaru MAX tanggal, dsb.)
-- [ ] Modul Kepala SPPG (Approval harian MenuHarian dan RabHarian).
-
-- [ ] Frontend (React/Vite) — **belum dimulai**, tunggu semua endpoint modul inti selesai.
+- [ ] Frontend Tahap 2 (Mitra) — CRUD HargaBahanPeriode & read-only BahanPokok (belum mulai).
 
 ## Belum dikerjakan sama sekali
 
-- Query laporan disambungkan ke endpoint (fungsi sudah ada di `06-QUERY-REFERENCE.md`, belum dipasang ke route).
-- Frontend seluruhnya.
+- UI/UX Frontend seluruhnya.
 - Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
-- `cors` middleware (baru perlu kalau frontend beda origin mulai manggil API).

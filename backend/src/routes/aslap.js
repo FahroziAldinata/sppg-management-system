@@ -174,8 +174,8 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
         throw new Error(`[VALIDASI] Hari aktif berikut sudah terisi pada input lain di periode ini: ${intersection.join(", ")}`);
       }
 
-      // C. Validate and resolve school/posyandu for each detail item
-      const resolvedDetails = [];
+      // C. Validate all detail items (read-only checks first)
+      const resolvedCategories = [];
       for (let i = 0; i < detail.length; i++) {
         const item = detail[i];
         const { kategoriId, sekolahId, sekolahNama, posyanduId, posyanduNama, lakiLaki, perempuan } = item;
@@ -188,6 +188,7 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
         if (!kategori) {
           throw new Error(`[NOT_FOUND] Detail indeks ke-${i}: Kategori dengan ID ${kategoriId} tidak ditemukan`);
         }
+        resolvedCategories[i] = kategori;
 
         const numLaki = parseInt(lakiLaki, 10);
         const numPerempuan = parseInt(perempuan, 10);
@@ -198,34 +199,20 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
           throw new Error(`[VALIDASI] Detail indeks ke-${i}: Jumlah perempuan harus berupa angka non-negatif`);
         }
 
-        let resolvedSekolahId = null;
-        let resolvedPosyanduId = null;
-
         if (kategori.jenisSasaran === "PESERTA_DIDIK") {
           if (posyanduId || posyanduNama) {
             throw new Error(`[VALIDASI] Detail indeks ke-${i}: Kategori '${kategori.nama}' adalah peserta didik, tidak boleh mengisi posyanduId atau posyanduNama`);
           }
-
           if (sekolahId) {
             const exists = await tx.sekolah.findUnique({ where: { id: sekolahId } });
             if (!exists) {
               throw new Error(`[NOT_FOUND] Detail indeks ke-${i}: Sekolah dengan ID ${sekolahId} tidak ditemukan`);
             }
-            resolvedSekolahId = sekolahId;
           } else if (sekolahNama) {
             const normalizedNama = sekolahNama.trim();
             if (!normalizedNama) {
               throw new Error(`[VALIDASI] Detail indeks ke-${i}: nama sekolah tidak boleh kosong`);
             }
-            let sekolahObj = await tx.sekolah.findFirst({
-              where: { nama: { equals: normalizedNama, mode: "insensitive" } }
-            });
-            if (!sekolahObj) {
-              sekolahObj = await tx.sekolah.create({
-                data: { nama: normalizedNama }
-              });
-            }
-            resolvedSekolahId = sekolahObj.id;
           } else {
             throw new Error(`[VALIDASI] Detail indeks ke-${i}: sekolahId atau sekolahNama wajib diisi untuk kategori peserta didik`);
           }
@@ -233,29 +220,83 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
           if (sekolahId || sekolahNama) {
             throw new Error(`[VALIDASI] Detail indeks ke-${i}: Kategori '${kategori.nama}' adalah non-peserta didik, tidak boleh mengisi sekolahId atau sekolahNama`);
           }
-
           if (posyanduId) {
             const exists = await tx.posyandu.findUnique({ where: { id: posyanduId } });
             if (!exists) {
               throw new Error(`[NOT_FOUND] Detail indeks ke-${i}: Posyandu dengan ID ${posyanduId} tidak ditemukan`);
             }
-            resolvedPosyanduId = posyanduId;
           } else if (posyanduNama) {
             const normalizedNama = posyanduNama.trim();
             if (!normalizedNama) {
               throw new Error(`[VALIDASI] Detail indeks ke-${i}: nama posyandu tidak boleh kosong`);
             }
-            let posyanduObj = await tx.posyandu.findFirst({
-              where: { nama: { equals: normalizedNama, mode: "insensitive" } }
-            });
-            if (!posyanduObj) {
+          } else {
+            throw new Error(`[VALIDASI] Detail indeks ke-${i}: posyanduId atau posyanduNama wajib diisi untuk kategori non-peserta didik`);
+          }
+        }
+      }
+
+      // D. All validations passed, resolve ids and perform writes/creations
+      const resolvedDetails = [];
+      for (let i = 0; i < detail.length; i++) {
+        const item = detail[i];
+        const { kategoriId, sekolahId, sekolahNama, posyanduId, posyanduNama, lakiLaki, perempuan } = item;
+        const kategori = resolvedCategories[i];
+
+        let resolvedSekolahId = null;
+        let resolvedPosyanduId = null;
+
+        if (kategori.jenisSasaran === "PESERTA_DIDIK") {
+          if (sekolahId) {
+            resolvedSekolahId = sekolahId;
+          } else if (sekolahNama) {
+            const normalizedNama = sekolahNama.trim();
+            let sekolahObj;
+            try {
+              sekolahObj = await tx.sekolah.create({
+                data: { nama: normalizedNama }
+              });
+            } catch (err) {
+              if (err.code === "P2002") {
+                sekolahObj = await tx.sekolah.findUnique({
+                  where: { nama: normalizedNama }
+                });
+                if (!sekolahObj) {
+                  sekolahObj = await tx.sekolah.findFirst({
+                    where: { nama: { equals: normalizedNama, mode: "insensitive" } }
+                  });
+                }
+              } else {
+                throw err;
+              }
+            }
+            resolvedSekolahId = sekolahObj.id;
+          }
+        } else if (kategori.jenisSasaran === "NON_PESERTA_DIDIK") {
+          if (posyanduId) {
+            resolvedPosyanduId = posyanduId;
+          } else if (posyanduNama) {
+            const normalizedNama = posyanduNama.trim();
+            let posyanduObj;
+            try {
               posyanduObj = await tx.posyandu.create({
                 data: { nama: normalizedNama }
               });
+            } catch (err) {
+              if (err.code === "P2002") {
+                posyanduObj = await tx.posyandu.findUnique({
+                  where: { nama: normalizedNama }
+                });
+                if (!posyanduObj) {
+                  posyanduObj = await tx.posyandu.findFirst({
+                    where: { nama: { equals: normalizedNama, mode: "insensitive" } }
+                  });
+                }
+              } else {
+                throw err;
+              }
             }
             resolvedPosyanduId = posyanduObj.id;
-          } else {
-            throw new Error(`[VALIDASI] Detail indeks ke-${i}: posyanduId atau posyanduNama wajib diisi untuk kategori non-peserta didik`);
           }
         }
 
@@ -263,8 +304,8 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
           kategoriId,
           sekolahId: resolvedSekolahId,
           posyanduId: resolvedPosyanduId,
-          lakiLaki: numLaki,
-          perempuan: numPerempuan
+          lakiLaki: parseInt(lakiLaki, 10),
+          perempuan: parseInt(perempuan, 10)
         });
       }
 
@@ -363,7 +404,8 @@ router.put("/penerima-manfaat/:id", requireAuth, requireRole("ASLAP"), async (re
           throw new Error("[VALIDASI] detail harus berupa array");
         }
 
-        resolvedDetails = [];
+        // C1. Validate all detail items (read-only checks first)
+        const resolvedCategories = [];
         for (let i = 0; i < detail.length; i++) {
           const item = detail[i];
           const { kategoriId, sekolahId, sekolahNama, posyanduId, posyanduNama, lakiLaki, perempuan } = item;
@@ -376,6 +418,7 @@ router.put("/penerima-manfaat/:id", requireAuth, requireRole("ASLAP"), async (re
           if (!kategori) {
             throw new Error(`[NOT_FOUND] Detail indeks ke-${i}: Kategori dengan ID ${kategoriId} tidak ditemukan`);
           }
+          resolvedCategories[i] = kategori;
 
           const numLaki = parseInt(lakiLaki, 10);
           const numPerempuan = parseInt(perempuan, 10);
@@ -386,34 +429,20 @@ router.put("/penerima-manfaat/:id", requireAuth, requireRole("ASLAP"), async (re
             throw new Error(`[VALIDASI] Detail indeks ke-${i}: Jumlah perempuan harus berupa angka non-negatif`);
           }
 
-          let resolvedSekolahId = null;
-          let resolvedPosyanduId = null;
-
           if (kategori.jenisSasaran === "PESERTA_DIDIK") {
             if (posyanduId || posyanduNama) {
               throw new Error(`[VALIDASI] Detail indeks ke-${i}: Kategori '${kategori.nama}' adalah peserta didik, tidak boleh mengisi posyanduId atau posyanduNama`);
             }
-
             if (sekolahId) {
               const exists = await tx.sekolah.findUnique({ where: { id: sekolahId } });
               if (!exists) {
                 throw new Error(`[NOT_FOUND] Detail indeks ke-${i}: Sekolah dengan ID ${sekolahId} tidak ditemukan`);
               }
-              resolvedSekolahId = sekolahId;
             } else if (sekolahNama) {
               const normalizedNama = sekolahNama.trim();
               if (!normalizedNama) {
                 throw new Error(`[VALIDASI] Detail indeks ke-${i}: nama sekolah tidak boleh kosong`);
               }
-              let sekolahObj = await tx.sekolah.findFirst({
-                where: { nama: { equals: normalizedNama, mode: "insensitive" } }
-              });
-              if (!sekolahObj) {
-                sekolahObj = await tx.sekolah.create({
-                  data: { nama: normalizedNama }
-                });
-              }
-              resolvedSekolahId = sekolahObj.id;
             } else {
               throw new Error(`[VALIDASI] Detail indeks ke-${i}: sekolahId atau sekolahNama wajib diisi untuk kategori peserta didik`);
             }
@@ -421,29 +450,83 @@ router.put("/penerima-manfaat/:id", requireAuth, requireRole("ASLAP"), async (re
             if (sekolahId || sekolahNama) {
               throw new Error(`[VALIDASI] Detail indeks ke-${i}: Kategori '${kategori.nama}' adalah non-peserta didik, tidak boleh mengisi sekolahId atau sekolahNama`);
             }
-
             if (posyanduId) {
               const exists = await tx.posyandu.findUnique({ where: { id: posyanduId } });
               if (!exists) {
                 throw new Error(`[NOT_FOUND] Detail indeks ke-${i}: Posyandu dengan ID ${posyanduId} tidak ditemukan`);
               }
-              resolvedPosyanduId = posyanduId;
             } else if (posyanduNama) {
               const normalizedNama = posyanduNama.trim();
               if (!normalizedNama) {
                 throw new Error(`[VALIDASI] Detail indeks ke-${i}: nama posyandu tidak boleh kosong`);
               }
-              let posyanduObj = await tx.posyandu.findFirst({
-                where: { nama: { equals: normalizedNama, mode: "insensitive" } }
-              });
-              if (!posyanduObj) {
+            } else {
+              throw new Error(`[VALIDASI] Detail indeks ke-${i}: posyanduId atau posyanduNama wajib diisi untuk kategori non-peserta didik`);
+            }
+          }
+        }
+
+        // C2. All validations passed, resolve ids and perform writes/creations
+        resolvedDetails = [];
+        for (let i = 0; i < detail.length; i++) {
+          const item = detail[i];
+          const { kategoriId, sekolahId, sekolahNama, posyanduId, posyanduNama, lakiLaki, perempuan } = item;
+          const kategori = resolvedCategories[i];
+
+          let resolvedSekolahId = null;
+          let resolvedPosyanduId = null;
+
+          if (kategori.jenisSasaran === "PESERTA_DIDIK") {
+            if (sekolahId) {
+              resolvedSekolahId = sekolahId;
+            } else if (sekolahNama) {
+              const normalizedNama = sekolahNama.trim();
+              let sekolahObj;
+              try {
+                sekolahObj = await tx.sekolah.create({
+                  data: { nama: normalizedNama }
+                });
+              } catch (err) {
+                if (err.code === "P2002") {
+                  sekolahObj = await tx.sekolah.findUnique({
+                    where: { nama: normalizedNama }
+                  });
+                  if (!sekolahObj) {
+                    sekolahObj = await tx.sekolah.findFirst({
+                      where: { nama: { equals: normalizedNama, mode: "insensitive" } }
+                    });
+                  }
+                } else {
+                  throw err;
+                }
+              }
+              resolvedSekolahId = sekolahObj.id;
+            }
+          } else if (kategori.jenisSasaran === "NON_PESERTA_DIDIK") {
+            if (posyanduId) {
+              resolvedPosyanduId = posyanduId;
+            } else if (posyanduNama) {
+              const normalizedNama = posyanduNama.trim();
+              let posyanduObj;
+              try {
                 posyanduObj = await tx.posyandu.create({
                   data: { nama: normalizedNama }
                 });
+              } catch (err) {
+                if (err.code === "P2002") {
+                  posyanduObj = await tx.posyandu.findUnique({
+                    where: { nama: normalizedNama }
+                  });
+                  if (!posyanduObj) {
+                    posyanduObj = await tx.posyandu.findFirst({
+                      where: { nama: { equals: normalizedNama, mode: "insensitive" } }
+                    });
+                  }
+                } else {
+                  throw err;
+                }
               }
               resolvedPosyanduId = posyanduObj.id;
-            } else {
-              throw new Error(`[VALIDASI] Detail indeks ke-${i}: posyanduId atau posyanduNama wajib diisi untuk kategori non-peserta didik`);
             }
           }
 
@@ -451,8 +534,8 @@ router.put("/penerima-manfaat/:id", requireAuth, requireRole("ASLAP"), async (re
             kategoriId,
             sekolahId: resolvedSekolahId,
             posyanduId: resolvedPosyanduId,
-            lakiLaki: numLaki,
-            perempuan: numPerempuan
+            lakiLaki: parseInt(lakiLaki, 10),
+            perempuan: parseInt(perempuan, 10)
           });
         }
       }
