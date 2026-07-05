@@ -27,6 +27,17 @@ export const MenuHarianList = () => {
     const [pengirimanForm, setPengirimanForm] = useState({}); // { [menuHarianId]: { jenisPorsi, kendaraanId, catatan } }
     const [kendaraanForm, setKendaraanForm] = useState({ namaKendaraan: '', platNomor: '', aktif: true });
     const [editingKendaraan, setEditingKendaraan] = useState(null); // null = mode tambah, object = mode edit
+    // State Master Menu
+    const [masterMenuList, setMasterMenuList] = useState([]);
+    const [masterMenuForm, setMasterMenuForm] = useState({
+        jalur: 'SISWA',
+        hari: 'SENIN',
+        menuKarbohidrat: '',
+        menuLaukHewani: '',
+        menuLaukNabati: '',
+        menuSayur: '',
+        menuBuah: ''
+    });
 
     const KOMPONEN_OPTIONS = ["KARBOHIDRAT", "LAUK_HEWANI", "LAUK_NABATI", "SAYUR", "BUAH"];
     const BAHAN_FIELDS = ['bahanPokokId', 'beratBersihGr', 'beratURT', 'energiKkal', 'proteinGr', 'lemakGr', 'karbohidratGr', 'seratGr', 'bddPersen', 'hargaSatuan', 'beratSatuanGr'];
@@ -53,6 +64,18 @@ export const MenuHarianList = () => {
     useEffect(() => {
         request('/gizi/kendaraan').then(r => r.json()).then(d => setKendaraanList(d));
     }, []);
+
+    // Fetch Master Menu list saat periodeId berubah
+    useEffect(() => {
+        if (!periodeId) return;
+        request(`/gizi/master-menu?periodeId=${periodeId}`)
+            .then(r => {
+                if (r.ok) return r.json();
+                return [];
+            })
+            .then(d => setMasterMenuList(d))
+            .catch(() => {});
+    }, [periodeId]);
 
     const load = async (pid) => {
         if (!pid) return;
@@ -424,6 +447,75 @@ export const MenuHarianList = () => {
         }
     };
 
+    // ==========================================
+    // MASTER MENU MINGGUAN
+    // ==========================================
+
+    const addMasterMenu = async (e) => {
+        e.preventDefault();
+        setError('');
+        
+        if (!periodeId) {
+            setError('Periode tidak valid. Silakan pilih periode terlebih dahulu.');
+            return;
+        }
+
+        const {
+            jalur,
+            hari,
+            menuKarbohidrat,
+            menuLaukHewani,
+            menuLaukNabati,
+            menuSayur,
+            menuBuah
+        } = masterMenuForm;
+
+        // Validasi frontend sebelum request
+        if (!jalur || !hari || !menuKarbohidrat || !menuLaukHewani || !menuLaukNabati || !menuSayur || !menuBuah) {
+            setError('Semua field wajib diisi.');
+            return;
+        }
+
+        try {
+            const r = await request('/gizi/master-menu', {
+                method: 'POST',
+                body: JSON.stringify({
+                    periodeId,
+                    jalur,
+                    hari,
+                    menuKarbohidrat,
+                    menuLaukHewani,
+                    menuLaukNabati,
+                    menuSayur,
+                    menuBuah
+                })
+            });
+
+            if (r.ok) {
+                // Refresh list master menu berdasarkan periodeId yang sedang aktif
+                const rList = await request(`/gizi/master-menu?periodeId=${periodeId}`);
+                if (rList.ok) {
+                    setMasterMenuList(await rList.json());
+                }
+                // Reset form (kembalikan menu ke string kosong, pertahankan default jalur/hari)
+                setMasterMenuForm({
+                    jalur: 'SISWA',
+                    hari: 'SENIN',
+                    menuKarbohidrat: '',
+                    menuLaukHewani: '',
+                    menuLaukNabati: '',
+                    menuSayur: '',
+                    menuBuah: ''
+                });
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                setError(d.error || 'Terjadi kesalahan server saat menyimpan master menu');
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
     return (
         <div>
             <h2>Menu Harian</h2>
@@ -505,6 +597,106 @@ export const MenuHarianList = () => {
                         {kendaraanList.length === 0 && (
                             <tr>
                                 <td colSpan={4}>Belum ada kendaraan terdaftar.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </section>
+
+            {/* ================================================ */}
+            {/* SECTION 3 — MASTER MENU MINGGUAN (REFERENSI)     */}
+            {/* ================================================ */}
+            <section style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '15px' }}>
+                <h3>Master Menu Mingguan (Referensi)</h3>
+
+                {/* Form Tambah Master Menu */}
+                <form onSubmit={addMasterMenu}>
+                    <select
+                        value={masterMenuForm.jalur}
+                        onChange={e => setMasterMenuForm(prev => ({ ...prev, jalur: e.target.value }))}
+                        required
+                    >
+                        <option value="SISWA">SISWA</option>
+                        <option value="TIGA_B">TIGA_B</option>
+                    </select>
+
+                    <select
+                        value={masterMenuForm.hari}
+                        onChange={e => setMasterMenuForm(prev => ({ ...prev, hari: e.target.value }))}
+                        required
+                    >
+                        <option value="SENIN">SENIN</option>
+                        <option value="SELASA">SELASA</option>
+                        <option value="RABU">RABU</option>
+                        <option value="KAMIS">KAMIS</option>
+                        <option value="JUMAT">JUMAT</option>
+                        <option value="SABTU">SABTU</option>
+                    </select>
+
+                    <input
+                        placeholder="Menu Karbohidrat"
+                        value={masterMenuForm.menuKarbohidrat}
+                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuKarbohidrat: e.target.value }))}
+                        required
+                    />
+                    <input
+                        placeholder="Menu Lauk Hewani"
+                        value={masterMenuForm.menuLaukHewani}
+                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuLaukHewani: e.target.value }))}
+                        required
+                    />
+                    <input
+                        placeholder="Menu Lauk Nabati"
+                        value={masterMenuForm.menuLaukNabati}
+                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuLaukNabati: e.target.value }))}
+                        required
+                    />
+                    <input
+                        placeholder="Menu Sayur"
+                        value={masterMenuForm.menuSayur}
+                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuSayur: e.target.value }))}
+                        required
+                    />
+                    <input
+                        placeholder="Menu Buah"
+                        value={masterMenuForm.menuBuah}
+                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuBuah: e.target.value }))}
+                        required
+                    />
+
+                    <button type="submit">Tambah Master Menu</button>
+                </form>
+
+                {/* Tabel Read-only Daftar Master Menu */}
+                <table border="1" cellPadding="4" style={{ marginTop: '8px', width: '100%' }}>
+                    <thead>
+                        <tr>
+                            <th>Jalur</th>
+                            <th>Hari</th>
+                            <th>Karbohidrat</th>
+                            <th>Lauk Hewani</th>
+                            <th>Lauk Nabati</th>
+                            <th>Sayur</th>
+                            <th>Buah</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {masterMenuList.map(m => (
+                            <tr key={m.id}>
+                                <td>{m.jalur}</td>
+                                <td>{m.hari}</td>
+                                <td>{m.menuKarbohidrat}</td>
+                                <td>{m.menuLaukHewani}</td>
+                                <td>{m.menuLaukNabati}</td>
+                                <td>{m.menuSayur}</td>
+                                <td>{m.menuBuah}</td>
+                            </tr>
+                        ))}
+                        {masterMenuList.length === 0 && (
+                            <tr>
+                                <td colSpan={7} style={{ textAlign: 'center' }}>
+                                    Belum ada data master menu untuk periode ini.
+                                </td>
                             </tr>
                         )}
                     </tbody>

@@ -27,14 +27,15 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Integrasi Dropdown & Endpoint KelompokUmurMenu** — Pengecekan visual 3 dropdown (Aslap/Mitra/Gizi) berhasil terformat YYYY-MM-DD setelah backend & frontend di-restart total. Menambahkan endpoint GET `/api/gizi/kelompok-umur-menu` di backend untuk memuat dropdown kelompok umur menu.
 - [x] **Frontend Tahap 3 (Gizi) — Menu Harian, Blok, Organoleptik & Alergi** — Implementasi CRUD MenuHarianBlok, MenuItem, MenuItemBahan (10 field gizi + computed), TargetGizi (create-only), Uji Organoleptik (form & list dengan auto-retensi sampel chiller 3 hari), dan AlergiCatatan (CRUD) selesai. Gap refresh data hilang kini terselesaikan (CLOSED) karena backend GET `/menu-harian` telah diperbarui untuk meng-include relasi detail tersebut.
 - [x] **P2003/23001 Fallback & DB PC Setup** — PostgreSQL 18 lokal di PC di-migrate (`migrate deploy`) dan di-seed (`prisma/seed.js`) 100% sukses. Menambahkan check defensive untuk error `23001` (foreign key constraint) di catch block `DELETE /menu-harian` (gizi.js) dan `DELETE /rab-harian` (akuntan.js). Kedua endpoint dan server restart total telah diuji lulus regresi.
-- [x] **Frontend Tahap 3 (Gizi) — Kendaraan & PengirimanHarian Setup** — Desain state (`kendaraanList`, `pengirimanByMenu`, `pengirimanForm`, `kendaraanForm`, `editingKendaraan`) dan grouping data logic disepakati. Implementasi fungsi loading (`load` dengan O(1) HTTP query), CRUD Kendaraan (`addKendaraan`, `updateKendaraan`, `startEditKendaraan`, `deleteKendaraan`), dan `addPengiriman` selesai dirancang & disetujui.
+- [x] **Frontend Tahap 3 (Gizi) — Kendaraan, PengirimanHarian & MasterMenuMingguan** — Integrasi komponen UI form/list untuk Kendaraan, PengirimanHarian, dan Master Menu Mingguan (Referensi) di MenuHarianList.jsx selesai sepenuhnya dan teruji manual di browser.
+- [x] **Master Menu Mingguan (Referensi)** — Form create (5 field + 2 dropdown), read-only table list, and automatic refresh on submit based on active periodeId successfully integrated.
 
 ## Sedang jalan / berikutnya
 
-- [ ] Frontend Tahap 3 (Gizi) — Menyelesaikan sisa scope: Integrasi komponen UI form/list untuk Kendaraan & PengirimanHarian di MenuHarianList.jsx, serta konfirmasi relevansi MasterMenuMingguan.
+- [ ] Frontend Tahap 4 — Memulai modul berikutnya (misal Akuntan panels / Ledger / RAB).
 
 ## Belum dikerjakan sama sekali
 
-- UI/UX Frontend seluruhnya.
+- UI/UX Frontend seluruhnya (Akuntan & Kepala SPPG panels).
 - Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
-- Akuntan & Kepala SPPG panels.
+
