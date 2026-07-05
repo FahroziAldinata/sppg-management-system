@@ -6,12 +6,12 @@ Legenda: ✅ selesai · 🟡 sebagian/ada gap · ⬜ belum mulai
 |---|---|---|---|---|---|---|
 | User & Auth | ✅ | ✅ | ✅ | — | ✅ | JWT stateless, `requireAuth`/`requireRole` di `src/middleware/auth.js` |
 | Periode & SetupLembaga | ✅ | ✅ (1 contoh) | — | — | ⬜ | Dikelola dari seed / database |
-| Taksonomi (KategoriPenerima, KelompokUmurMenu, BatasHargaPorsi) | ✅ | ✅ | — | — | ⬜ | Mapping many-to-many sudah diseed sesuai v5.3 |
+| Taksonomi (KategoriPenerima, KelompokUmurMenu, BatasHargaPorsi) | ✅ | ✅ | 🟡 | — | ⬜ | Mapping many-to-many sudah diseed sesuai v5.3. API GET kelompok-umur-menu selesai. |
 | Aslap — Input Penerima Manfaat | ✅ | ✅ (Sekolah & Posyandu) | ✅ | ⬜ | ✅ | `hariAktif` array (v5), validasi non-overlap dengan row lock (`SELECT FOR UPDATE`), dan findOrCreate sekolah/posyandu selesai |
 | Aslap — Jumlah Per Kelas | ✅ (pembantu) | ⬜ | ✅ | — | ⬜ | `SekolahKelasDetail` CRUD selesai, tidak dipakai laporan resmi |
-| Mitra — Harga Bahan | ✅ | ⬜ | ✅ | — | ⬜ | CRUD HargaBahanPeriode & read-only BahanPokok selesai |
+| Mitra — Harga Bahan | ✅ | ⬜ | ✅ | — | ✅ | CRUD HargaBahanPeriode & read-only BahanPokok selesai |
 | Stok (Saldo/Masuk/Keluar) | ✅ | ✅ (Bahan) | ✅ | ✅ | ⬜ | POST SaldoAwalBarang, MutasiStok MASUK/KELUAR selesai, dan Laporan Stock Barang teruji |
-| Menu (Master, Harian, Blok, Item, Bahan, Target Gizi, Organoleptik) | ✅ | ⬜ | ✅ | ✅ | ⬜ | Nilai gizi manual, jangan bikin auto-calc. MasterMenuMingguan diselesaikan. |
+| Menu (Master, Harian, Blok, Item, Bahan, Target Gizi, Organoleptik) | ✅ | ⬜ | ✅ | ✅ | 🟡 | CRUD MenuHarianBlok, MenuItem, MenuItemBahan, & TargetGizi (create-only) selesai di frontend. Catatan: data sub-item masih local-state dan hilang saat refresh halaman karena kendala include di query GET /menu-harian backend. |
 | Alergi | ✅ (v5) | — | ✅ | ✅ | ⬜ | AlergiCatatan CRUD selesai. |
 | Pengiriman (Kendaraan) | ✅ (v5) | ✅ | ✅ | — | ⬜ | CRUD Kendaraan & PengirimanHarian selesai. |
 | RAB Harian & Pembelian | ✅ | ⬜ | ✅ | — | ⬜ | CRUD RabHarian selesai dengan manual cascade delete dan JurnalTransaksi conflict check. |

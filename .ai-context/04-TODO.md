@@ -36,5 +36,5 @@ Urutan disarankan. Jangan lompat ke frontend sebelum backend inti + seed selesai
  
 ## 5. Baru setelah semua di atas jalan → mulai frontend
  
-- [ ] Setup Vite + routing per role.
-- [ ] Dashboard per role sesuai alur kerja di `00-PROJECT.md`.
+- [x] Setup Vite + routing per role.
+- [ ] Dashboard per role sesuai alur kerja di `00-PROJECT.md` (Aslap & Mitra selesai, Gizi sedang jalan, Akuntan & Kepala belum mulai).

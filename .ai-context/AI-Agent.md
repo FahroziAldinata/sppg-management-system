@@ -41,9 +41,8 @@ backend/
 ## Status saat ini (ringkas — detail di `02-PROGRESS.md`)
 
 - Schema v5.6 **selesai**, sudah di-migrate + di-seed ke PostgreSQL **lokal**.
-- **Auth SELESAI** — JWT stateless, `requireAuth`/`requireRole` di `src/middleware/auth.js`, login di `src/routes/auth.js`. Pola respons & error sudah baku, IKUTI POLA INI untuk endpoint baru (lihat contoh di bawah).
-- **Belum ada** endpoint modul (Aslap/Mitra/Ahli Gizi/Akuntan/Kepala SPPG) — ini kerjaan berikutnya.
-- Frontend **BELUM DIMULAI** — jangan buatkan kode React sebelum semua endpoint di `04-TODO.md` §3 selesai.
+- **Auth & Seluruh API Backend SELESAI** — Backend routes (Aslap, Mitra, Ahli Gizi, Akuntan, Kepala SPPG, dan Laporan Agregasi) selesai diimplementasikan 100% dan diuji.
+- **Frontend SEDANG BERJALAN** — Vite + React + React Router v6 scaffolded. Halaman login, layout shell, modul Aslap (CRUD Penerima Manfaat) dan Mitra (CRUD Harga Bahan Periode) selesai 100%. Halaman Gizi (Menu Harian) sedang dalam pengembangan.
 
 ## Pola yang WAJIB diikuti untuk endpoint baru (konsisten sama auth)
 
