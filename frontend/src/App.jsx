@@ -7,6 +7,7 @@ import { Layout } from './components/Layout';
 import { AslapDashboard } from './pages/aslap/AslapDashboard';
 import { MitraDashboard } from './pages/mitra/MitraDashboard';
 import { MenuHarianList } from './pages/gizi/MenuHarianList';
+import { AkuntanDashboard } from './pages/akuntan/AkuntanDashboard';
 import { useAuth } from './context/AuthContext';
 
 function RoleRedirect() {
@@ -15,6 +16,7 @@ function RoleRedirect() {
   if (user.role === 'ASLAP') return <Navigate to="/aslap" replace />;
   if (user.role === 'MITRA') return <Navigate to="/mitra" replace />;
   if (user.role === 'AHLI_GIZI') return <Navigate to="/gizi/menu-harian" replace />;
+  if (user.role === 'AKUNTAN') return <Navigate to="/akuntan" replace />;
   return <div>Selamat datang, {user.nama} ({user.role}). Halaman modul Anda belum diimplementasikan.</div>;
 }
 
@@ -54,6 +56,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['AHLI_GIZI']}>
                   <MenuHarianList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <AkuntanDashboard />
                 </ProtectedRoute>
               }
             />

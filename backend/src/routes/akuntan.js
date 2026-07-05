@@ -2225,4 +2225,29 @@ router.get("/validasi-stok/preview", requireAuth, requireRole("AKUNTAN"), async 
   }
 });
 
+// GET /api/akuntan/akun - List all active accounts
+router.get("/akun", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const list = await prisma.akun.findMany({
+      where: {
+        aktif: true
+      },
+      select: {
+        id: true,
+        kode: true,
+        nama: true,
+        tipe: true,
+        kategoriDana: true
+      },
+      orderBy: {
+        kode: "asc"
+      }
+    });
+    res.json(list);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data akun" });
+  }
+});
+
 module.exports = router;
