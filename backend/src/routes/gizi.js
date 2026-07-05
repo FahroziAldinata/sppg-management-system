@@ -1283,6 +1283,7 @@ router.delete("/kendaraan/:id", requireAuth, requireRole("AHLI_GIZI"), async (re
   } catch (error) {
     console.error(error);
     if (error.code === "P2025") return res.status(404).json({ error: "Data kendaraan tidak ditemukan" });
+    if (error.code === "P2003" || error.message?.includes("23001") || error.message?.includes("foreign key constraint")) return res.status(409).json({ error: "Kendaraan tidak dapat dihapus karena masih digunakan pada data pengiriman" });
     res.status(500).json({ error: "Terjadi kesalahan server saat menghapus kendaraan" });
   }
 });

@@ -48,8 +48,28 @@ export const MenuHarianList = () => {
     const load = async (pid) => {
         if (!pid) return;
         const r = await request(`/gizi/menu-harian?periodeId=${pid}`);
-        if (r.ok) setItems(await r.json());
-        else setError((await r.json()).error);
+        if (!r.ok) { setError((await r.json()).error); return; }
+        const data = await r.json();
+        setItems(data);
+
+        const orgMap = {};
+        const alergiMap = {};
+        const menuItemMap = {};
+        const bahanMap = {};
+        for (const menu of data) {
+            for (const blok of menu.blok) {
+                if (blok.organoleptik) orgMap[blok.id] = blok.organoleptik;
+                alergiMap[blok.id] = blok.alergi || [];
+                menuItemMap[blok.id] = blok.menuItem || [];
+                for (const item of (blok.menuItem || [])) {
+                    bahanMap[item.id] = item.bahan || [];
+                }
+            }
+        }
+        setOrganoleptikByBlok(orgMap);
+        setAlergiByBlok(alergiMap);
+        setMenuItemsByBlok(menuItemMap);
+        setBahanByMenuItem(bahanMap);
     };
 
     useEffect(() => { load(periodeId); }, [periodeId]);
