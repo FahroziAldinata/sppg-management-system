@@ -11,8 +11,8 @@ Legenda: ✅ selesai · 🟡 sebagian/ada gap · ⬜ belum mulai
 | Aslap — Jumlah Per Kelas | ✅ (pembantu) | ⬜ | ✅ | — | ⬜ | `SekolahKelasDetail` CRUD selesai, tidak dipakai laporan resmi |
 | Mitra — Harga Bahan | ✅ | ⬜ | ✅ | — | ✅ | CRUD HargaBahanPeriode & read-only BahanPokok selesai |
 | Stok (Saldo/Masuk/Keluar) | ✅ | ✅ (Bahan) | ✅ | ✅ | ⬜ | POST SaldoAwalBarang, MutasiStok MASUK/KELUAR selesai, dan Laporan Stock Barang teruji |
-| Menu (Master, Harian, Blok, Item, Bahan, Target Gizi, Organoleptik) | ✅ | ⬜ | ✅ | ✅ | 🟡 | CRUD MenuHarianBlok, MenuItem, MenuItemBahan, & TargetGizi (create-only) selesai di frontend. Catatan: data sub-item masih local-state dan hilang saat refresh halaman karena kendala include di query GET /menu-harian backend. |
-| Alergi | ✅ (v5) | — | ✅ | ✅ | ⬜ | AlergiCatatan CRUD selesai. |
+| Menu (Master, Harian, Blok, Item, Bahan, Target Gizi, Organoleptik) | ✅ | ⬜ | ✅ | ✅ | 🟡 | CRUD MenuHarianBlok, MenuItem, MenuItemBahan, TargetGizi (create-only), & Organoleptik (dilengkapi retensi sampel chiller 3 hari) selesai di frontend. Data detail persist via include pada query GET /menu-harian backend. |
+| Alergi | ✅ (v5) | — | ✅ | ✅ | ✅ | AlergiCatatan CRUD selesai (frontend & backend). |
 | Pengiriman (Kendaraan) | ✅ (v5) | ✅ | ✅ | — | ⬜ | CRUD Kendaraan & PengirimanHarian selesai. |
 | RAB Harian & Pembelian | ✅ | ⬜ | ✅ | — | ⬜ | CRUD RabHarian selesai dengan manual cascade delete dan JurnalTransaksi conflict check. |
 | Anggaran Resmi (AnggaranHarian) | ✅ | ⬜ | ✅ | — | ⬜ | CRUD AnggaranHarian selesai dengan BatasHargaPorsi validation dan non-zero aktual check. |

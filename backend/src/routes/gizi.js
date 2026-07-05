@@ -34,7 +34,10 @@ router.get("/menu-harian", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPAL
       include: {
         blok: {
           include: {
-            kelompokUmurMenu: true
+            kelompokUmurMenu: true,
+            organoleptik: true,
+            alergi: true,
+            menuItem: { include: { bahan: true } }
           }
         }
       },
@@ -56,7 +59,10 @@ router.get("/menu-harian/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "K
       include: {
         blok: {
           include: {
-            kelompokUmurMenu: true
+            kelompokUmurMenu: true,
+            organoleptik: true,
+            alergi: true,
+            menuItem: { include: { bahan: true } }
           }
         }
       }
@@ -943,7 +949,7 @@ router.get("/menu-organoleptik/:id", requireAuth, requireRole("AHLI_GIZI", "ASLA
 // POST /api/gizi/menu-organoleptik - Create MenuOrganoleptik
 router.post("/menu-organoleptik", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
   try {
-    const { blokId, rasa, aroma, tekstur, suhuSaji, catatan, ujiPadaTanggal } = req.body || {};
+    const { blokId, rasa, aroma, tekstur, suhuSaji, catatan, ujiPadaTanggal, jumlahOmpreng } = req.body || {};
 
     if (!blokId) return res.status(400).json({ error: "blokId wajib diisi" });
     if (!rasa) return res.status(400).json({ error: "rasa wajib diisi" });
@@ -951,8 +957,18 @@ router.post("/menu-organoleptik", requireAuth, requireRole("AHLI_GIZI"), async (
     if (!tekstur) return res.status(400).json({ error: "tekstur wajib diisi" });
     if (!suhuSaji) return res.status(400).json({ error: "suhuSaji wajib diisi" });
 
+    const cleanJumlahOmpreng = jumlahOmpreng !== undefined ? parseInt(jumlahOmpreng, 10) : 1;
+    if (isNaN(cleanJumlahOmpreng) || cleanJumlahOmpreng <= 0) {
+      return res.status(400).json({ error: "jumlahOmpreng harus berupa bilangan bulat positif" });
+    }
+
+    const targetUjiTanggal = ujiPadaTanggal ? new Date(ujiPadaTanggal) : new Date();
+    if (isNaN(targetUjiTanggal.getTime())) {
+      return res.status(400).json({ error: "Format ujiPadaTanggal tidak valid" });
+    }
+    const tanggalMusnah = new Date(targetUjiTanggal.getTime() + 3 * 24 * 60 * 60 * 1000); // retensi 3 hari
+
     const created = await prisma.$transaction(async (tx) => {
-      // Validate block exists
       const block = await tx.menuHarianBlok.findUnique({ where: { id: blokId } });
       if (!block) throw new Error("[NOT_FOUND] Blok menu harian tidak ditemukan");
 
@@ -964,7 +980,9 @@ router.post("/menu-organoleptik", requireAuth, requireRole("AHLI_GIZI"), async (
           tekstur,
           suhuSaji,
           catatan,
-          ujiPadaTanggal: ujiPadaTanggal ? new Date(ujiPadaTanggal) : undefined
+          ujiPadaTanggal: targetUjiTanggal,
+          jumlahOmpreng: cleanJumlahOmpreng,
+          tanggalMusnah
         }
       });
     });
@@ -987,11 +1005,29 @@ router.post("/menu-organoleptik", requireAuth, requireRole("AHLI_GIZI"), async (
 router.put("/menu-organoleptik/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
   try {
     const { id } = req.params;
-    const { rasa, aroma, tekstur, suhuSaji, catatan, ujiPadaTanggal } = req.body || {};
+    const { rasa, aroma, tekstur, suhuSaji, catatan, ujiPadaTanggal, jumlahOmpreng } = req.body || {};
 
     const updated = await prisma.$transaction(async (tx) => {
       const existing = await tx.menuOrganoleptik.findUnique({ where: { id } });
       if (!existing) throw new Error("[NOT_FOUND] Data uji organoleptik tidak ditemukan");
+
+      let cleanJumlahOmpreng = existing.jumlahOmpreng;
+      if (jumlahOmpreng !== undefined) {
+        cleanJumlahOmpreng = parseInt(jumlahOmpreng, 10);
+        if (isNaN(cleanJumlahOmpreng) || cleanJumlahOmpreng <= 0) {
+          throw new Error("[VALIDASI] jumlahOmpreng harus berupa bilangan bulat positif");
+        }
+      }
+
+      let targetUjiTanggal = existing.ujiPadaTanggal;
+      let tanggalMusnah = existing.tanggalMusnah;
+      if (ujiPadaTanggal !== undefined) {
+        targetUjiTanggal = new Date(ujiPadaTanggal);
+        if (isNaN(targetUjiTanggal.getTime())) {
+          throw new Error("[VALIDASI] Format ujiPadaTanggal tidak valid");
+        }
+        tanggalMusnah = new Date(targetUjiTanggal.getTime() + 3 * 24 * 60 * 60 * 1000);
+      }
 
       return await tx.menuOrganoleptik.update({
         where: { id },
@@ -1001,7 +1037,9 @@ router.put("/menu-organoleptik/:id", requireAuth, requireRole("AHLI_GIZI"), asyn
           tekstur: tekstur !== undefined ? tekstur : undefined,
           suhuSaji: suhuSaji !== undefined ? suhuSaji : undefined,
           catatan: catatan !== undefined ? catatan : undefined,
-          ujiPadaTanggal: ujiPadaTanggal !== undefined ? new Date(ujiPadaTanggal) : undefined
+          ujiPadaTanggal: targetUjiTanggal,
+          jumlahOmpreng: cleanJumlahOmpreng,
+          tanggalMusnah
         }
       });
     });

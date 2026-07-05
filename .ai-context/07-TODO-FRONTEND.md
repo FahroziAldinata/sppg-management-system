@@ -21,8 +21,8 @@ Tahap 1 — Validasi pola (1 role: Aslap)
  - [x] Ahli Gizi: MenuItem CRUD per blok (form & list)
  - [x] Ahli Gizi: MenuItemBahan CRUD (10 field gizi manual, computed, & local mapping)
  - [x] Ahli Gizi: MenuTargetGizi (list & create-only per blok)
- - [ ] Ahli Gizi: MenuOrganoleptik CRUD per blok
- - [ ] Ahli Gizi: AlergiCatatan CRUD per blok
+ - [x] Ahli Gizi: MenuOrganoleptik CRUD per blok
+ - [x] Ahli Gizi: AlergiCatatan CRUD per blok
  - [ ] Ahli Gizi: Kendaraan CRUD & PengirimanHarian
  - [ ] Ahli Gizi: MasterMenuMingguan (evaluasi kebutuhan/relevansi)
 Stop di sini, review pola dulu sebelum lanjut role lain — ponytail, jangan replicate pola yang belum kebukti bener.

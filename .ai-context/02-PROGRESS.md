@@ -25,12 +25,11 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **CORS Middleware & Setup Frontend (Tahap 0 & Tahap 1) selesai** — Pemasangan CORS di backend, scaffolding Vite + React + React Router v6, implementasi AuthContext, ProtectedRoute, useApi hook, halaman Login, Layout shell, dan CRUD Aslap (Penerima Manfaat) polos. Root cause CORS gagal = `node --watch` / nodemon **tidak reload middleware** saat `app.js` berubah (`.env` juga tidak di-reload). **Known gotcha:** tiap ubah `app.js` atau `.env`, backend **WAJIB restart total** — kill proses lalu `node index.js` (bukan `npm run dev` / `--watch`).
 - [x] **Frontend Tahap 2 (Mitra)** — CRUD HargaBahanPeriode & read-only BahanPokok selesai diuji 100% lulus (termasuk unique constraint validation, transaction, dan data bahan pokok seeded).
 - [x] **Integrasi Dropdown & Endpoint KelompokUmurMenu** — Pengecekan visual 3 dropdown (Aslap/Mitra/Gizi) berhasil terformat YYYY-MM-DD setelah backend & frontend di-restart total. Menambahkan endpoint GET `/api/gizi/kelompok-umur-menu` di backend untuk memuat dropdown kelompok umur menu.
-- [x] **Frontend Tahap 3 (Gizi) — Menu Harian & Blok (Sebagian)** — Implementasi CRUD MenuHarianBlok, MenuItem, MenuItemBahan (10 field gizi + computed), dan MenuTargetGizi (create-only) dalam state lokal selesai. Dicatat gap data MenuItem/Bahan/TargetGizi hilang setelah refresh karena backend GET `/menu-harian` belum melakukan include relasi tersebut.
+- [x] **Frontend Tahap 3 (Gizi) — Menu Harian, Blok, Organoleptik & Alergi** — Implementasi CRUD MenuHarianBlok, MenuItem, MenuItemBahan (10 field gizi + computed), TargetGizi (create-only), Uji Organoleptik (form & list dengan auto-retensi sampel chiller 3 hari), dan AlergiCatatan (CRUD) selesai. Gap refresh data hilang kini terselesaikan (CLOSED) karena backend GET `/menu-harian` telah diperbarui untuk meng-include relasi detail tersebut.
 
 ## Sedang jalan / berikutnya
 
-- [ ] Frontend Tahap 3 (Gizi) — Sisa scope: MenuOrganoleptik (1:1 blok), AlergiCatatan (1:many blok), Kendaraan & PengirimanHarian, serta konfirmasi relevansi MasterMenuMingguan.
-- [ ] Backend Refactoring (Optional) — Evaluasi apakah GET `/menu-harian` perlu include `menuItem`/`targetGizi` agar state di frontend persist saat refresh.
+- [ ] Frontend Tahap 3 (Gizi) — Sisa scope: Kendaraan & PengirimanHarian, serta konfirmasi relevansi MasterMenuMingguan.
 
 ## Belum dikerjakan sama sekali
 

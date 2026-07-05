@@ -17,6 +17,10 @@ export const MenuHarianList = () => {
     const [bahanPokokList, setBahanPokokList] = useState([]);
     const [bahanByMenuItem, setBahanByMenuItem] = useState({}); // { [menuItemId]: [bahan,...] }
     const [bahanForm, setBahanForm] = useState({}); // { [menuItemId]: { field: value } }
+    const [organoleptikByBlok, setOrganoleptikByBlok] = useState({}); // { [blokId]: data }
+    const [organoleptikForm, setOrganoleptikForm] = useState({}); // { [blokId]: { field: value } }
+    const [alergiByBlok, setAlergiByBlok] = useState({}); // { [blokId]: [item, ...] }
+    const [alergiForm, setAlergiForm] = useState({}); // { [blokId]: { field: value } }
 
     const KOMPONEN_OPTIONS = ["KARBOHIDRAT", "LAUK_HEWANI", "LAUK_NABATI", "SAYUR", "BUAH"];
     const BAHAN_FIELDS = ['bahanPokokId', 'beratBersihGr', 'beratURT', 'energiKkal', 'proteinGr', 'lemakGr', 'karbohidratGr', 'seratGr', 'bddPersen', 'hargaSatuan', 'beratSatuanGr'];
@@ -120,6 +124,84 @@ export const MenuHarianList = () => {
         }
     };
 
+    const setOrganoleptikField = (blokId, field, value) => {
+        setOrganoleptikForm(prev => ({ ...prev, [blokId]: { ...(prev[blokId] || {}), [field]: value } }));
+    };
+
+    const addOrganoleptik = async (blokId) => {
+        setError('');
+        const f = organoleptikForm[blokId] || {};
+        if (!f.rasa || !f.aroma || !f.tekstur || !f.suhuSaji) {
+            setError('Rasa, aroma, tekstur, suhuSaji wajib diisi');
+            return;
+        }
+        const r = await request('/gizi/menu-organoleptik', {
+            method: 'POST',
+            body: JSON.stringify({
+                blokId,
+                rasa: f.rasa,
+                aroma: f.aroma,
+                tekstur: f.tekstur,
+                suhuSaji: f.suhuSaji,
+                catatan: f.catatan || undefined,
+                jumlahOmpreng: f.jumlahOmpreng || undefined
+            })
+        });
+        const d = await r.json();
+        if (r.ok) {
+            setOrganoleptikByBlok(prev => ({ ...prev, [blokId]: d }));
+        } else {
+            setError(d.error);
+        }
+    };
+
+    const setAlergiField = (blokId, field, value) => {
+        setAlergiForm(prev => ({ ...prev, [blokId]: { ...(prev[blokId] || {}), [field]: value } }));
+    };
+
+    const addAlergi = async (blokId) => {
+        setError('');
+        const f = alergiForm[blokId] || {};
+        if (!f.jenisAlergi || f.jumlahSiswa === undefined || f.jumlahSiswa === '') {
+            setError('jenisAlergi dan jumlahSiswa wajib diisi');
+            return;
+        }
+        const cleanJumlah = parseInt(f.jumlahSiswa, 10);
+        if (isNaN(cleanJumlah) || cleanJumlah < 0) {
+            setError('jumlahSiswa harus berupa bilangan bulat non-negatif');
+            return;
+        }
+        const r = await request('/gizi/alergi-catatan', {
+            method: 'POST',
+            body: JSON.stringify({
+                blokId,
+                jenisAlergi: f.jenisAlergi,
+                jumlahSiswa: cleanJumlah,
+                bahanPengganti: f.bahanPengganti || undefined
+            })
+        });
+        const d = await r.json();
+        if (r.ok) {
+            setAlergiByBlok(prev => ({ ...prev, [blokId]: [...(prev[blokId] || []), d] }));
+            setAlergiForm(prev => ({ ...prev, [blokId]: {} }));
+        } else {
+            setError(d.error);
+        }
+    };
+
+    const deleteAlergi = async (blokId, alergiId) => {
+        setError('');
+        const r = await request(`/gizi/alergi-catatan/${alergiId}`, { method: 'DELETE' });
+        if (r.ok) {
+            setAlergiByBlok(prev => ({
+                ...prev,
+                [blokId]: (prev[blokId] || []).filter(item => item.id !== alergiId)
+            }));
+        } else {
+            setError((await r.json()).error);
+        }
+    };
+
     // TODO: MenuItem gak persist ke GET /menu-harian, backend include blm nyantol menuItem — nunggu keputusan tim backend.
     return (
         <div>
@@ -192,6 +274,42 @@ export const MenuHarianList = () => {
                                                 {KOMPONEN_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
                                             </select>
                                             <button onClick={() => addMenuItem(b.id)}>Tambah Menu Item</button>
+                                            <div style={{ border: '1px dashed gray', margin: '5px 0', padding: '5px' }}>
+                                                <strong>Uji Organoleptik</strong>
+                                                {organoleptikByBlok[b.id] ? (
+                                                    <div>
+                                                        Rasa: {organoleptikByBlok[b.id].rasa}, Aroma: {organoleptikByBlok[b.id].aroma}, Tekstur: {organoleptikByBlok[b.id].tekstur}, Suhu: {organoleptikByBlok[b.id].suhuSaji}
+                                                        <br />
+                                                        Ompreng: {organoleptikByBlok[b.id].jumlahOmpreng}, Musnah: {new Date(organoleptikByBlok[b.id].tanggalMusnah).toLocaleDateString('id-ID')} (chiller 3 hari)
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <input placeholder="Rasa" value={organoleptikForm[b.id]?.rasa || ''} onChange={e => setOrganoleptikField(b.id, 'rasa', e.target.value)} />
+                                                        <input placeholder="Aroma" value={organoleptikForm[b.id]?.aroma || ''} onChange={e => setOrganoleptikField(b.id, 'aroma', e.target.value)} />
+                                                        <input placeholder="Tekstur" value={organoleptikForm[b.id]?.tekstur || ''} onChange={e => setOrganoleptikField(b.id, 'tekstur', e.target.value)} />
+                                                        <input placeholder="Suhu Saji" value={organoleptikForm[b.id]?.suhuSaji || ''} onChange={e => setOrganoleptikField(b.id, 'suhuSaji', e.target.value)} />
+                                                        <input placeholder="Jumlah Ompreng (default 1)" type="number" value={organoleptikForm[b.id]?.jumlahOmpreng || ''} onChange={e => setOrganoleptikField(b.id, 'jumlahOmpreng', e.target.value)} />
+                                                        <input placeholder="Catatan (opsional)" value={organoleptikForm[b.id]?.catatan || ''} onChange={e => setOrganoleptikField(b.id, 'catatan', e.target.value)} />
+                                                        <button onClick={() => addOrganoleptik(b.id)}>Simpan Uji Organoleptik</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div style={{ border: '1px dashed gray', margin: '5px 0', padding: '5px' }}>
+                                                <strong>Catatan Alergi</strong>
+                                                <ul>
+                                                    {(alergiByBlok[b.id] || []).map(item => (
+                                                        <li key={item.id}>
+                                                            {item.jenisAlergi} — {item.jumlahSiswa} siswa
+                                                            {item.bahanPengganti ? ` (pengganti: ${item.bahanPengganti})` : ''}
+                                                            <button onClick={() => deleteAlergi(b.id, item.id)}>Hapus</button>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                                <input placeholder="Jenis Alergi" value={alergiForm[b.id]?.jenisAlergi || ''} onChange={e => setAlergiField(b.id, 'jenisAlergi', e.target.value)} />
+                                                <input placeholder="Jumlah Siswa" type="number" value={alergiForm[b.id]?.jumlahSiswa || ''} onChange={e => setAlergiField(b.id, 'jumlahSiswa', e.target.value)} />
+                                                <input placeholder="Bahan Pengganti (opsional)" value={alergiForm[b.id]?.bahanPengganti || ''} onChange={e => setAlergiField(b.id, 'bahanPengganti', e.target.value)} />
+                                                <button onClick={() => addAlergi(b.id)}>Tambah Alergi</button>
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>

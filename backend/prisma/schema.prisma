@@ -749,6 +749,8 @@ model MenuOrganoleptik {
   suhuSaji       String
   catatan        String?
   ujiPadaTanggal DateTime       @default(now())
+  jumlahOmpreng  Int            @default(1)
+  tanggalMusnah  DateTime?
 }
 
 // Catatan: "Kebutuhan Belanja Bahan" (agregasi Berat Kotor x Jumlah Pax per
