@@ -9,7 +9,7 @@ const router = express.Router();
 // ==========================================
 
 // GET /api/aslap/periode - List all periods
-router.get("/periode", requireAuth, requireRole("ASLAP", "KEPALA_SPPG", "AHLI_GIZI", "AKUNTAN"), async (req, res) => {
+router.get("/periode", requireAuth, requireRole("ASLAP", "MITRA", "KEPALA_SPPG", "AHLI_GIZI", "AKUNTAN"), async (req, res) => {
   try {
     const data = await prisma.periode.findMany({
       orderBy: { tanggalMulai: "desc" },
@@ -149,7 +149,7 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
       return res.status(400).json({ error: "detail penerima manfaat wajib diisi dengan array yang tidak kosong" });
     }
 
-        // 2. Run validations and creation inside transaction to ensure atomicity
+    // 2. Run validations and creation inside transaction to ensure atomicity
     const created = await prisma.$transaction(async (tx) => {
       // Lock Periode row to serialize overlap checks on this period
       // ponytail: lock whole period to serialize writes per period

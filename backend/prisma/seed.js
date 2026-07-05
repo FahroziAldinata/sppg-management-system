@@ -119,6 +119,30 @@ async function main() {
   }
 
   // ---------------------------------------------------------------------
+  // 5b. BAHAN POKOK — bahan umum menu MBG (permanen, bukan test-only)
+  // ---------------------------------------------------------------------
+  const bahanPokokData = [
+    { nama: "Beras", satuan: "kg" },
+    { nama: "Minyak Goreng", satuan: "liter" },
+    { nama: "Telur Ayam", satuan: "kg" },
+    { nama: "Daging Ayam", satuan: "kg" },
+    { nama: "Tempe", satuan: "kg" },
+    { nama: "Tahu", satuan: "kg" },
+    { nama: "Bawang Merah", satuan: "kg" },
+    { nama: "Bawang Putih", satuan: "kg" },
+    { nama: "Gula Pasir", satuan: "kg" },
+    { nama: "Garam", satuan: "kg" },
+  ];
+
+  for (const b of bahanPokokData) {
+    await prisma.bahanPokok.upsert({
+      where: { nama: b.nama },
+      update: {},
+      create: { ...b, aktif: true },
+    });
+  }
+
+  // ---------------------------------------------------------------------
   // 6. USER — 1 akun per role. GANTI PASSWORD INI SEBELUM DIPAKAI DI PROD.
   // ---------------------------------------------------------------------
   const userData = [

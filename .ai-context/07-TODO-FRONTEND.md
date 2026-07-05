@@ -15,12 +15,10 @@ Tahap 1 — Validasi pola (1 role: Aslap)
  - [x] Aslap: form create (POST, validasi error tampil apa adanya)
  - [x] Aslap: edit/delete
  - [x] Test manual: login → CRUD → logout → token expired handling
-
+ - [x] Mitra: HargaBahanPeriode CRUD (udah selesai)
+ - [x] Ahli Gizi: MenuHarian (list + create periode, table polos)
 Stop di sini, review pola dulu sebelum lanjut role lain — ponytail, jangan replicate pola yang belum kebukti bener.
 Tahap 2 — Replicate ke role lain
-
- - [ ] Mitra: HargaBahanPeriode CRUD (belum mulai)
- - [ ] Ahli Gizi: MenuHarian + Blok + Item + Bahan (belum mulai)
  - [ ] Akuntan: RAB/Anggaran/Jurnal/DokumenResmi/Upah/Stok/ValidasiStok (belum mulai)
  - [ ] Kepala SPPG: Approval list + action + Notifikasi badge (belum mulai)
 

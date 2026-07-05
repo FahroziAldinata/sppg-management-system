@@ -22,11 +22,11 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Modul Kepala SPPG — Approval & Notifikasi selesai** — API POST untuk approval/rejection MenuHarian dan RabHarian (menggunakan row-locking SELECT FOR UPDATE pada target fungsional untuk menjamin integritas konkuren) dengan trigger pembuatan Notifikasi otomatis bagi pembuat dokumen, serta GET untuk log riwayat approval filterable dan paginated (limit/offset) selesai diuji berhasil. Silakan cek test integrasi di `backend/src/routes/__tests__/approval.test.js`.
 - [x] **Modul Akuntan — Stok & Validasi Stok selesai** — POST `SaldoAwalBarang` (validasi aktif), POST `MutasiStok` (jenis MASUK/KELUAR dengan kondisional data dan `[ASUMSI]` bypass balance check), serta CRUD & preview `ValidasiStok` (dengan timezone date normalization dan derived server-side `selisih`) selesai diuji berhasil.
 - [x] **Modul Akuntan & Kepala — Seluruh Laporan & Agregasi selesai** — Endpoint untuk BKU, BP per akun, LPA, SPTJ, BAPSD, KebutuhanBelanjaBahan (bebas N+1 query), LaporanPerPeriode (dengan estimasi alokasi proporsional RAB dan flag `metodeAlokasi: "PROPORSIONAL_RAB"`), LaporanPerBulan, dan StockBarang (bebas N+1 query via DISTINCT ON) telah diuji 100% lulus.
-- [x] **CORS Middleware & Setup Frontend (Tahap 0 & Tahap 1) selesai** — Pemasangan CORS di backend, scaffolding Vite + React + React Router v6, implementasi AuthContext, ProtectedRoute, useApi hook, halaman Login, Layout shell, dan CRUD Aslap (Penerima Manfaat) polos.
+- [x] **CORS Middleware & Setup Frontend (Tahap 0 & Tahap 1) selesai** — Pemasangan CORS di backend, scaffolding Vite + React + React Router v6, implementasi AuthContext, ProtectedRoute, useApi hook, halaman Login, Layout shell, dan CRUD Aslap (Penerima Manfaat) polos. Root cause CORS gagal = `node --watch` / nodemon **tidak reload middleware** saat `app.js` berubah (`.env` juga tidak di-reload). **Known gotcha:** tiap ubah `app.js` atau `.env`, backend **WAJIB restart total** — kill proses lalu `node index.js` (bukan `npm run dev` / `--watch`).
+- [x] Frontend Tahap 2 (Mitra) — CRUD HargaBahanPeriode & read-only BahanPokok selesai diuji 100% lulus (termasuk unique constraint validation, transaction, dan data bahan pokok seeded).
 
 ## Sedang jalan / berikutnya
-
-- [ ] Frontend Tahap 2 (Mitra) — CRUD HargaBahanPeriode & read-only BahanPokok (belum mulai).
+- [ ] Frontend Tahap 3 (Gizi) — CRUD MenuHarian & MenuHarianBlok, read-only MenuTargetGizi/MenuOrganoleptik/AlergiCatatan,
 
 ## Belum dikerjakan sama sekali
 
