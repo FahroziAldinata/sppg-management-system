@@ -15,7 +15,14 @@ router.get("/periode", requireAuth, requireRole("ASLAP", "MITRA", "KEPALA_SPPG",
       orderBy: { tanggalMulai: "desc" },
       include: { setupLembaga: true }
     });
-    res.json(data);
+
+    const formatted = data.map(p => ({
+      ...p,
+      tanggalMulai: p.tanggalMulai.toISOString().split("T")[0],
+      tanggalSelesai: p.tanggalSelesai.toISOString().split("T")[0]
+    }));
+
+    res.json(formatted);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data periode" });

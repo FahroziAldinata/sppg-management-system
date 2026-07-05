@@ -4,6 +4,19 @@ const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
 
+// GET /api/gizi/kelompok-umur-menu - List all KelompokUmurMenu (dropdown untuk MenuHarianBlok)
+router.get("/kelompok-umur-menu", requireAuth, requireRole("ASLAP", "KEPALA_SPPG", "AHLI_GIZI", "AKUNTAN"), async (req, res) => {
+  try {
+    const data = await prisma.kelompokUmurMenu.findMany({
+      orderBy: { kode: "asc" }
+    });
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data kelompok umur menu" });
+  }
+});
+
 // ==========================================
 // CRUD MENU HARIAN
 // ==========================================
@@ -591,7 +604,7 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
     if (bddPersen === undefined) return res.status(400).json({ error: "bddPersen wajib diisi" });
     if (hargaSatuan === undefined) return res.status(400).json({ error: "hargaSatuan wajib diisi" });
     if (beratSatuanGr === undefined) return res.status(400).json({ error: "beratSatuanGr wajib diisi" });
-    
+
     // Gizi fields are required
     if (energiKkal === undefined) return res.status(400).json({ error: "energiKkal wajib diisi" });
     if (proteinGr === undefined) return res.status(400).json({ error: "proteinGr wajib diisi" });
@@ -700,7 +713,7 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
       const cleanBdd = bddPersen !== undefined ? Number(bddPersen) : Number(existing.bddPersen);
       const cleanHarga = hargaSatuan !== undefined ? Number(hargaSatuan) : Number(existing.hargaSatuan);
       const cleanBeratSatuan = beratSatuanGr !== undefined ? Number(beratSatuanGr) : Number(existing.beratSatuanGr);
-      
+
       const cleanEnergi = energiKkal !== undefined ? Number(energiKkal) : Number(existing.energiKkal);
       const cleanProtein = proteinGr !== undefined ? Number(proteinGr) : Number(existing.proteinGr);
       const cleanLemak = lemakGr !== undefined ? Number(lemakGr) : Number(existing.lemakGr);
