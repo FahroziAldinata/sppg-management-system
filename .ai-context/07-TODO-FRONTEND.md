@@ -23,7 +23,7 @@ Tahap 1 — Validasi pola (1 role: Aslap)
  - [x] Ahli Gizi: MenuTargetGizi (list & create-only per blok)
  - [x] Ahli Gizi: MenuOrganoleptik CRUD per blok
  - [x] Ahli Gizi: AlergiCatatan CRUD per blok
- - [ ] Ahli Gizi: Kendaraan CRUD & PengirimanHarian
+ - [/] Ahli Gizi: Kendaraan CRUD & PengirimanHarian (desain state & fungsi helper disetujui, integrasi UI sedang berjalan)
  - [ ] Ahli Gizi: MasterMenuMingguan (evaluasi kebutuhan/relevansi)
 Stop di sini, review pola dulu sebelum lanjut role lain — ponytail, jangan replicate pola yang belum kebukti bener.
 Tahap 2 — Replicate ke role lain

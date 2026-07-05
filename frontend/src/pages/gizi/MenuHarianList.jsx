@@ -21,11 +21,15 @@ export const MenuHarianList = () => {
     const [organoleptikForm, setOrganoleptikForm] = useState({}); // { [blokId]: { field: value } }
     const [alergiByBlok, setAlergiByBlok] = useState({}); // { [blokId]: [item, ...] }
     const [alergiForm, setAlergiForm] = useState({}); // { [blokId]: { field: value } }
+    // Kendaraan & Pengiriman state
+    const [kendaraanList, setKendaraanList] = useState([]);
+    const [pengirimanByMenu, setPengirimanByMenu] = useState({}); // { [menuHarianId]: [...] }
+    const [pengirimanForm, setPengirimanForm] = useState({}); // { [menuHarianId]: { jenisPorsi, kendaraanId, catatan } }
+    const [kendaraanForm, setKendaraanForm] = useState({ namaKendaraan: '', platNomor: '', aktif: true });
+    const [editingKendaraan, setEditingKendaraan] = useState(null); // null = mode tambah, object = mode edit
 
     const KOMPONEN_OPTIONS = ["KARBOHIDRAT", "LAUK_HEWANI", "LAUK_NABATI", "SAYUR", "BUAH"];
     const BAHAN_FIELDS = ['bahanPokokId', 'beratBersihGr', 'beratURT', 'energiKkal', 'proteinGr', 'lemakGr', 'karbohidratGr', 'seratGr', 'bddPersen', 'hargaSatuan', 'beratSatuanGr'];
-
-
 
     useEffect(() => {
         request('/aslap/periode').then(r => r.json()).then(d => {
@@ -45,12 +49,34 @@ export const MenuHarianList = () => {
         request('/mitra/bahan-pokok').then(r => r.json()).then(d => setBahanPokokList(d));
     }, []);
 
+    // Fetch kendaraan once on mount (global master data, not tied to periodeId)
+    useEffect(() => {
+        request('/gizi/kendaraan').then(r => r.json()).then(d => setKendaraanList(d));
+    }, []);
+
     const load = async (pid) => {
         if (!pid) return;
-        const r = await request(`/gizi/menu-harian?periodeId=${pid}`);
-        if (!r.ok) { setError((await r.json()).error); return; }
-        const data = await r.json();
+        const [rMenu, rPengiriman] = await Promise.all([
+            request(`/gizi/menu-harian?periodeId=${pid}`),
+            request('/gizi/pengiriman')
+        ]);
+
+        if (!rMenu.ok) { setError((await rMenu.json()).error); return; }
+        if (!rPengiriman.ok) { setError((await rPengiriman.json()).error); return; }
+
+        const data = await rMenu.json();
+        const rawPengiriman = await rPengiriman.json();
         setItems(data);
+
+        // Group pengiriman by menuHarianId
+        const pengirimanMap = {};
+        for (const p of rawPengiriman) {
+            if (!pengirimanMap[p.menuHarianId]) {
+                pengirimanMap[p.menuHarianId] = [];
+            }
+            pengirimanMap[p.menuHarianId].push(p);
+        }
+        setPengirimanByMenu(pengirimanMap);
 
         const orgMap = {};
         const alergiMap = {};
@@ -222,7 +248,182 @@ export const MenuHarianList = () => {
         }
     };
 
-    // TODO: MenuItem gak persist ke GET /menu-harian, backend include blm nyantol menuItem — nunggu keputusan tim backend.
+    // ==========================================
+    // CRUD KENDARAAN
+    // ==========================================
+
+    const addKendaraan = async (e) => {
+        e.preventDefault();
+        setError('');
+        if (!kendaraanForm.namaKendaraan) {
+            setError('Nama kendaraan wajib diisi');
+            return;
+        }
+        try {
+            const r = await request('/gizi/kendaraan', {
+                method: 'POST',
+                body: JSON.stringify({
+                    namaKendaraan: kendaraanForm.namaKendaraan,
+                    platNomor: kendaraanForm.platNomor || undefined,
+                    aktif: kendaraanForm.aktif !== undefined ? kendaraanForm.aktif : true
+                })
+            });
+            if (r.ok) {
+                const rList = await request('/gizi/kendaraan');
+                if (rList.ok) setKendaraanList(await rList.json());
+                setKendaraanForm({ namaKendaraan: '', platNomor: '', aktif: true });
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                setError(d.error || 'Terjadi kesalahan server saat menyimpan kendaraan');
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    const updateKendaraan = async (e) => {
+        e.preventDefault();
+        setError('');
+        if (!editingKendaraan || !editingKendaraan.id) {
+            setError('Tidak ada kendaraan yang sedang diedit');
+            return;
+        }
+        if (!kendaraanForm.namaKendaraan) {
+            setError('Nama kendaraan wajib diisi');
+            return;
+        }
+        try {
+            const r = await request(`/gizi/kendaraan/${editingKendaraan.id}`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    namaKendaraan: kendaraanForm.namaKendaraan,
+                    platNomor: kendaraanForm.platNomor || undefined,
+                    aktif: kendaraanForm.aktif !== undefined ? kendaraanForm.aktif : true
+                })
+            });
+            if (r.ok) {
+                const rList = await request('/gizi/kendaraan');
+                if (rList.ok) setKendaraanList(await rList.json());
+                setEditingKendaraan(null);
+                setKendaraanForm({ namaKendaraan: '', platNomor: '', aktif: true });
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                setError(d.error || 'Terjadi kesalahan server saat memperbarui kendaraan');
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    const startEditKendaraan = (k) => {
+        setError('');
+        setEditingKendaraan(k);
+        setKendaraanForm({
+            namaKendaraan: k.namaKendaraan || '',
+            platNomor: k.platNomor || '',
+            aktif: k.aktif !== undefined ? k.aktif : true
+        });
+    };
+
+    const deleteKendaraan = async (id) => {
+        if (!window.confirm('Apakah Anda yakin ingin menghapus kendaraan ini?')) return;
+        setError('');
+        try {
+            const r = await request(`/gizi/kendaraan/${id}`, { method: 'DELETE' });
+            if (r.ok) {
+                const rList = await request('/gizi/kendaraan');
+                if (rList.ok) setKendaraanList(await rList.json());
+                if (editingKendaraan && editingKendaraan.id === id) {
+                    setEditingKendaraan(null);
+                    setKendaraanForm({ namaKendaraan: '', platNomor: '', aktif: true });
+                }
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                setError(d.error || 'Terjadi kesalahan server saat menghapus kendaraan');
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    // ==========================================
+    // CRUD PENGIRIMAN HARIAN
+    // ==========================================
+
+    const addPengiriman = async (menuHarianId) => {
+        setError('');
+        const form = pengirimanForm[menuHarianId] || {};
+        if (!form.jenisPorsi) {
+            setError('jenisPorsi wajib diisi');
+            return;
+        }
+        if (!form.kendaraanId) {
+            setError('kendaraanId wajib diisi');
+            return;
+        }
+        try {
+            const r = await request('/gizi/pengiriman', {
+                method: 'POST',
+                body: JSON.stringify({
+                    menuHarianId,
+                    jenisPorsi: form.jenisPorsi,
+                    kendaraanId: form.kendaraanId,
+                    catatan: form.catatan || undefined
+                })
+            });
+            if (r.ok) {
+                const rPengiriman = await request('/gizi/pengiriman');
+                if (rPengiriman.ok) {
+                    const rawPengiriman = await rPengiriman.json();
+                    const pengirimanMap = {};
+                    for (const p of rawPengiriman) {
+                        if (!pengirimanMap[p.menuHarianId]) {
+                            pengirimanMap[p.menuHarianId] = [];
+                        }
+                        pengirimanMap[p.menuHarianId].push(p);
+                    }
+                    setPengirimanByMenu(pengirimanMap);
+                }
+                setPengirimanForm(prev => ({
+                    ...prev,
+                    [menuHarianId]: { jenisPorsi: '', kendaraanId: '', catatan: '' }
+                }));
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                setError(d.error || 'Terjadi kesalahan server saat menyimpan pengiriman');
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    const deletePengiriman = async (id, menuHarianId) => {
+        if (!window.confirm('Apakah Anda yakin ingin menghapus pengiriman ini?')) return;
+        setError('');
+        try {
+            const r = await request(`/gizi/pengiriman/${id}`, { method: 'DELETE' });
+            if (r.ok) {
+                const rPengiriman = await request('/gizi/pengiriman');
+                if (rPengiriman.ok) {
+                    const rawPengiriman = await rPengiriman.json();
+                    const pengirimanMap = {};
+                    for (const p of rawPengiriman) {
+                        if (!pengirimanMap[p.menuHarianId]) {
+                            pengirimanMap[p.menuHarianId] = [];
+                        }
+                        pengirimanMap[p.menuHarianId].push(p);
+                    }
+                    setPengirimanByMenu(pengirimanMap);
+                }
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                setError(d.error || 'Terjadi kesalahan server saat menghapus pengiriman');
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
     return (
         <div>
             <h2>Menu Harian</h2>
@@ -234,8 +435,95 @@ export const MenuHarianList = () => {
                 <input type="date" value={tanggal} onChange={e => setTanggal(e.target.value)} required />
                 <button type="submit">Buat Menu Harian</button>
             </form>
+
+            {/* ================================================ */}
+            {/* SECTION 1 — MANAJEMEN KENDARAAN (render 1x saja) */}
+            {/* ================================================ */}
+            <section style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '15px' }}>
+                <h3>Manajemen Kendaraan</h3>
+
+                {/* Form Tambah / Edit */}
+                <form onSubmit={editingKendaraan ? updateKendaraan : addKendaraan}>
+                    <input
+                        placeholder="Nama Kendaraan"
+                        value={kendaraanForm.namaKendaraan}
+                        onChange={e => setKendaraanForm(prev => ({ ...prev, namaKendaraan: e.target.value }))}
+                        required
+                    />
+                    <input
+                        placeholder="Plat Nomor (opsional)"
+                        value={kendaraanForm.platNomor}
+                        onChange={e => setKendaraanForm(prev => ({ ...prev, platNomor: e.target.value }))}
+                    />
+                    <label>
+                        <input
+                            type="checkbox"
+                            checked={kendaraanForm.aktif}
+                            onChange={e => setKendaraanForm(prev => ({ ...prev, aktif: e.target.checked }))}
+                        />
+                        {' '}Aktif
+                    </label>
+                    <button type="submit">
+                        {editingKendaraan ? 'Simpan Perubahan' : 'Tambah Kendaraan'}
+                    </button>
+                    {editingKendaraan && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEditingKendaraan(null);
+                                setKendaraanForm({ namaKendaraan: '', platNomor: '', aktif: true });
+                            }}
+                        >
+                            Batal
+                        </button>
+                    )}
+                </form>
+
+                {/* Daftar semua kendaraan — tanpa filter aktif */}
+                <table border="1" cellPadding="4" style={{ marginTop: '8px' }}>
+                    <thead>
+                        <tr>
+                            <th>Nama</th>
+                            <th>Plat Nomor</th>
+                            <th>Aktif</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {kendaraanList.map(k => (
+                            <tr key={k.id}>
+                                <td>{k.namaKendaraan}</td>
+                                <td>{k.platNomor || '—'}</td>
+                                <td>{k.aktif ? 'Ya' : 'Tidak'}</td>
+                                <td>
+                                    <button onClick={() => startEditKendaraan(k)}>Edit</button>
+                                    {' '}
+                                    <button onClick={() => deleteKendaraan(k.id)}>Hapus</button>
+                                </td>
+                            </tr>
+                        ))}
+                        {kendaraanList.length === 0 && (
+                            <tr>
+                                <td colSpan={4}>Belum ada kendaraan terdaftar.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </section>
+
+            {/* ============================================== */}
+            {/* SECTION 2 — TABEL MENU HARIAN                 */}
+            {/* ============================================== */}
             <table border="1" cellPadding="5">
-                <thead><tr><th>Tanggal</th><th>Status</th><th>Jumlah Blok</th><th>Aksi</th></tr></thead>
+                <thead>
+                    <tr>
+                        <th>Tanggal</th>
+                        <th>Status</th>
+                        <th>Jumlah Blok</th>
+                        <th>Pengiriman</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
                 <tbody>
                     {items.map(m => (
                         <tr key={m.id}>
@@ -334,6 +622,70 @@ export const MenuHarianList = () => {
                                     ))}
                                 </ul>
                             </td>
+
+                            {/* ===== KOLOM PENGIRIMAN (new) ===== */}
+                            <td>
+                                {/* List pengiriman existing */}
+                                <ul>
+                                    {(pengirimanByMenu[m.id] || []).map(p => (
+                                        <li key={p.id}>
+                                            {p.jenisPorsi} — {p.kendaraan?.namaKendaraan || '—'}
+                                            {' '}
+                                            <button onClick={() => deletePengiriman(p.id, m.id)}>Hapus</button>
+                                        </li>
+                                    ))}
+                                </ul>
+
+                                {/* Form tambah baru — hanya render kalau masih ada slot porsi */}
+                                {(() => {
+                                    const usedPorsi = (pengirimanByMenu[m.id] || []).map(p => p.jenisPorsi);
+                                    const availableOptions = ['KECIL', 'BESAR'].filter(opt => !usedPorsi.includes(opt));
+                                    if (availableOptions.length === 0) return null;
+
+                                    const form = pengirimanForm[m.id] || {};
+                                    const aktifKendaraan = kendaraanList.filter(k => k.aktif === true);
+
+                                    return (
+                                        <div>
+                                            <select
+                                                value={form.jenisPorsi || ''}
+                                                onChange={e => setPengirimanForm(prev => ({
+                                                    ...prev,
+                                                    [m.id]: { ...(prev[m.id] || {}), jenisPorsi: e.target.value }
+                                                }))}
+                                            >
+                                                <option value="">-- Pilih Jenis Porsi --</option>
+                                                {availableOptions.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                            <select
+                                                value={form.kendaraanId || ''}
+                                                onChange={e => setPengirimanForm(prev => ({
+                                                    ...prev,
+                                                    [m.id]: { ...(prev[m.id] || {}), kendaraanId: e.target.value }
+                                                }))}
+                                            >
+                                                <option value="">-- Pilih Kendaraan --</option>
+                                                {aktifKendaraan.map(k => (
+                                                    <option key={k.id} value={k.id}>{k.namaKendaraan}</option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                placeholder="Catatan (opsional)"
+                                                value={form.catatan || ''}
+                                                onChange={e => setPengirimanForm(prev => ({
+                                                    ...prev,
+                                                    [m.id]: { ...(prev[m.id] || {}), catatan: e.target.value }
+                                                }))}
+                                            />
+                                            <button onClick={() => addPengiriman(m.id)}>Tambah</button>
+                                        </div>
+                                    );
+                                })()}
+                            </td>
+
+                            {/* ===== KOLOM AKSI ===== */}
                             <td>
                                 <select value={selectedKelompokUmurId} onChange={e => setSelectedKelompokUmurId(e.target.value)}>
                                     {kelompokUmur.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}

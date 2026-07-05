@@ -324,6 +324,9 @@ router.delete("/menu-harian/:id", requireAuth, requireRole("AHLI_GIZI"), async (
     if (error.code === "P2025") {
       return res.status(404).json({ error: "Data menu harian tidak ditemukan" });
     }
+    if (error.code === "P2003" || error.message?.includes("23001") || error.message?.includes("foreign key constraint")) {
+      return res.status(409).json({ error: "Menu harian tidak dapat dihapus karena masih memiliki data terkait yang tidak bisa dihapus otomatis" });
+    }
     res.status(500).json({ error: "Terjadi kesalahan server saat menghapus data menu harian" });
   }
 });
