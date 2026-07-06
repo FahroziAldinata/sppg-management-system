@@ -1938,6 +1938,24 @@ router.post("/saldo-awal-barang", requireAuth, requireRole("AKUNTAN"), async (re
   }
 });
 
+// GET /api/akuntan/saldo-awal-barang - List SaldoAwalBarang for a period
+router.get("/saldo-awal-barang", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { periodeId } = req.query;
+    if (!periodeId) {
+      return res.status(400).json({ error: "periodeId wajib diisi" });
+    }
+    const data = await prisma.saldoAwalBarang.findMany({
+      where: { periodeId },
+      include: { bahanPokok: true }
+    });
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil saldo awal barang" });
+  }
+});
+
 // POST /api/akuntan/mutasi-stok - Create MutasiStok
 router.post("/mutasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
   try {
@@ -2305,6 +2323,8 @@ router.get("/supplier", requireAuth, requireRole("AKUNTAN"), async (req, res) =>
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data supplier" });
   }
+});
+
 // GET /api/akuntan/periode/latest-setup - Mendapatkan SetupLembaga periode terakhir untuk autofill
 router.get("/periode/latest-setup", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
   try {

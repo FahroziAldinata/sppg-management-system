@@ -7,14 +7,26 @@ import { Layout } from './components/Layout';
 import { AslapDashboard } from './pages/aslap/AslapDashboard';
 import { MitraDashboard } from './pages/mitra/MitraDashboard';
 import { MenuHarianList } from './pages/gizi/MenuHarianList';
-import { AkuntanDashboard } from './pages/akuntan/AkuntanDashboard';
 import { KepalaDashboard } from './pages/kepala/KepalaDashboard';
+
+// Akuntan — Halaman Terpisah
+import { JurnalTransaksiPage } from './pages/akuntan/JurnalTransaksiPage';
+import { ValidasiStokPage } from './pages/akuntan/ValidasiStokPage';
+import { RabHarianPage } from './pages/akuntan/RabHarianPage';
+import { AnggaranHarianPage } from './pages/akuntan/AnggaranHarianPage';
+import { SaldoAwalBarangPage } from './pages/akuntan/SaldoAwalBarangPage';
+import { MutasiStokPage } from './pages/akuntan/MutasiStokPage';
+import { DokumenResmiPage } from './pages/akuntan/DokumenResmiPage';
+import { NominatifUpahPage } from './pages/akuntan/NominatifUpahPage';
+
+// Akuntan — Laporan
 import { LaporanPage } from './pages/akuntan/laporan/LaporanPage';
 import { StockBarangPage } from './pages/akuntan/laporan/StockBarangPage';
 import { KebutuhanBelanjaBahanPage } from './pages/akuntan/laporan/KebutuhanBelanjaBahanPage';
 import { LaporanPerPeriodePage } from './pages/akuntan/laporan/LaporanPerPeriodePage';
 import { LaporanPerBulanPage } from './pages/akuntan/laporan/LaporanPerBulanPage';
 import { PeriodeSetupPage } from './pages/akuntan/laporan/PeriodeSetupPage';
+
 import { useAuth } from './context/AuthContext';
 
 function RoleRedirect() {
@@ -23,7 +35,7 @@ function RoleRedirect() {
   if (user.role === 'ASLAP') return <Navigate to="/aslap" replace />;
   if (user.role === 'MITRA') return <Navigate to="/mitra" replace />;
   if (user.role === 'AHLI_GIZI') return <Navigate to="/gizi/menu-harian" replace />;
-  if (user.role === 'AKUNTAN') return <Navigate to="/akuntan" replace />;
+  if (user.role === 'AKUNTAN') return <Navigate to="/akuntan/laporan/periode-setup" replace />;
   if (user.role === 'KEPALA_SPPG') return <Navigate to="/kepala" replace />;
   return <div>Selamat datang, {user.nama} ({user.role}). Halaman modul Anda belum diimplementasikan.</div>;
 }
@@ -67,11 +79,21 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* ===== AKUNTAN Routes ===== */}
             <Route
-              path="akuntan"
+              path="akuntan/laporan/periode-setup"
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
-                  <AkuntanDashboard />
+                  <PeriodeSetupPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/jurnal"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <JurnalTransaksiPage />
                 </ProtectedRoute>
               }
             />
@@ -100,6 +122,54 @@ function App() {
               }
             />
             <Route
+              path="akuntan/validasi-stok"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <ValidasiStokPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/rab-harian"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <RabHarianPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/anggaran-harian"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <AnggaranHarianPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/saldo-awal-barang"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <SaldoAwalBarangPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/mutasi-stok"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <MutasiStokPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/dokumen-resmi"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <DokumenResmiPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="akuntan/laporan/per-periode"
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
@@ -116,13 +186,15 @@ function App() {
               }
             />
             <Route
-              path="akuntan/laporan/periode-setup"
+              path="akuntan/nominatif-upah"
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
-                  <PeriodeSetupPage />
+                  <NominatifUpahPage />
                 </ProtectedRoute>
               }
             />
+
+            {/* ===== KEPALA Routes ===== */}
             <Route
               path="kepala"
               element={
