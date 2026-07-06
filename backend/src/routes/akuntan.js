@@ -2305,6 +2305,124 @@ router.get("/supplier", requireAuth, requireRole("AKUNTAN"), async (req, res) =>
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data supplier" });
   }
+// GET /api/akuntan/periode/latest-setup - Mendapatkan SetupLembaga periode terakhir untuk autofill
+router.get("/periode/latest-setup", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const latest = await prisma.periode.findFirst({
+      orderBy: { tanggalMulai: "desc" },
+      include: { setupLembaga: true }
+    });
+    
+    if (latest) {
+      // Ubah date object ke string date-only YYYY-MM-DD
+      const formatted = {
+        ...latest,
+        tanggalMulai: latest.tanggalMulai.toISOString().split("T")[0],
+        tanggalSelesai: latest.tanggalSelesai.toISOString().split("T")[0],
+        setupLembaga: latest.setupLembaga ? {
+          ...latest.setupLembaga,
+          awalPeriodeBerikutnya: latest.setupLembaga.awalPeriodeBerikutnya.toISOString().split("T")[0],
+          tanggalPelaporan: latest.setupLembaga.tanggalPelaporan.toISOString().split("T")[0]
+        } : null
+      };
+      return res.json({ success: true, data: formatted });
+    }
+    
+    res.json({ success: true, data: null });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data periode terakhir" });
+  }
+});
+
+// POST /api/akuntan/periode - Membuat periode baru beserta SetupLembaga
+router.post("/periode", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const {
+      tanggalMulai,
+      tanggalSelesai,
+      anggaranAlokasi,
+      totalDanaDiterima,
+      namaLembaga,
+      alamat,
+      namaKepalaSPPG,
+      namaAkuntanSPPG,
+      namaYayasan,
+      ketuaYayasan,
+      nomorRekeningVA,
+      tahunAnggaran,
+      awalPeriodeBerikutnya,
+      tanggalPelaporan,
+      tempatPelaporan
+    } = req.body;
+
+    // Validasi field wajib
+    if (!tanggalMulai || !tanggalSelesai || !anggaranAlokasi ||
+        !namaLembaga || !alamat || !namaKepalaSPPG || !namaAkuntanSPPG ||
+        !namaYayasan || !ketuaYayasan || !nomorRekeningVA || !tahunAnggaran ||
+        !awalPeriodeBerikutnya || !tanggalPelaporan || !tempatPelaporan) {
+      return res.status(400).json({ error: "Seluruh field wajib harus diisi" });
+    }
+
+    const start = normalizeDateUTC(tanggalMulai);
+    const end = normalizeDateUTC(tanggalSelesai);
+    const nextStart = normalizeDateUTC(awalPeriodeBerikutnya);
+    const reportDate = normalizeDateUTC(tanggalPelaporan);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || isNaN(nextStart.getTime()) || isNaN(reportDate.getTime())) {
+      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({ error: "Tanggal mulai harus sebelum tanggal selesai" });
+    }
+
+    // Cek irisan periode
+    const overlap = await prisma.periode.findFirst({
+      where: {
+        OR: [
+          { tanggalMulai: { lte: end }, tanggalSelesai: { gte: start } }
+        ]
+      }
+    });
+
+    if (overlap) {
+      return res.status(400).json({ error: "Rentang tanggal tumpang tindih dengan periode yang sudah ada" });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      const newPeriode = await tx.periode.create({
+        data: {
+          tanggalMulai: start,
+          tanggalSelesai: end,
+          anggaranAlokasi: parseFloat(anggaranAlokasi),
+          totalDanaDiterima: totalDanaDiterima ? parseFloat(totalDanaDiterima) : null,
+          setupLembaga: {
+            create: {
+              namaLembaga,
+              alamat,
+              namaKepalaSPPG,
+              namaAkuntanSPPG,
+              namaYayasan,
+              ketuaYayasan,
+              nomorRekeningVA,
+              tahunAnggaran: parseInt(tahunAnggaran, 10),
+              awalPeriodeBerikutnya: nextStart,
+              tanggalPelaporan: reportDate,
+              tempatPelaporan
+            }
+          }
+        },
+        include: { setupLembaga: true }
+      });
+      return newPeriode;
+    });
+
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat membuat periode baru" });
+  }
 });
 
 module.exports = router;

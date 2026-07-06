@@ -52,6 +52,9 @@ export const Layout = () => {
                   <li>
                     <Link to="/akuntan/laporan/per-bulan">Per Bulan</Link>
                   </li>
+                  <li>
+                    <Link to="/akuntan/laporan/periode-setup">Setup Periode</Link>
+                  </li>
                 </>
               )}
               {user?.role === 'KEPALA_SPPG' && (

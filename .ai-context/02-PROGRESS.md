@@ -37,6 +37,7 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Perbaikan Bug Lintas Periode StockBarang** — Memperbaiki bug kalkulasi ganda mutasi stok lintas periode di laporan StockBarang dengan menambahkan filter rentang tanggal mulai periode (`gte: periode.tanggalMulai`) di query `mutasiStok.groupBy` backend, serta menambahkan penanganan error P2025 (`findUniqueOrThrow`).
 - [x] **StockBarangPage Selesai (Frontend)** — Membuat halaman baru StockBarangPage.jsx untuk visualisasi laporan stok barang persediaan (termasuk filter periode & tanggal, auto-trigger load, dan format mata uang Rupiah), serta mendaftarkan rute di App.jsx dan menu navigasi di Layout.jsx.
 - [x] **Frontend Tahap 3 (Laporan) — SEMUA 9 laporan selesai** — BKU, BP per akun, LPA, SPTJ, BAPSD, StockBarang, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan seluruhnya terintegrasi Frontend+Backend, teruji manual di browser.
+- [x] **Manajemen Periode & SetupLembaga** — Pembuatan endpoint backend baru (GET `/latest-setup` & POST `/periode` di akuntan.js) dan halaman form baru `PeriodeSetupPage.jsx` dengan sistem autofill hibrida berbasis data historis (mengisi otomatis nama lembaga/pejabat/VA, dan menyugestikan tanggal operasional logis berikutnya).
 
 ## Sedang jalan / berikutnya
 

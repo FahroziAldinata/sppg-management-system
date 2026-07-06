@@ -5,7 +5,7 @@ Legenda: ✅ selesai · 🟡 sebagian/ada gap · ⬜ belum mulai
 | Modul | Schema | Seed | API | Query laporan | Frontend | Catatan |
 |---|---|---|---|---|---|---|
 | User & Auth | ✅ | ✅ | ✅ | — | ✅ | JWT stateless, `requireAuth`/`requireRole` di `src/middleware/auth.js` |
-| Periode & SetupLembaga | ✅ | ✅ (1 contoh) | — | — | ⬜ | Dikelola dari seed / database |
+| Periode & SetupLembaga | ✅ | ✅ (1 contoh) | ✅ | — | ✅ | Setup periode baru & SetupLembaga terintegrasi di frontend (autofill otomatis dari data historis). |
 | Taksonomi (KategoriPenerima, KelompokUmurMenu, BatasHargaPorsi) | ✅ | ✅ | 🟡 | — | ⬜ | Mapping many-to-many sudah diseed sesuai v5.3. API GET kelompok-umur-menu selesai. |
 | Aslap — Input Penerima Manfaat | ✅ | ✅ (Sekolah & Posyandu) | ✅ | ⬜ | ✅ | `hariAktif` array (v5), validasi non-overlap dengan row lock (`SELECT FOR UPDATE`), dan findOrCreate sekolah/posyandu selesai |
 | Aslap — Jumlah Per Kelas | ✅ (pembantu) | ⬜ | ✅ | — | ⬜ | `SekolahKelasDetail` CRUD selesai, tidak dipakai laporan resmi |

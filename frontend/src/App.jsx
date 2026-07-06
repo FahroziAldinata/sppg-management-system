@@ -14,6 +14,7 @@ import { StockBarangPage } from './pages/akuntan/laporan/StockBarangPage';
 import { KebutuhanBelanjaBahanPage } from './pages/akuntan/laporan/KebutuhanBelanjaBahanPage';
 import { LaporanPerPeriodePage } from './pages/akuntan/laporan/LaporanPerPeriodePage';
 import { LaporanPerBulanPage } from './pages/akuntan/laporan/LaporanPerBulanPage';
+import { PeriodeSetupPage } from './pages/akuntan/laporan/PeriodeSetupPage';
 import { useAuth } from './context/AuthContext';
 
 function RoleRedirect() {
@@ -111,6 +112,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
                   <LaporanPerBulanPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/laporan/periode-setup"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <PeriodeSetupPage />
                 </ProtectedRoute>
               }
             />
