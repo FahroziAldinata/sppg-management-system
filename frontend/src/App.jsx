@@ -9,6 +9,11 @@ import { MitraDashboard } from './pages/mitra/MitraDashboard';
 import { MenuHarianList } from './pages/gizi/MenuHarianList';
 import { AkuntanDashboard } from './pages/akuntan/AkuntanDashboard';
 import { KepalaDashboard } from './pages/kepala/KepalaDashboard';
+import { LaporanPage } from './pages/akuntan/laporan/LaporanPage';
+import { StockBarangPage } from './pages/akuntan/laporan/StockBarangPage';
+import { KebutuhanBelanjaBahanPage } from './pages/akuntan/laporan/KebutuhanBelanjaBahanPage';
+import { LaporanPerPeriodePage } from './pages/akuntan/laporan/LaporanPerPeriodePage';
+import { LaporanPerBulanPage } from './pages/akuntan/laporan/LaporanPerBulanPage';
 import { useAuth } from './context/AuthContext';
 
 function RoleRedirect() {
@@ -66,6 +71,46 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
                   <AkuntanDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/laporan"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <LaporanPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/laporan/stock-barang"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <StockBarangPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/laporan/kebutuhan-belanja-bahan"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <KebutuhanBelanjaBahanPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/laporan/per-periode"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <LaporanPerPeriodePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/laporan/per-bulan"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <LaporanPerBulanPage />
                 </ProtectedRoute>
               }
             />

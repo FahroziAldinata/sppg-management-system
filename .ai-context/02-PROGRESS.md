@@ -34,10 +34,13 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Frontend Kepala SPPG — Halaman Dashboard & Approval** — Pembuatan halaman baru KepalaDashboard.jsx lengkap dengan filter target DIAJUKAN (Menu Harian & RAB Harian), proses approval/rejection dengan prompt alasan penolakan, serta riwayat approval.
 - [x] **Routing & Navigasi Kepala SPPG** — Pendaftaran route `/kepala` di App.jsx dengan role guard KEPALA_SPPG, dan link navigasi di Layout.jsx.
 - [x] **API & Notifikasi Baru** — Pembuatan router baru notifikasi.js dengan endpoint GET `/api/notifikasi` (userId = req.user.sub, take 20) dan didaftarkan ke app.js.
+- [x] **Perbaikan Bug Lintas Periode StockBarang** — Memperbaiki bug kalkulasi ganda mutasi stok lintas periode di laporan StockBarang dengan menambahkan filter rentang tanggal mulai periode (`gte: periode.tanggalMulai`) di query `mutasiStok.groupBy` backend, serta menambahkan penanganan error P2025 (`findUniqueOrThrow`).
+- [x] **StockBarangPage Selesai (Frontend)** — Membuat halaman baru StockBarangPage.jsx untuk visualisasi laporan stok barang persediaan (termasuk filter periode & tanggal, auto-trigger load, dan format mata uang Rupiah), serta mendaftarkan rute di App.jsx dan menu navigasi di Layout.jsx.
+- [x] **Frontend Tahap 3 (Laporan) — SEMUA 9 laporan selesai** — BKU, BP per akun, LPA, SPTJ, BAPSD, StockBarang, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan seluruhnya terintegrasi Frontend+Backend, teruji manual di browser.
 
 ## Sedang jalan / berikutnya
 
-- Tahap 3 Laporan — Pembungkusan 9 endpoint laporan di frontend (BKU, BP, LPA, SPTJ, BAPSD, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan, dan StockBarang) menjadi halaman view.
+- Tahap 4 — Styling visual, keselarasan warna, layout, dan spacing secara konsisten di seluruh halaman frontend.
 
 ## Belum dikerjakan sama sekali
 

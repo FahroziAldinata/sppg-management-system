@@ -4,7 +4,7 @@ Urutan disarankan. Jangan lompat ke frontend sebelum backend inti + seed selesai
 
 ## 1. Konfirmasi teknis kecil
 
-- [ ] Putuskan: dev pakai PostgreSQL lokal terus, atau langsung pindah ke Supabase? Kalau pindah, siapkan `.env` baru + `npx prisma migrate deploy` (bukan `migrate dev`) ke Supabase.
+- [x] Putuskan: dev pakai PostgreSQL lokal terus, atau langsung pindah ke Supabase? (Keputusan: Menggunakan PostgreSQL lokal untuk development sesuai 03-DECISIONS.md).
 - [x] Verifikasi tabel v5.2 di DBeaver — cocokkan sama daftar model di `01-ARCHITECTURE.md`.
 
 ## 2. Seed data master (wajib sebelum API bisa dites)
@@ -37,4 +37,4 @@ Urutan disarankan. Jangan lompat ke frontend sebelum backend inti + seed selesai
 ## 5. Baru setelah semua di atas jalan → mulai frontend
  
 - [x] Setup Vite + routing per role.
-- [ ] Dashboard per role sesuai alur kerja di `00-PROJECT.md` (Aslap & Mitra selesai, Gizi sedang jalan, Akuntan & Kepala belum mulai).
+- [x] Dashboard per role sesuai alur kerja di `00-PROJECT.md` (Semua role: Aslap, Mitra, Ahli Gizi, Akuntan, dan Kepala SPPG selesai).

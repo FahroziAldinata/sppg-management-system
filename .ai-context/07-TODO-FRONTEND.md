@@ -43,7 +43,16 @@ Tahap 2 — Replicate ke role lain
 
 Tahap 3 — Laporan (read-only, low-risk)
 
- Wrap 9 endpoint laporan jadi halaman view (tabel polos dulu)
+ - [x] Wrap 9 endpoint laporan jadi halaman view (tabel polos dulu) — SELESAI 9/9
+    - [x] BKU (Buku Kas Umum)
+    - [x] BP (Buku Pembantu per Akun)
+    - [x] LPA (Laporan Penggunaan Anggaran)
+    - [x] SPTJ (Surat Pernyataan Tanggung Jawab)
+    - [x] BAPSD (Berita Acara Pengalihan Sisa Dana)
+    - [x] Stock Barang (Persediaan) (Backend bugfix & Frontend Page selesai)
+    - [x] Kebutuhan Belanja Bahan (Selesai)
+    - [x] Laporan Per Periode (Pendidikan & Posyandu) (Selesai)
+    - [x] Laporan Per Bulan (Selesai)
 
 Tahap 4 — Baru styling
 

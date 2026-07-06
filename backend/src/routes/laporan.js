@@ -504,6 +504,9 @@ router.get("/stock-barang", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), 
       return res.status(400).json({ error: "Format tanggal tidak valid" });
     }
 
+    // Fetch periode first
+    const periode = await prisma.periode.findUniqueOrThrow({ where: { id: periodeId } });
+
     // 1. Fetch active ingredients, initial balance, mutasi, and latest prices (optimized Distinct)
     const [bahanList, saldoAwalList, mutasiList, latestMasukPrices] = await Promise.all([
       prisma.bahanPokok.findMany({ where: { aktif: true } }),
@@ -511,7 +514,7 @@ router.get("/stock-barang", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), 
       prisma.mutasiStok.groupBy({
         by: ["bahanPokokId", "jenis"],
         where: {
-          tanggal: { lte: targetTanggal }
+          tanggal: { gte: periode.tanggalMulai, lte: targetTanggal }
         },
         _sum: { qty: true }
       }),
@@ -581,6 +584,9 @@ router.get("/stock-barang", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), 
 
     res.json({ success: true, data });
   } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Periode tidak ditemukan" });
+    }
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat memproses stock barang" });
   }
