@@ -30,14 +30,16 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Frontend Tahap 3 (Gizi) — Kendaraan, PengirimanHarian & MasterMenuMingguan** — Integrasi komponen UI form/list untuk Kendaraan, PengirimanHarian, dan Master Menu Mingguan (Referensi) di MenuHarianList.jsx selesai sepenuhnya dan teruji manual di browser.
 - [x] **Master Menu Mingguan (Referensi)** — Form create (5 field + 2 dropdown), read-only table list, and automatic refresh on submit based on active periodeId successfully integrated.
 - [x] **Frontend Akuntan — RAB, Anggaran, Jurnal, DokumenResmi, NominatifUpah** — Implementasi AkuntanDashboard.jsx mencakup: form+list RAB Harian, form conditional Anggaran Harian (BAHAN_MAKANAN rincian vs flat), form+list Jurnal Transaksi (dropdown akun aktif), Dokumen Resmi (generator preview JSON + publish + list terbitan), Daftar Nominatif Upah (form + sub-form rincian harian + list). Sticky error div diterapkan. Backend endpoint GET `/api/akuntan/supplier` dan GET `/api/akuntan/akun` ditambahkan untuk dropdown.
+- [x] **Frontend Akuntan — MutasiStok, ValidasiStok & SaldoAwalBarang** — Implementasi form + list MutasiStok, form create-only SaldoAwalBarang, dan form ValidasiStok dengan auto-fill data sistem serta race-condition guard berbasis active cleanup.
+- [x] **Frontend Kepala SPPG — Halaman Dashboard & Approval** — Pembuatan halaman baru KepalaDashboard.jsx lengkap dengan filter target DIAJUKAN (Menu Harian & RAB Harian), proses approval/rejection dengan prompt alasan penolakan, serta riwayat approval.
+- [x] **Routing & Navigasi Kepala SPPG** — Pendaftaran route `/kepala` di App.jsx dengan role guard KEPALA_SPPG, dan link navigasi di Layout.jsx.
+- [x] **API & Notifikasi Baru** — Pembuatan router baru notifikasi.js dengan endpoint GET `/api/notifikasi` (userId = req.user.sub, take 20) dan didaftarkan ke app.js.
 
 ## Sedang jalan / berikutnya
 
-- [ ] Frontend Akuntan — MutasiStok (form create + dropdown supplier/bahanPokok) & ValidasiStok (preview + reconciliation).
-- [ ] Frontend Kepala SPPG — Approval list + action + Notifikasi badge.
+- Tahap 3 Laporan — Pembungkusan 9 endpoint laporan di frontend (BKU, BP, LPA, SPTJ, BAPSD, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan, dan StockBarang) menjadi halaman view.
 
 ## Belum dikerjakan sama sekali
 
-- UI/UX Frontend seluruhnya (Akuntan & Kepala SPPG panels).
+- UI/UX Frontend seluruhnya (styling visual konsisten/layout/spacing).
 - Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
-

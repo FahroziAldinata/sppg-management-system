@@ -37,6 +37,11 @@ export const Layout = () => {
                   <Link to="/akuntan">RAB Harian</Link>
                 </li>
               )}
+              {user?.role === 'KEPALA_SPPG' && (
+                <li>
+                  <Link to="/kepala">Approval</Link>
+                </li>
+              )}
             </ul>
           </nav>
         </div>

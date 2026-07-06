@@ -69,6 +69,24 @@ export const AkuntanDashboard = () => {
         kelompokPenerima: ''
     });
 
+    // State Validasi Stok
+    const [validasiList, setValidasiList] = useState([]);
+    const [validasiPreview, setValidasiPreview] = useState(null);
+    const [validasiForm, setValidasiForm] = useState({
+        bahanPokokId: '',
+        tanggal: '',
+        qtyDibeli: '',
+        qtyTerpakai: '',
+        catatan: ''
+    });
+
+    // State Saldo Awal Barang
+    const [saldoAwalForm, setSaldoAwalForm] = useState({
+        bahanPokokId: '',
+        saldoAwalQty: '',
+        hargaBeliAwal: ''
+    });
+
     // Fetch list periode pada saat mount
     useEffect(() => {
         request('/aslap/periode')
@@ -77,6 +95,7 @@ export const AkuntanDashboard = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             });
+        loadValidasiStok();
     }, []);
 
     // Fetch list kategori penerima pada saat mount
@@ -285,6 +304,221 @@ export const AkuntanDashboard = () => {
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
                 setError(d.error || 'Gagal menyimpan Mutasi Stok');
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    // Fungsi load riwayat validasi stok (10 data terbaru)
+    const loadValidasiStok = async () => {
+        try {
+            setError('');
+            const r = await request('/akuntan/validasi-stok');
+            if (r.ok) {
+                const resJson = await r.json();
+                setValidasiList(resJson.data || []);
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal memuat riwayat validasi stok' }));
+                setError(d.error);
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    // Trigger preview ketika bahan pokok atau tanggal di form validasi berubah
+    useEffect(() => {
+        let active = true;
+
+        const loadValidationPreview = async (bpId, tgl) => {
+            if (!bpId || !tgl) {
+                if (active) setValidasiPreview(null);
+                return;
+            }
+            try {
+                setError('');
+                const query = new URLSearchParams({
+                    bahanPokokId: bpId,
+                    tanggal: tgl
+                }).toString();
+
+                const r = await request(`/akuntan/validasi-stok/preview?${query}`);
+                
+                // Mencegah race condition jika state input sudah berubah sebelum response tiba
+                if (!active) return;
+
+                if (r.ok) {
+                    const data = await r.json();
+                    setValidasiPreview(data);
+                    // Auto-fill form input fisik dengan angka akumulasi sistem
+                    setValidasiForm(prev => ({
+                        ...prev,
+                        qtyDibeli: data.qtyDibeli,
+                        qtyTerpakai: data.qtyTerpakai
+                    }));
+                } else {
+                    const d = await r.json().catch(() => ({ error: 'Gagal memuat preview data sistem' }));
+                    setError(d.error);
+                    setValidasiPreview(null);
+                    // Reset input agar tidak menyisakan angka stale
+                    setValidasiForm(prev => ({
+                        ...prev,
+                        qtyDibeli: '',
+                        qtyTerpakai: ''
+                    }));
+                }
+            } catch (err) {
+                if (!active) return;
+                setError(err.message || 'Terjadi kesalahan koneksi');
+                setValidasiPreview(null);
+                // Reset input agar tidak menyisakan angka stale
+                setValidasiForm(prev => ({
+                    ...prev,
+                    qtyDibeli: '',
+                    qtyTerpakai: ''
+                }));
+            }
+        };
+
+        if (validasiForm.bahanPokokId && validasiForm.tanggal) {
+            loadValidationPreview(validasiForm.bahanPokokId, validasiForm.tanggal);
+        } else {
+            setValidasiPreview(null);
+            setValidasiForm(prev => ({
+                ...prev,
+                qtyDibeli: '',
+                qtyTerpakai: ''
+            }));
+        }
+
+        // Cleanup function untuk membatalkan penulisan state jika component unmount/input berganti
+        return () => {
+            active = false;
+        };
+    }, [validasiForm.bahanPokokId, validasiForm.tanggal]);
+
+    const createValidasiStok = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        const { bahanPokokId, tanggal, qtyDibeli, qtyTerpakai, catatan } = validasiForm;
+
+        if (!bahanPokokId) {
+            setError('Bahan pokok wajib dipilih.');
+            return;
+        }
+        if (!tanggal) {
+            setError('Tanggal validasi wajib diisi.');
+            return;
+        }
+        
+        // Pengecekan presisi agar input 0 (nol) tetap dianggap valid dan tidak ter-reject
+        if (qtyDibeli === undefined || qtyDibeli === null || qtyDibeli === '') {
+            setError('Jumlah pembelian fisik wajib diisi.');
+            return;
+        }
+        if (qtyTerpakai === undefined || qtyTerpakai === null || qtyTerpakai === '') {
+            setError('Jumlah pemakaian fisik wajib diisi.');
+            return;
+        }
+
+        const valQtyDibeli = parseFloat(qtyDibeli);
+        const valQtyTerpakai = parseFloat(qtyTerpakai);
+
+        if (isNaN(valQtyDibeli) || valQtyDibeli < 0) {
+            setError('Jumlah pembelian fisik harus berupa angka non-negatif.');
+            return;
+        }
+        if (isNaN(valQtyTerpakai) || valQtyTerpakai < 0) {
+            setError('Jumlah pemakaian fisik harus berupa angka non-negatif.');
+            return;
+        }
+
+        try {
+            const r = await request('/akuntan/validasi-stok', {
+                method: 'POST',
+                body: JSON.stringify({
+                    bahanPokokId,
+                    tanggal,
+                    qtyDibeli: valQtyDibeli,
+                    qtyTerpakai: valQtyTerpakai,
+                    catatan: catatan || null
+                })
+            });
+
+            if (r.ok) {
+                // Reset form validasi
+                setValidasiForm({
+                    bahanPokokId: '',
+                    tanggal: '',
+                    qtyDibeli: '',
+                    qtyTerpakai: '',
+                    catatan: ''
+                });
+                // Refresh list riwayat validasi stok
+                loadValidasiStok();
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                setError(d.error || 'Gagal menyimpan Validasi Stok');
+            }
+        } catch (err) {
+            setError(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    const createSaldoAwal = async (e) => {
+        e.preventDefault();
+        setError('');
+
+        const { bahanPokokId, saldoAwalQty, hargaBeliAwal } = saldoAwalForm;
+
+        if (!periodeId) {
+            setError('Periode wajib dipilih.');
+            return;
+        }
+        if (!bahanPokokId) {
+            setError('Bahan pokok wajib dipilih.');
+            return;
+        }
+        // Pengecekan presisi — 0 valid (identik dengan validasi backend === undefined)
+        if (saldoAwalQty === undefined || saldoAwalQty === null || saldoAwalQty === '') {
+            setError('Saldo awal qty wajib diisi.');
+            return;
+        }
+        if (hargaBeliAwal === undefined || hargaBeliAwal === null || hargaBeliAwal === '') {
+            setError('Harga beli awal wajib diisi.');
+            return;
+        }
+
+        const valQty = parseFloat(saldoAwalQty);
+        const valHarga = parseFloat(hargaBeliAwal);
+
+        if (isNaN(valQty) || valQty < 0) {
+            setError('Saldo awal qty harus berupa angka non-negatif.');
+            return;
+        }
+        if (isNaN(valHarga) || valHarga < 0) {
+            setError('Harga beli awal harus berupa angka non-negatif.');
+            return;
+        }
+
+        try {
+            const r = await request('/akuntan/saldo-awal-barang', {
+                method: 'POST',
+                body: JSON.stringify({
+                    periodeId,
+                    bahanPokokId,
+                    saldoAwalQty: valQty,
+                    hargaBeliAwal: valHarga
+                })
+            });
+
+            if (r.ok) {
+                setSaldoAwalForm({ bahanPokokId: '', saldoAwalQty: '', hargaBeliAwal: '' });
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                setError(d.error || 'Gagal menyimpan Saldo Awal Barang');
             }
         } catch (err) {
             setError(err.message || 'Terjadi kesalahan koneksi');
@@ -1382,6 +1616,174 @@ export const AkuntanDashboard = () => {
                     )}
                 </tbody>
             </table>
+
+            <hr style={{ margin: '30px 0' }} />
+
+            {/* ================================================ */}
+            {/* SECTION: VALIDASI & REKONSILIASI STOK            */}
+            {/* ================================================ */}
+            <h3>Validasi & Rekonsiliasi Stok Fisik</h3>
+            <form onSubmit={createValidasiStok} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '20px' }}>
+                <div>
+                    <label>Bahan Pokok: </label>
+                    <select
+                        value={validasiForm.bahanPokokId || ''}
+                        onChange={e => setValidasiForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
+                        required
+                    >
+                        <option value="">-- Pilih Bahan Pokok --</option>
+                        {bahanPokokList.map(b => (
+                            <option key={b.id} value={b.id}>
+                                {b.nama} ({b.satuan})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label>Tanggal Validasi: </label>
+                    <input
+                        type="date"
+                        value={validasiForm.tanggal || ''}
+                        onChange={e => setValidasiForm(prev => ({ ...prev, tanggal: e.target.value }))}
+                        required
+                    />
+                </div>
+
+                {/* Tampilan Preview Akumulasi Catatan Sistem */}
+                {validasiPreview && (
+                    <div style={{ border: '1px dashed #777', padding: '10px', margin: '10px 0', backgroundColor: '#f0f4f8' }}>
+                        <h4>Akumulasi Catatan Sistem s.d. Tanggal Terpilih:</h4>
+                        <p style={{ margin: '4px 0' }}>Total Pembelian (Sistem): <strong>{validasiPreview.qtyDibeli}</strong></p>
+                        <p style={{ margin: '4px 0' }}>Total Penggunaan (Sistem): <strong>{validasiPreview.qtyTerpakai}</strong></p>
+                        <p style={{ margin: '4px 0' }}>Sisa Stok (Sistem): <strong>{validasiPreview.sisaSistem}</strong></p>
+                        <span style={{ fontSize: '12px', color: '#666' }}>
+                            * Kolom input fisik di bawah terisi otomatis dari data sistem untuk mempermudah pencatatan.
+                        </span>
+                    </div>
+                )}
+
+                <div style={{ marginTop: '10px' }}>
+                    <label>Jumlah Pembelian Fisik: </label>
+                    <input
+                        type="number"
+                        step="0.001"
+                        placeholder="Qty Pembelian Fisik"
+                        value={validasiForm.qtyDibeli}
+                        onChange={e => setValidasiForm(prev => ({ ...prev, qtyDibeli: e.target.value }))}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Jumlah Pemakaian Fisik: </label>
+                    <input
+                        type="number"
+                        step="0.001"
+                        placeholder="Qty Pemakaian Fisik"
+                        value={validasiForm.qtyTerpakai}
+                        onChange={e => setValidasiForm(prev => ({ ...prev, qtyTerpakai: e.target.value }))}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Catatan Penyesuaian (opsional): </label>
+                    <input
+                        type="text"
+                        placeholder="Catatan / Selisih / Stok Hilang"
+                        value={validasiForm.catatan || ''}
+                        onChange={e => setValidasiForm(prev => ({ ...prev, catatan: e.target.value }))}
+                    />
+                </div>
+
+                <div style={{ marginTop: '10px' }}>
+                    <button type="submit">Simpan Validasi Stok</button>
+                </div>
+            </form>
+
+            <h3>Riwayat Validasi Stok Fisik</h3>
+            <table border="1" cellPadding="5" style={{ marginBottom: '20px' }}>
+                <thead>
+                    <tr>
+                        <th>Tanggal Validasi</th>
+                        <th>Bahan Pokok</th>
+                        <th>Pembelian (Fisik)</th>
+                        <th>Pemakaian (Fisik)</th>
+                        <th>Selisih Rekonsiliasi</th>
+                        <th>Catatan</th>
+                        <th>Divalidasi Oleh</th>
+                        <th>Waktu Input</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {validasiList.map(v => (
+                        <tr key={v.id}>
+                            <td>{v.tanggal.split('T')[0]}</td>
+                            <td>{v.bahanPokok?.nama}</td>
+                            <td>{v.qtyDibeli}</td>
+                            <td>{v.qtyTerpakai}</td>
+                            <td>{v.selisih}</td>
+                            <td>{v.catatan || '—'}</td>
+                            <td>{v.validatedBy?.nama || v.validatedBy?.username || '—'}</td>
+                            <td>{new Date(v.createdAt).toLocaleString('id-ID')}</td>
+                        </tr>
+                    ))}
+                    {validasiList.length === 0 && (
+                        <tr>
+                            <td colSpan={8} style={{ textAlign: 'center' }}>
+                                Belum ada riwayat validasi stok fisik.
+                            </td>
+                        </tr>
+                    )}
+                </tbody>
+            </table>
+
+            <hr style={{ margin: '30px 0' }} />
+
+            {/* ================================================ */}
+            {/* SECTION: SALDO AWAL BARANG                       */}
+            {/* ================================================ */}
+            <h3>Input Saldo Awal Barang (per Periode)</h3>
+            <form onSubmit={createSaldoAwal} style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '20px' }}>
+                <div>
+                    <label>Bahan Pokok: </label>
+                    <select
+                        value={saldoAwalForm.bahanPokokId || ''}
+                        onChange={e => setSaldoAwalForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
+                        required
+                    >
+                        <option value="">-- Pilih Bahan Pokok --</option>
+                        {bahanPokokList.map(b => (
+                            <option key={b.id} value={b.id}>
+                                {b.nama} ({b.satuan})
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label>Saldo Awal Qty: </label>
+                    <input
+                        type="number"
+                        step="0.001"
+                        placeholder="Jumlah Stok Awal"
+                        value={saldoAwalForm.saldoAwalQty}
+                        onChange={e => setSaldoAwalForm(prev => ({ ...prev, saldoAwalQty: e.target.value }))}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Harga Beli Awal (Rp): </label>
+                    <input
+                        type="number"
+                        step="0.01"
+                        placeholder="Harga Beli Awal"
+                        value={saldoAwalForm.hargaBeliAwal}
+                        onChange={e => setSaldoAwalForm(prev => ({ ...prev, hargaBeliAwal: e.target.value }))}
+                        required
+                    />
+                </div>
+                <div style={{ marginTop: '10px' }}>
+                    <button type="submit">Simpan Saldo Awal</button>
+                </div>
+            </form>
         </div>
     );
 };
