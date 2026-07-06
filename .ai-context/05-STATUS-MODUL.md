@@ -10,15 +10,16 @@ Legenda: ✅ selesai · 🟡 sebagian/ada gap · ⬜ belum mulai
 | Aslap — Input Penerima Manfaat | ✅ | ✅ (Sekolah & Posyandu) | ✅ | ⬜ | ✅ | `hariAktif` array (v5), validasi non-overlap dengan row lock (`SELECT FOR UPDATE`), dan findOrCreate sekolah/posyandu selesai |
 | Aslap — Jumlah Per Kelas | ✅ (pembantu) | ⬜ | ✅ | — | ⬜ | `SekolahKelasDetail` CRUD selesai, tidak dipakai laporan resmi |
 | Mitra — Harga Bahan | ✅ | ⬜ | ✅ | — | ✅ | CRUD HargaBahanPeriode & read-only BahanPokok selesai |
-| Stok (Saldo/Masuk/Keluar) | ✅ | ✅ (Bahan) | ✅ | ✅ | ⬜ | POST SaldoAwalBarang, MutasiStok MASUK/KELUAR selesai, dan Laporan Stock Barang teruji |
+| Stok (Saldo/Masuk/Keluar) | ✅ | ✅ (Bahan) | ✅ | ✅ | 🟡 | Backend selesai. Frontend: dropdown supplier tersedia, form MutasiStok belum diintegrasikan. |
+| Validasi Stok | ✅ | — | ✅ | ✅ | ⬜ | Backend selesai. Frontend belum dimulai. |
 | Menu (Master, Harian, Blok, Item, Bahan, Target Gizi, Organoleptik) | ✅ | ⬜ | ✅ | ✅ | ✅ | CRUD MenuHarianBlok, MenuItem, MenuItemBahan, TargetGizi, Organoleptik, & MasterMenuMingguan selesai di frontend. |
 | Alergi | ✅ (v5) | — | ✅ | ✅ | ✅ | AlergiCatatan CRUD selesai (frontend & backend). |
 | Pengiriman (Kendaraan) | ✅ (v5) | ✅ | ✅ | — | ✅ | CRUD Kendaraan & PengirimanHarian selesai di backend & frontend. |
-| RAB Harian & Pembelian | ✅ | ⬜ | ✅ | — | ⬜ | CRUD RabHarian selesai dengan manual cascade delete dan JurnalTransaksi conflict check. |
-| Anggaran Resmi (AnggaranHarian) | ✅ | ⬜ | ✅ | — | ⬜ | CRUD AnggaranHarian selesai dengan BatasHargaPorsi validation dan non-zero aktual check. |
-| Ledger (Akun, Jurnal, SaldoAwal) | ✅ | ✅ (Akun) | ✅ | ✅ | ⬜ | JurnalTransaksi POST/GET/PUT/DELETE selesai, validasi aktif akun diterapkan |
-| Dokumen Resmi (LPA/SPTJ/BAPSD) | ✅ | ⬜ | ✅ | ✅ | ⬜ | Live generator, list, publish, delete selesai |
-| Daftar Nominatif Upah | ✅ | ⬜ | ✅ | — | ⬜ | CRUD DaftarNominatifUpah + detailHarian selesai |
+| RAB Harian & Pembelian | ✅ | ⬜ | ✅ | — | ✅ | CRUD RabHarian selesai. Frontend: form create + tabel list read-only di AkuntanDashboard.jsx. |
+| Anggaran Resmi (AnggaranHarian) | ✅ | ⬜ | ✅ | — | ✅ | CRUD AnggaranHarian selesai. Frontend: form conditional (BAHAN_MAKANAN rincian vs flat) + tabel list. |
+| Ledger (Akun, Jurnal, SaldoAwal) | ✅ | ✅ (Akun) | ✅ | ✅ | ✅ | Frontend: form + dropdown akun aktif + tabel list. Backend GET `/akun` & GET `/supplier` ditambahkan. |
+| Dokumen Resmi (LPA/SPTJ/BAPSD) | ✅ | ⬜ | ✅ | ✅ | ✅ | Frontend: generator preview JSON + publish + tabel list terbitan. |
+| Daftar Nominatif Upah | ✅ | ⬜ | ✅ | — | ✅ | Frontend: form + sub-form rincian harian + tabel list. |
 | Approval | ✅ | — | ✅ | — | ⬜ | Level: per hari (MenuHarian) & RabHarian. Akses eksklusif KEPALA_SPPG, mandatory periodeId, limit/offset pagination, status transition matrix & concurrency lock teruji. |
 | Validasi Stok | ✅ | — | ✅ | ✅ | ⬜ | Pelaksana: Akuntan. Endpoint POST (reconciliation), GET (list), dan GET preview kalkulator (agregasi MutasiStok masuk vs keluar) teruji. |
 | Audit Log & Notifikasi | ✅ | — | ✅ | — | ⬜ | Notifikasi selesai (terintegrasi dengan trigger POST approval). Audit Log ditunda atas keputusan bisnis (YAGNI). |

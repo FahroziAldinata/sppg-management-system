@@ -29,10 +29,12 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **P2003/23001 Fallback & DB PC Setup** — PostgreSQL 18 lokal di PC di-migrate (`migrate deploy`) dan di-seed (`prisma/seed.js`) 100% sukses. Menambahkan check defensive untuk error `23001` (foreign key constraint) di catch block `DELETE /menu-harian` (gizi.js) dan `DELETE /rab-harian` (akuntan.js). Kedua endpoint dan server restart total telah diuji lulus regresi.
 - [x] **Frontend Tahap 3 (Gizi) — Kendaraan, PengirimanHarian & MasterMenuMingguan** — Integrasi komponen UI form/list untuk Kendaraan, PengirimanHarian, dan Master Menu Mingguan (Referensi) di MenuHarianList.jsx selesai sepenuhnya dan teruji manual di browser.
 - [x] **Master Menu Mingguan (Referensi)** — Form create (5 field + 2 dropdown), read-only table list, and automatic refresh on submit based on active periodeId successfully integrated.
+- [x] **Frontend Akuntan — RAB, Anggaran, Jurnal, DokumenResmi, NominatifUpah** — Implementasi AkuntanDashboard.jsx mencakup: form+list RAB Harian, form conditional Anggaran Harian (BAHAN_MAKANAN rincian vs flat), form+list Jurnal Transaksi (dropdown akun aktif), Dokumen Resmi (generator preview JSON + publish + list terbitan), Daftar Nominatif Upah (form + sub-form rincian harian + list). Sticky error div diterapkan. Backend endpoint GET `/api/akuntan/supplier` dan GET `/api/akuntan/akun` ditambahkan untuk dropdown.
 
 ## Sedang jalan / berikutnya
 
-- [ ] Frontend Tahap 4 — Memulai modul berikutnya (misal Akuntan panels / Ledger / RAB).
+- [ ] Frontend Akuntan — MutasiStok (form create + dropdown supplier/bahanPokok) & ValidasiStok (preview + reconciliation).
+- [ ] Frontend Kepala SPPG — Approval list + action + Notifikasi badge.
 
 ## Belum dikerjakan sama sekali
 

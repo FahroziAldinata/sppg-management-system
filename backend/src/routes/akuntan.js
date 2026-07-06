@@ -2047,6 +2047,39 @@ router.post("/mutasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res
   }
 });
 
+// GET /api/akuntan/mutasi-stok - List MutasiStok
+router.get("/mutasi-stok", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { periodeId } = req.query;
+    
+    let whereClause = {};
+    if (periodeId) {
+      const period = await prisma.periode.findUnique({ where: { id: periodeId } });
+      if (period) {
+        whereClause.tanggal = {
+          gte: period.tanggalMulai,
+          lte: period.tanggalSelesai
+        };
+      }
+    }
+
+    const list = await prisma.mutasiStok.findMany({
+      where: whereClause,
+      include: {
+        bahanPokok: true,
+        supplier: true
+      },
+      orderBy: {
+        tanggal: "desc"
+      }
+    });
+    res.json(list);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data mutasi stok" });
+  }
+});
+
 // ==========================================
 // VALIDASI STOK (Akuntan-only)
 // ==========================================
@@ -2247,6 +2280,30 @@ router.get("/akun", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data akun" });
+  }
+});
+
+
+// GET /api/akuntan/supplier - List all active suppliers
+router.get("/supplier", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const list = await prisma.supplier.findMany({
+      where: {
+        aktif: true
+      },
+      select: {
+        id: true,
+        nama: true,
+        kontak: true
+      },
+      orderBy: {
+        nama: "asc"
+      }
+    });
+    res.json(list);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data supplier" });
   }
 });
 

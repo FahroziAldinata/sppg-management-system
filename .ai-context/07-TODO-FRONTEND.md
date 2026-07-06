@@ -23,11 +23,19 @@ Tahap 1 — Validasi pola (1 role: Aslap)
  - [x] Ahli Gizi: MenuTargetGizi (list & create-only per blok)
  - [x] Ahli Gizi: MenuOrganoleptik CRUD per blok
  - [x] Ahli Gizi: AlergiCatatan CRUD per blok
- - [/] Ahli Gizi: Kendaraan CRUD & PengirimanHarian (desain state & fungsi helper disetujui, integrasi UI sedang berjalan)
- - [ ] Ahli Gizi: MasterMenuMingguan (evaluasi kebutuhan/relevansi)
-Stop di sini, review pola dulu sebelum lanjut role lain — ponytail, jangan replicate pola yang belum kebukti bener.
+ - [x] Ahli Gizi: Kendaraan CRUD & PengirimanHarian (selesai, teruji manual)
+ - [x] Ahli Gizi: MasterMenuMingguan (form create + read-only list, selesai)
 Tahap 2 — Replicate ke role lain
- - [ ] Akuntan: RAB/Anggaran/Jurnal/DokumenResmi/Upah/Stok/ValidasiStok (belum mulai)
+ - [/] Akuntan: AkuntanDashboard.jsx (sedang berjalan)
+   - [x] RAB Harian (form create + tabel list read-only)
+   - [x] Anggaran Harian (form conditional BAHAN_MAKANAN vs flat + tabel list)
+   - [x] Jurnal Transaksi (form + dropdown akun aktif + tabel list)
+   - [x] Dokumen Resmi (generator preview JSON + publish + tabel list)
+   - [x] Daftar Nominatif Upah (form + sub-form rincian harian + tabel list)
+   - [x] GET /api/akuntan/supplier endpoint (pola identik GET /akun)
+   - [x] Sticky error div (UX fix — error visible saat scroll)
+   - [x] MutasiStok (form create + dropdown supplier/bahanPokok)
+   - [ ] ValidasiStok (preview + reconciliation)
  - [ ] Kepala SPPG: Approval list + action + Notifikasi badge (belum mulai)
 
 Tahap 3 — Laporan (read-only, low-risk)
