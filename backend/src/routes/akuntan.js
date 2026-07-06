@@ -2303,7 +2303,7 @@ router.get("/akun", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
 
 
 // GET /api/akuntan/supplier - List all active suppliers
-router.get("/supplier", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+router.get("/supplier", requireAuth, requireRole("AKUNTAN", "MITRA"), async (req, res) => {
   try {
     const list = await prisma.supplier.findMany({
       where: {

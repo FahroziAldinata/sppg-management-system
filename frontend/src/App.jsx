@@ -6,6 +6,7 @@ import { Login } from './pages/auth/Login';
 import { Layout } from './components/Layout';
 import { AslapDashboard } from './pages/aslap/AslapDashboard';
 import { MitraDashboard } from './pages/mitra/MitraDashboard';
+import { MitraPoPage } from './pages/mitra/MitraPoPage';
 import { MenuHarianList } from './pages/gizi/MenuHarianList';
 import { KepalaDashboard } from './pages/kepala/KepalaDashboard';
 
@@ -68,6 +69,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['MITRA']}>
                   <MitraDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="mitra/po"
+              element={
+                <ProtectedRoute allowedRoles={['MITRA']}>
+                  <MitraPoPage />
                 </ProtectedRoute>
               }
             />

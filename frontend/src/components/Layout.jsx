@@ -28,9 +28,14 @@ export const Layout = () => {
                 </li>
               )}
               {user?.role === 'MITRA' && (
-                <li>
-                  <Link to="/mitra">Harga Bahan</Link>
-                </li>
+                <>
+                  <li>
+                    <Link to="/mitra">Harga Bahan</Link>
+                  </li>
+                  <li>
+                    <Link to="/mitra/po">Nota Pesanan (PO)</Link>
+                  </li>
+                </>
               )}
               {user?.role === 'AKUNTAN' && (
                 <>

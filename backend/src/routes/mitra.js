@@ -274,4 +274,279 @@ router.delete("/harga-bahan/:id", requireAuth, requireRole("MITRA"), async (req,
   }
 });
 
+// Helper to normalize date
+function normalizeDateUTC(input) {
+  const d = new Date(input);
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+}
+
+const HARI_MAP = {
+  1: "SENIN",
+  2: "SELASA",
+  3: "RABU",
+  4: "KAMIS",
+  5: "JUMAT",
+  6: "SABTU"
+};
+
+// GET /api/mitra/po/kebutuhan - Get ingredient requirements for a specific date
+router.get("/po/kebutuhan", requireAuth, requireRole("MITRA", "AKUNTAN"), async (req, res) => {
+  try {
+    const { tanggal, periodeId } = req.query;
+    if (!tanggal || !periodeId) {
+      return res.status(400).json({ error: "tanggal dan periodeId wajib diisi" });
+    }
+
+    const targetDate = normalizeDateUTC(tanggal);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    }
+
+    // 1. Fetch MenuHarian for this date & period
+    const menu = await prisma.menuHarian.findFirst({
+      where: {
+        periodeId,
+        tanggal: targetDate
+      },
+      include: {
+        blok: {
+          include: {
+            kelompokUmurMenu: {
+              include: { kategoriPenerima: true }
+            },
+            menuItem: {
+              include: {
+                bahan: {
+                  include: { bahanPokok: true }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!menu) {
+      return res.json({ success: true, menu: null, ingredients: [] });
+    }
+
+    // 2. Fetch active InputPenerimaManfaat once
+    const day = targetDate.getUTCDay();
+    const dayOfWeek = HARI_MAP[day];
+    let inputsForDay = [];
+    if (dayOfWeek) {
+      const activeInputs = await prisma.inputPenerimaManfaat.findMany({
+        where: { periodeId },
+        include: { detail: true }
+      });
+      inputsForDay = activeInputs.filter(inp => inp.hariAktif.includes(dayOfWeek));
+    }
+
+    const porsiPerKategori = {};
+    for (const input of inputsForDay) {
+      for (const det of input.detail) {
+        porsiPerKategori[det.kategoriId] = (porsiPerKategori[det.kategoriId] || 0) + (det.lakiLaki + det.perempuan);
+      }
+    }
+
+    // Get active price list for this period
+    const priceList = await prisma.hargaBahanPeriode.findMany({
+      where: { periodeId }
+    });
+    const priceMap = {};
+    priceList.forEach(p => {
+      priceMap[p.bahanPokokId] = Number(p.harga);
+    });
+
+    const akumulasiBahan = {};
+
+    for (const blok of menu.blok) {
+      // Calculate total portions for this block
+      let totalPorsiBlok = 0;
+      const categoriesInBlock = blok.kelompokUmurMenu.kategoriPenerima;
+      for (const kat of categoriesInBlock) {
+        totalPorsiBlok += (porsiPerKategori[kat.id] || 0);
+      }
+
+      for (const item of blok.menuItem) {
+        for (const b of item.bahan) {
+          const bid = b.bahanPokokId;
+          if (!akumulasiBahan[bid]) {
+            akumulasiBahan[bid] = {
+              bahanPokokId: bid,
+              nama: b.bahanPokok.nama,
+              satuan: b.bahanPokok.satuan,
+              qtySiswa: 0,
+              qtyB3: 0,
+              qtyTotal: 0,
+              hargaSatuan: priceMap[bid] || 0
+            };
+          }
+
+          // Kebutuhan bahan = porsi * beratKotorGr / 1000 (convert to kg/liter)
+          const qtyNeed = (Number(b.beratKotorGr) * totalPorsiBlok) / 1000;
+          
+          if (blok.kelompokUmurMenu.jalur === "SISWA") {
+            akumulasiBahan[bid].qtySiswa += qtyNeed;
+          } else {
+            akumulasiBahan[bid].qtyB3 += qtyNeed;
+          }
+          akumulasiBahan[bid].qtyTotal += qtyNeed;
+        }
+      }
+    }
+
+    // Convert to rounded values
+    const result = Object.values(akumulasiBahan).map(b => ({
+      ...b,
+      qtySiswa: Math.round(b.qtySiswa * 1000) / 1000,
+      qtyB3: Math.round(b.qtyB3 * 1000) / 1000,
+      qtyTotal: Math.round(b.qtyTotal * 1000) / 1000,
+      subtotal: Math.round((b.qtyTotal * b.hargaSatuan) * 100) / 100
+    }));
+
+    // Construct Menu description string for PO header
+    const menuNames = [];
+    menu.blok.forEach(b => {
+      b.menuItem.forEach(item => {
+        if (!menuNames.includes(item.nama)) {
+          menuNames.push(item.nama);
+        }
+      });
+    });
+
+    res.json({
+      success: true,
+      menuDescription: menuNames.join(", "),
+      ingredients: result
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat memproses kebutuhan PO" });
+  }
+});
+
+// POST /api/mitra/po - Create a new TransaksiPembelian (PO)
+router.post("/po", requireAuth, requireRole("MITRA"), async (req, res) => {
+  try {
+    const { periodeId, tanggal, supplierId, items, catatan } = req.body || {};
+
+    if (!periodeId) return res.status(400).json({ error: "periodeId wajib diisi" });
+    if (!tanggal) return res.status(400).json({ error: "tanggal wajib diisi" });
+    if (!supplierId) return res.status(400).json({ error: "supplierId wajib diisi" });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "items PO tidak boleh kosong" });
+    }
+
+    const targetDate = normalizeDateUTC(tanggal);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    }
+
+    // 1. Get or create RabHarian for this date & period
+    let rabHarian = await prisma.rabHarian.findUnique({
+      where: {
+        periodeId_tanggal: {
+          periodeId,
+          tanggal: targetDate
+        }
+      }
+    });
+
+    if (!rabHarian) {
+      // Create RabHarian auto in DRAFT state
+      rabHarian = await prisma.rabHarian.create({
+        data: {
+          periodeId,
+          tanggal: targetDate,
+          status: "DRAFT",
+          createdById: req.user.id
+        }
+      });
+    }
+
+    // 2. Create the TransaksiPembelian under RabHarian inside transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const tp = await tx.transaksiPembelian.create({
+        data: {
+          rabHarianId: rabHarian.id,
+          supplierId,
+          tanggal: targetDate,
+          catatan: catatan || null
+        }
+      });
+
+      for (const item of items) {
+        const qty = parseFloat(item.qtyTotal);
+        const harga = parseFloat(item.hargaSatuan);
+        if (isNaN(qty) || qty <= 0) {
+          throw new Error(`[VALIDASI] Qty untuk bahan pokok ID ${item.bahanPokokId} tidak valid`);
+        }
+        if (isNaN(harga) || harga < 0) {
+          throw new Error(`[VALIDASI] Harga untuk bahan pokok ID ${item.bahanPokokId} tidak valid`);
+        }
+
+        await tx.transaksiPembelianItem.create({
+          data: {
+            transaksiId: tp.id,
+            bahanPokokId: item.bahanPokokId,
+            qty: Math.round(qty * 1000) / 1000,
+            hargaSatuan: Math.round(harga * 100) / 100,
+            subtotal: Math.round((qty * harga) * 100) / 100
+          }
+        });
+      }
+
+      return await tx.transaksiPembelian.findUnique({
+        where: { id: tp.id },
+        include: {
+          items: {
+            include: { bahanPokok: true }
+          },
+          supplier: true
+        }
+      });
+    });
+
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    console.error(error);
+    if (error.message && error.message.startsWith("[VALIDASI]")) {
+      return res.status(400).json({ error: error.message.replace("[VALIDASI] ", "") });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan PO" });
+  }
+});
+
+// GET /api/mitra/po/list - List all TransaksiPembelian (POs) for a period
+router.get("/po/list", requireAuth, requireRole("MITRA", "AKUNTAN"), async (req, res) => {
+  try {
+    const { periodeId } = req.query;
+    if (!periodeId) {
+      return res.status(400).json({ error: "periodeId wajib diisi" });
+    }
+
+    const data = await prisma.transaksiPembelian.findMany({
+      where: {
+        rabHarian: { periodeId }
+      },
+      include: {
+        supplier: true,
+        rabHarian: true,
+        items: {
+          include: { bahanPokok: true }
+        }
+      },
+      orderBy: {
+        tanggal: "desc"
+      }
+    });
+
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil list PO" });
+  }
+});
+
 module.exports = router;
