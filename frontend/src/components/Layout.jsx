@@ -81,23 +81,32 @@ export const Layout = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
       
-      {/* Fixed Header with Backdrop Blur Glass Effect */}
-      <header className="glass-panel" style={{
+      {/* Fixed Header Parent Container */}
+      <div style={{
         position: 'fixed',
         top: 'var(--gap-outer)',
-        left: 'var(--gap-outer)',
-        right: 'var(--gap-outer)',
-        height: 'var(--header-height)',
-        borderRadius: 'var(--radius-lg)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 24px',
+        left: 0,
+        right: 0,
         zIndex: 100,
-        boxShadow: 'var(--shadow)',
-        backgroundColor: 'var(--bg-elevated)',
-        border: '1px solid var(--border)'
+        display: 'flex',
+        justifyContent: 'center',
+        padding: '0 var(--gap-outer)',
+        pointerEvents: 'none'
       }}>
+        {/* Centered Pill Header */}
+        <header className="glass-panel" style={{
+          pointerEvents: 'auto',
+          width: 'fit-content',
+          height: 'var(--header-height)',
+          borderRadius: '9999px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '40px',
+          padding: '0 24px',
+          boxShadow: 'var(--shadow)',
+          backgroundColor: 'var(--bg-elevated)',
+          border: '1px solid var(--border)'
+        }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img
             src={theme === 'dark' ? '/icons/logo-bgn-dark.png' : '/icons/logo-bgn-light.png'}
@@ -169,6 +178,7 @@ export const Layout = () => {
           </button>
         </div>
       </header>
+    </div>
 
       {/* Fixed Sidebar */}
       <aside className="glass-panel" style={{
