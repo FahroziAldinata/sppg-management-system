@@ -10,7 +10,7 @@ Buka terminal baru (PowerShell / Command Prompt), lalu jalankan perintah berikut
 
 ```powershell
 # Masuk ke direktori backend
-cd e:\Project\Sistem_SPPG\backend
+cd E:\Project\Sistem_SPPG\backend
 
 # Jalankan server
 node index.js

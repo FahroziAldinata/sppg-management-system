@@ -49,6 +49,9 @@ router.get("/me", requireAuth, async (req, res) => {
     return res.status(401).json({ error: "User tidak aktif atau sudah dihapus" });
   }
 
+  res.json({ id: user.id, nama: user.nama, username: user.username, role: user.role });
+});
+
 // PUT /api/auth/profile - Update user profile & settings
 router.put("/profile", requireAuth, async (req, res) => {
   try {
