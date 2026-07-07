@@ -1,459 +1,157 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 
 export const AslapDashboard = () => {
   const { request } = useApi();
-  
-  // Master data
-  const [periods, setPeriods] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [schools, setSchools] = useState([]);
-  const [posyandus, setPosyandus] = useState([]);
-  
-  // Selection / List
-  const [selectedPeriodId, setSelectedPeriodId] = useState('');
-  const [items, setItems] = useState([]);
-  
-  // Form State
-  const [editingId, setEditingId] = useState(null);
-  const [formHariAktif, setFormHariAktif] = useState([]);
-  const [formDetail, setFormDetail] = useState([]);
-  
-  // Message states
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  
-  const daysList = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
+  const navigate = useNavigate();
 
-  // Load all master data on mount
+  const [periods, setPeriods] = useState([]);
+  const [selectedPeriod, setSelectedPeriod] = useState(null);
+  const [stats, setStats] = useState({ schools: 0, posyandus: 0, pmEntries: 0 });
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    const loadMasterData = async () => {
+    const loadDashboardData = async () => {
       try {
-        const [resP, resK, resS, resY] = await Promise.all([
+        const [resP, resS, resY] = await Promise.all([
           request('/aslap/periode'),
-          request('/aslap/kategori'),
           request('/aslap/sekolah'),
           request('/aslap/posyandu')
         ]);
         
         const dataP = await resP.json();
-        const dataK = await resK.json();
         const dataS = await resS.json();
         const dataY = await resY.json();
-        
+
         setPeriods(dataP);
-        setCategories(dataK);
-        setSchools(dataS);
-        setPosyandus(dataY);
         
+        let activeP = null;
         if (dataP.length > 0) {
-          setSelectedPeriodId(dataP[0].id);
+          activeP = dataP[0];
+          setSelectedPeriod(activeP);
         }
+
+        // Fetch PM entries count for active period
+        let pmCount = 0;
+        if (activeP) {
+          const resPm = await request(`/aslap/penerima-manfaat?periodeId=${activeP.id}`);
+          if (resPm.ok) {
+            const dataPm = await resPm.json();
+            pmCount = dataPm.length;
+          }
+        }
+
+        setStats({
+          schools: dataS.length,
+          posyandus: dataY.length,
+          pmEntries: pmCount
+        });
       } catch (err) {
         console.error(err);
-        setError('Gagal memuat data master dari server.');
+      } finally {
+        setLoading(false);
       }
     };
-    loadMasterData();
+    loadDashboardData();
   }, []);
 
-  // Fetch list of Penerima Manfaat when selectedPeriodId changes
-  useEffect(() => {
-    if (!selectedPeriodId) return;
-    const fetchList = async () => {
-      try {
-        const res = await request(`/aslap/penerima-manfaat?periodeId=${selectedPeriodId}`);
-        if (res.ok) {
-          const data = await res.json();
-          setItems(data);
-        }
-      } catch (err) {
-        console.error(err);
-        setError('Gagal mengambil daftar penerima manfaat.');
-      }
-    };
-    fetchList();
-  }, [selectedPeriodId]);
-
-  // Helper mapping category ID to category object
-  const categoryMap = {};
-  categories.forEach(c => { categoryMap[c.id] = c; });
-
-  const resetForm = () => {
-    setEditingId(null);
-    setFormHariAktif([]);
-    setFormDetail([{
-      kategoriId: categories[0]?.id || '',
-      sekolahId: '',
-      sekolahNama: '',
-      posyanduId: '',
-      posyanduNama: '',
-      lakiLaki: 0,
-      perempuan: 0
-    }]);
-    setError('');
-  };
-
-  const handleEditClick = (row) => {
-    setEditingId(row.id);
-    setFormHariAktif(row.hariAktif);
+  const handlePeriodChange = async (pid) => {
+    const period = periods.find(p => p.id === pid);
+    setSelectedPeriod(period);
     
-    // Map existing detail entries to form detail state
-    const mappedDetail = row.detail.map(d => ({
-      kategoriId: d.kategoriId,
-      sekolahId: d.sekolahId || '',
-      sekolahNama: '',
-      posyanduId: d.posyanduId || '',
-      posyanduNama: '',
-      lakiLaki: d.lakiLaki,
-      perempuan: d.perempuan
-    }));
-    setFormDetail(mappedDetail);
-    setError('');
-    setSuccess('');
-  };
-
-  const handleDeleteClick = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
-    setError('');
-    setSuccess('');
+    // Update PM entries count for newly selected period
     try {
-      const res = await request(`/aslap/penerima-manfaat/${id}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        setSuccess('Data berhasil dihapus.');
-        // Refresh list
-        const listRes = await request(`/aslap/penerima-manfaat?periodeId=${selectedPeriodId}`);
-        const data = await listRes.json();
-        setItems(data);
-      } else {
-        const errData = await res.json();
-        setError(errData.error || 'Gagal menghapus data.');
+      const resPm = await request(`/aslap/penerima-manfaat?periodeId=${pid}`);
+      if (resPm.ok) {
+        const dataPm = await resPm.json();
+        setStats(prev => ({ ...prev, pmEntries: dataPm.length }));
       }
-    } catch (err) {
-      console.error(err);
-      setError('Koneksi ke server gagal.');
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  const handleDayCheckboxChange = (day) => {
-    if (formHariAktif.includes(day)) {
-      setFormHariAktif(formHariAktif.filter(d => d !== day));
-    } else {
-      setFormHariAktif([...formHariAktif, day]);
-    }
-  };
-
-  const handleDetailChange = (index, field, value) => {
-    const updated = [...formDetail];
-    updated[index][field] = value;
-    
-    // Reset other targets if kategoriId changes
-    if (field === 'kategoriId') {
-      updated[index].sekolahId = '';
-      updated[index].sekolahNama = '';
-      updated[index].posyanduId = '';
-      updated[index].posyanduNama = '';
-    }
-    setFormDetail(updated);
-  };
-
-  const addDetailRow = () => {
-    setFormDetail([...formDetail, {
-      kategoriId: categories[0]?.id || '',
-      sekolahId: '',
-      sekolahNama: '',
-      posyanduId: '',
-      posyanduNama: '',
-      lakiLaki: 0,
-      perempuan: 0
-    }]);
-  };
-
-  const removeDetailRow = (index) => {
-    if (formDetail.length === 1) return;
-    setFormDetail(formDetail.filter((_, idx) => idx !== index));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    // Replicate payload structure exactly expected by backend
-    const cleanedDetail = formDetail.map(d => {
-      const cat = categoryMap[d.kategoriId];
-      const detailItem = {
-        kategoriId: d.kategoriId,
-        lakiLaki: parseInt(d.lakiLaki, 10) || 0,
-        perempuan: parseInt(d.perempuan, 10) || 0
-      };
-
-      if (cat?.jenisSasaran === 'PESERTA_DIDIK') {
-        if (d.sekolahId) {
-          detailItem.sekolahId = d.sekolahId;
-        } else if (d.sekolahNama) {
-          detailItem.sekolahNama = d.sekolahNama;
-        }
-      } else if (cat?.jenisSasaran === 'NON_PESERTA_DIDIK') {
-        if (d.posyanduId) {
-          detailItem.posyanduId = d.posyanduId;
-        } else if (d.posyanduNama) {
-          detailItem.posyanduNama = d.posyanduNama;
-        }
-      }
-      return detailItem;
-    });
-
-    const payload = editingId 
-      ? { hariAktif: formHariAktif, detail: cleanedDetail }
-      : { periodeId: selectedPeriodId, hariAktif: formHariAktif, detail: cleanedDetail };
-
-    try {
-      const url = editingId 
-        ? `/aslap/penerima-manfaat/${editingId}`
-        : '/aslap/penerima-manfaat';
-      const method = editingId ? 'PUT' : 'POST';
-
-      const res = await request(url, {
-        method,
-        body: JSON.stringify(payload)
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setSuccess(editingId ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
-        resetForm();
-        // Refresh list
-        const listRes = await request(`/aslap/penerima-manfaat?periodeId=${selectedPeriodId}`);
-        const listData = await listRes.json();
-        setItems(listData);
-      } else {
-        setError(data.error || 'Terjadi kesalahan pada input.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Koneksi ke server gagal.');
-    }
-  };
+  if (loading) return <p>Memuat Ringkasan Beranda Aslap...</p>;
 
   return (
-    <div>
-      <h2>Dashboard Aslap - Penerima Manfaat</h2>
-      
-      {/* Messages */}
-      {error && <div style={{ color: 'red', margin: '10px 0' }}>Error: {error}</div>}
-      {success && <div style={{ color: 'green', margin: '10px 0' }}>{success}</div>}
-
-      {/* Period Selection */}
-      <div>
-        <label htmlFor="period-select">Pilih Periode: </label>
-        <select 
-          id="period-select"
-          value={selectedPeriodId}
-          onChange={(e) => {
-            setSelectedPeriodId(e.target.value);
-            resetForm();
-          }}
-        >
-          {periods.map(p => (
-            <option key={p.id} value={p.id}>
-              {p.nama} ({p.tanggalMulai} s/d {p.tanggalSelesai})
-            </option>
-          ))}
-        </select>
+    <div style={{ padding: '10px' }}>
+      {/* Welcome Banner */}
+      <div style={{ backgroundColor: '#007bff', color: 'white', padding: '20px', borderRadius: '6px', marginBottom: '25px' }}>
+        <h2 style={{ margin: '0 0 8px 0' }}>Halo, Asisten Lapangan (Aslap)!</h2>
+        <p style={{ margin: '0', opacity: '0.9', fontSize: '14px' }}>
+          Selamat datang kembali di dashboard pemantauan gizi SPPG. Silakan pantau status periode operasional aktif dan input data Penerima Manfaat.
+        </p>
       </div>
 
-      <hr />
-
-      {/* Create / Edit Form */}
-      <h3>{editingId ? 'Edit Data' : 'Tambah Data Baru'}</h3>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <h4>Hari Aktif:</h4>
-          {daysList.map(day => (
-            <label key={day} style={{ marginRight: '10px' }}>
-              <input
-                type="checkbox"
-                checked={formHariAktif.includes(day)}
-                onChange={() => handleDayCheckboxChange(day)}
-              />
-              {day}
-            </label>
-          ))}
-        </div>
-
-        <div>
-          <h4>Detail Penerima Manfaat:</h4>
-          {formDetail.map((det, index) => {
-            const selectedCat = categoryMap[det.kategoriId];
-            const isSiswa = selectedCat ? selectedCat.jenisSasaran === 'PESERTA_DIDIK' : false;
-            const isNonSiswa = selectedCat ? selectedCat.jenisSasaran === 'NON_PESERTA_DIDIK' : false;
-
-            return (
-              <div key={index} style={{ border: '1px solid #ddd', padding: '10px', marginBottom: '10px' }}>
-                <h5>Item #{index + 1}</h5>
-                
-                <div>
-                  <label>Kategori Klien: </label>
-                  <select
-                    value={det.kategoriId}
-                    onChange={(e) => handleDetailChange(index, 'kategoriId', e.target.value)}
-                  >
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.nama} ({c.jenisSasaran})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {isSiswa && (
-                  <div style={{ marginTop: '5px' }}>
-                    <label>Pilih Sekolah Existing: </label>
-                    <select
-                      value={det.sekolahId}
-                      onChange={(e) => {
-                        handleDetailChange(index, 'sekolahId', e.target.value);
-                        handleDetailChange(index, 'sekolahNama', '');
-                      }}
-                    >
-                      <option value="">-- Pilih --</option>
-                      {schools.map(s => (
-                        <option key={s.id} value={s.id}>{s.nama}</option>
-                      ))}
-                    </select>
-                    <span> ATAU input Sekolah Baru: </span>
-                    <input
-                      type="text"
-                      placeholder="Nama Sekolah Baru"
-                      value={det.sekolahNama}
-                      onChange={(e) => {
-                        handleDetailChange(index, 'sekolahNama', e.target.value);
-                        handleDetailChange(index, 'sekolahId', '');
-                      }}
-                    />
-                  </div>
-                )}
-
-                {isNonSiswa && (
-                  <div style={{ marginTop: '5px' }}>
-                    <label>Pilih Posyandu Existing: </label>
-                    <select
-                      value={det.posyanduId}
-                      onChange={(e) => {
-                        handleDetailChange(index, 'posyanduId', e.target.value);
-                        handleDetailChange(index, 'posyanduNama', '');
-                      }}
-                    >
-                      <option value="">-- Pilih --</option>
-                      {posyandus.map(y => (
-                        <option key={y.id} value={y.id}>{y.nama}</option>
-                      ))}
-                    </select>
-                    <span> ATAU input Posyandu Baru: </span>
-                    <input
-                      type="text"
-                      placeholder="Nama Posyandu Baru"
-                      value={det.posyanduNama}
-                      onChange={(e) => {
-                        handleDetailChange(index, 'posyanduNama', e.target.value);
-                        handleDetailChange(index, 'posyanduId', '');
-                      }}
-                    />
-                  </div>
-                )}
-
-                <div style={{ marginTop: '5px' }}>
-                  <label>Jumlah Laki-laki: </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={det.lakiLaki}
-                    onChange={(e) => handleDetailChange(index, 'lakiLaki', e.target.value)}
-                  />
-                  <label style={{ marginLeft: '10px' }}>Jumlah Perempuan: </label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={det.perempuan}
-                    onChange={(e) => handleDetailChange(index, 'perempuan', e.target.value)}
-                  />
-                </div>
-
-                <button 
-                  type="button" 
-                  onClick={() => removeDetailRow(index)}
-                  style={{ marginTop: '10px', color: 'red' }}
-                  disabled={formDetail.length === 1}
-                >
-                  Hapus Baris Detail
-                </button>
-              </div>
-            );
-          })}
-          
-          <button type="button" onClick={addDetailRow} style={{ marginBottom: '10px' }}>
-            Tambah Baris Detail
-          </button>
-        </div>
-
-        <div>
-          <button type="submit">
-            {editingId ? 'Simpan Perubahan' : 'Kirim Data'}
-          </button>
-          {editingId && (
-            <button type="button" onClick={resetForm} style={{ marginLeft: '10px' }}>
-              Batal Edit
-            </button>
-          )}
-        </div>
-      </form>
-
-      <hr />
-
-      {/* List / Table of existing records */}
-      <h3>Daftar Input Penerima Manfaat</h3>
-      {items.length === 0 ? (
-        <p>Belum ada data penerima manfaat untuk periode ini.</p>
-      ) : (
-        <table border="1" cellPadding="5" style={{ borderCollapse: 'collapse', width: '100%' }}>
-          <thead>
-            <tr>
-              <th>Hari Aktif</th>
-              <th>Pembuat</th>
-              <th>Rincian Detail Penerima</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map(row => (
-              <tr key={row.id}>
-                <td>{row.hariAktif.join(', ')}</td>
-                <td>{row.createdBy?.nama || 'System'}</td>
-                <td>
-                  <ul>
-                    {row.detail.map((d, index) => (
-                      <li key={d.id || index}>
-                        <strong>{d.kategori?.nama}</strong>:{' '}
-                        {d.sekolah?.nama && `Sekolah: ${d.sekolah.nama}`}
-                        {d.posyandu?.nama && `Posyandu: ${d.posyandu.nama}`}
-                        {` (L: ${d.lakiLaki}, P: ${d.perempuan})`}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td>
-                  <button onClick={() => handleEditClick(row)}>Edit</button>
-                  <button onClick={() => handleDeleteClick(row.id)} style={{ marginLeft: '5px', color: 'red' }}>Hapus</button>
-                </td>
-              </tr>
+      {/* Period Selection Info */}
+      <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '15px', backgroundColor: '#f9f9f9', marginBottom: '25px' }}>
+        <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode &amp; Setup Lembaga</h3>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
+          <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
+          <select 
+            value={selectedPeriod?.id || ''}
+            onChange={(e) => handlePeriodChange(e.target.value)}
+            style={{ padding: '5px' }}
+          >
+            {periods.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.tanggalMulai} - {p.tanggalSelesai}
+              </option>
             ))}
-          </tbody>
-        </table>
-      )}
+          </select>
+        </div>
+
+        {selectedPeriod?.setupLembaga && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+            <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
+            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.periodeId}</strong></div>
+            <div>Kepala SPPG: <strong>{selectedPeriod.setupLembaga.namaKepalaSPPG}</strong></div>
+            <div>Tahun Anggaran: <strong>{selectedPeriod.setupLembaga.tahunAnggaran}</strong></div>
+            <div style={{ gridColumn: 'span 2' }}>Alamat: {selectedPeriod.setupLembaga.alamat}</div>
+          </div>
+        )}
+      </div>
+
+      {/* Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Sekolah Terdaftar</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.schools}</div>
+          <div style={{ fontSize: '12px', color: '#888' }}>Total satuan pendidikan aktif</div>
+        </div>
+
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Posyandu Terdaftar</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.posyandus}</div>
+          <div style={{ fontSize: '12px', color: '#888' }}>Total posyandu layanan non-siswa</div>
+        </div>
+
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Input Penerima Manfaat</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.pmEntries}</div>
+          <div style={{ fontSize: '12px', color: '#888' }}>Data terekam pada periode ini</div>
+        </div>
+      </div>
+
+      {/* Quick Actions Panel */}
+      <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '20px', backgroundColor: '#fdfdfd' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button 
+            onClick={() => navigate('/aslap/penerima-manfaat')}
+            style={{ padding: '10px 20px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Kelola Penerima Manfaat
+          </button>
+          <button 
+            onClick={() => navigate('/setting')}
+            style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Pengaturan Akun
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 
-export const MenuHarianList = () => {
+export const MenuHarianPage = () => {
     const { request } = useApi();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');

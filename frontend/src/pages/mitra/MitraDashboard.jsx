@@ -1,237 +1,189 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 
 export const MitraDashboard = () => {
   const { request } = useApi();
+  const navigate = useNavigate();
 
   const [periods, setPeriods] = useState([]);
-  const [bahanList, setBahanList] = useState([]);
-  const [selectedPeriodId, setSelectedPeriodId] = useState('');
-  const [items, setItems] = useState([]);
+  const [selectedPeriod, setSelectedPeriod] = useState(null);
+  const [stats, setStats] = useState({ totalBahan: 0, inputHarga: 0, poCount: 0, poValue: 0 });
+  const [loading, setLoading] = useState(true);
 
-  const [editingId, setEditingId] = useState(null);
-  const [formBahanId, setFormBahanId] = useState('');
-  const [formHarga, setFormHarga] = useState('');
-  const [formIsFallback, setFormIsFallback] = useState(false);
-
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
-  // Load master data (periode butuh fix backend: tambah MITRA di aslap.js GET /periode)
   useEffect(() => {
-    const loadMaster = async () => {
+    const loadDashboardData = async () => {
       try {
         const [resP, resB] = await Promise.all([
           request('/aslap/periode'),
           request('/mitra/bahan-pokok')
         ]);
-        if (!resP.ok || !resB.ok) {
-          setError('Gagal memuat data master (cek role MITRA sudah diizinkan akses /aslap/periode).');
-          return;
-        }
+        
         const dataP = await resP.json();
         const dataB = await resB.json();
+
         setPeriods(dataP);
-        setBahanList(dataB);
-        if (dataP.length > 0) setSelectedPeriodId(dataP[0].id);
+        
+        let activeP = null;
+        if (dataP.length > 0) {
+          activeP = dataP[0];
+          setSelectedPeriod(activeP);
+        }
+
+        let hargaCount = 0;
+        let pCount = 0;
+        let pVal = 0;
+
+        if (activeP) {
+          // Fetch harga bahan count
+          const resH = await request(`/mitra/harga-bahan?periodeId=${activeP.id}`);
+          if (resH.ok) {
+            const dataH = await resH.json();
+            hargaCount = dataH.length;
+          }
+
+          // Fetch PO summary
+          const resPo = await request(`/mitra/po/list?periodeId=${activeP.id}`);
+          if (resPo.ok) {
+            const dataPo = await resPo.json();
+            pCount = dataPo.data?.length || 0;
+            pVal = (dataPo.data || []).reduce((sum, po) => {
+              const val = po.items.reduce((s, item) => s + Number(item.subtotal), 0);
+              return sum + val;
+            }, 0);
+          }
+        }
+
+        setStats({
+          totalBahan: dataB.length,
+          inputHarga: hargaCount,
+          poCount: pCount,
+          poValue: pVal
+        });
       } catch (err) {
         console.error(err);
-        setError('Koneksi ke server gagal saat memuat data master.');
+      } finally {
+        setLoading(false);
       }
     };
-    loadMaster();
+    loadDashboardData();
   }, []);
 
-  const fetchList = async (periodeId) => {
-    if (!periodeId) return;
+  const handlePeriodChange = async (pid) => {
+    const period = periods.find(p => p.id === pid);
+    setSelectedPeriod(period);
+    
     try {
-      const res = await request(`/mitra/harga-bahan?periodeId=${periodeId}`);
-      if (res.ok) {
-        const data = await res.json();
-        setItems(data);
-      } else {
-        const errData = await res.json();
-        setError(errData.error || 'Gagal mengambil daftar harga bahan.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Koneksi ke server gagal.');
+      // Refresh statistics for selected period
+      const [resH, resPo] = await Promise.all([
+        request(`/mitra/harga-bahan?periodeId=${pid}`),
+        request(`/mitra/po/list?periodeId=${pid}`)
+      ]);
+
+      const dataH = resH.ok ? await resH.json() : [];
+      const dataPo = resPo.ok ? await resPo.json() : { data: [] };
+      const pCount = dataPo.data?.length || 0;
+      const pVal = (dataPo.data || []).reduce((sum, po) => {
+        const val = po.items.reduce((s, item) => s + Number(item.subtotal), 0);
+        return sum + val;
+      }, 0);
+
+      setStats(prev => ({
+        ...prev,
+        inputHarga: dataH.length,
+        poCount: pCount,
+        poValue: pVal
+      }));
+    } catch (e) {
+      console.error(e);
     }
   };
 
-  useEffect(() => {
-    fetchList(selectedPeriodId);
-  }, [selectedPeriodId]);
-
-  const resetForm = () => {
-    setEditingId(null);
-    setFormBahanId(bahanList[0]?.id || '');
-    setFormHarga('');
-    setFormIsFallback(false);
-    setError('');
-  };
-
-  const handleEditClick = (row) => {
-    setEditingId(row.id);
-    setFormBahanId(row.bahanPokokId);
-    setFormHarga(String(row.harga));
-    setFormIsFallback(row.isFallback);
-    setError('');
-    setSuccess('');
-  };
-
-  const handleDeleteClick = async (id) => {
-    if (!window.confirm('Yakin hapus harga bahan ini?')) return;
-    setError('');
-    setSuccess('');
-    try {
-      const res = await request(`/mitra/harga-bahan/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setSuccess('Data berhasil dihapus.');
-        fetchList(selectedPeriodId);
-      } else {
-        const errData = await res.json();
-        setError(errData.error || 'Gagal menghapus data.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Koneksi ke server gagal.');
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    const payload = editingId
-      ? { bahanPokokId: formBahanId, harga: parseFloat(formHarga), isFallback: formIsFallback }
-      : { periodeId: selectedPeriodId, bahanPokokId: formBahanId, harga: parseFloat(formHarga), isFallback: formIsFallback };
-
-    try {
-      const url = editingId ? `/mitra/harga-bahan/${editingId}` : '/mitra/harga-bahan';
-      const method = editingId ? 'PUT' : 'POST';
-
-      const res = await request(url, { method, body: JSON.stringify(payload) });
-      const data = await res.json();
-
-      if (res.ok) {
-        setSuccess(editingId ? 'Harga berhasil diperbarui.' : 'Harga berhasil ditambahkan.');
-        resetForm();
-        fetchList(selectedPeriodId);
-      } else {
-        setError(data.error || 'Terjadi kesalahan pada input.');
-      }
-    } catch (err) {
-      console.error(err);
-      setError('Koneksi ke server gagal.');
-    }
-  };
+  if (loading) return <p>Memuat Ringkasan Beranda Mitra...</p>;
 
   return (
-    <div>
-      <h2>Dashboard Mitra - Harga Bahan Periode</h2>
-
-      {error && <div style={{ color: 'red', margin: '10px 0' }}>Error: {error}</div>}
-      {success && <div style={{ color: 'green', margin: '10px 0' }}>{success}</div>}
-
-      <div>
-        <label htmlFor="period-select">Pilih Periode: </label>
-        <select
-          id="period-select"
-          value={selectedPeriodId}
-          onChange={(e) => { setSelectedPeriodId(e.target.value); resetForm(); }}
-        >
-          {periods.map(p => (
-            <option key={p.id} value={p.id}>
-              {p.tanggalMulai} - {p.tanggalSelesai}
-            </option>
-          ))}
-        </select>
+    <div style={{ padding: '10px' }}>
+      {/* Welcome Banner */}
+      <div style={{ backgroundColor: '#28a745', color: 'white', padding: '20px', borderRadius: '6px', marginBottom: '25px' }}>
+        <h2 style={{ margin: '0 0 8px 0' }}>Halo, Mitra Penyedia Bahan (Supplier)!</h2>
+        <p style={{ margin: '0', opacity: '0.9', fontSize: '14px' }}>
+          Selamat datang kembali. Anda dapat memantau status alokasi harga bahan pokok periode berjalan serta menyusun dokumen Nota Pesanan (PO) secara digital.
+        </p>
       </div>
 
-      <hr />
-
-      <h3>{editingId ? 'Edit Harga Bahan' : 'Tambah Harga Bahan Baru'}</h3>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Bahan Pokok: </label>
-          <select
-            value={formBahanId}
-            onChange={(e) => setFormBahanId(e.target.value)}
-            required
+      {/* Period Selection Info */}
+      <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '15px', backgroundColor: '#f9f9f9', marginBottom: '25px' }}>
+        <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode Operasional</h3>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
+          <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
+          <select 
+            value={selectedPeriod?.id || ''}
+            onChange={(e) => handlePeriodChange(e.target.value)}
+            style={{ padding: '5px' }}
           >
-            <option value="">-- Pilih Bahan --</option>
-            {bahanList.map(b => (
-              <option key={b.id} value={b.id}>{b.nama} ({b.satuan})</option>
+            {periods.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.tanggalMulai} - {p.tanggalSelesai}
+              </option>
             ))}
           </select>
         </div>
-        <div style={{ marginTop: '5px' }}>
-          <label>Harga: </label>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={formHarga}
-            onChange={(e) => setFormHarga(e.target.value)}
-            required
-          />
-        </div>
-        <div style={{ marginTop: '5px' }}>
-          <label>
-            <input
-              type="checkbox"
-              checked={formIsFallback}
-              onChange={(e) => setFormIsFallback(e.target.checked)}
-            />
-            {' '}Jadikan harga fallback
-          </label>
-        </div>
-        <div style={{ marginTop: '10px' }}>
-          <button type="submit">{editingId ? 'Simpan Perubahan' : 'Tambah'}</button>
-          {editingId && (
-            <button type="button" onClick={resetForm} style={{ marginLeft: '10px' }}>
-              Batal Edit
-            </button>
-          )}
-        </div>
-      </form>
 
-      <hr />
+        {selectedPeriod?.setupLembaga && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+            <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
+            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.periodeId}</strong></div>
+            <div>Ketua Yayasan Mitra: <strong>{selectedPeriod.setupLembaga.ketuaYayasan}</strong></div>
+            <div>Nomor Rekening VA: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
+          </div>
+        )}
+      </div>
 
-      <h3>Daftar Harga Bahan Periode Ini</h3>
-      {items.length === 0 ? (
-        <p>Belum ada data harga bahan untuk periode ini.</p>
-      ) : (
-        <table border="1" cellPadding="5" style={{ borderCollapse: 'collapse', width: '100%' }}>
-          <thead>
-            <tr>
-              <th>Bahan Pokok</th>
-              <th>Satuan</th>
-              <th>Harga</th>
-              <th>Fallback</th>
-              <th>Diinput oleh</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map(row => (
-              <tr key={row.id}>
-                <td>{row.bahanPokok?.nama}</td>
-                <td>{row.bahanPokok?.satuan}</td>
-                <td>{row.harga}</td>
-                <td>{row.isFallback ? 'Ya' : 'Tidak'}</td>
-                <td>{row.createdBy?.nama || '-'}</td>
-                <td>
-                  <button onClick={() => handleEditClick(row)}>Edit</button>
-                  <button onClick={() => handleDeleteClick(row.id)} style={{ marginLeft: '5px', color: 'red' }}>Hapus</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {/* Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Bahan Pokok Master</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.totalBahan}</div>
+          <div style={{ fontSize: '12px', color: '#888' }}>Total jenis bahan makanan</div>
+        </div>
+
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Harga Terdaftar</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.inputHarga} / {stats.totalBahan}</div>
+          <div style={{ fontSize: '12px', color: '#888' }}>Bahan yang sudah diinput harganya</div>
+        </div>
+
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Nota Pesanan (PO)</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.poCount} PO</div>
+          <div style={{ fontSize: '12px', color: '#888' }}>Total nilai: <strong>Rp{stats.poValue.toLocaleString('id-ID')}</strong></div>
+        </div>
+      </div>
+
+      {/* Quick Actions Panel */}
+      <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '20px', backgroundColor: '#fdfdfd' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
+        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          <button 
+            onClick={() => navigate('/mitra/harga-bahan')}
+            style={{ padding: '10px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Kelola Harga Bahan
+          </button>
+          <button 
+            onClick={() => navigate('/mitra/po')}
+            style={{ padding: '10px 20px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Input &amp; Cetak PO (Nota Pesanan)
+          </button>
+          <button 
+            onClick={() => navigate('/setting')}
+            style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Pengaturan Akun
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -4,11 +4,21 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/auth/Login';
 import { Layout } from './components/Layout';
+
+// Landing Dashboards
 import { AslapDashboard } from './pages/aslap/AslapDashboard';
 import { MitraDashboard } from './pages/mitra/MitraDashboard';
-import { MitraPoPage } from './pages/mitra/MitraPoPage';
-import { MenuHarianList } from './pages/gizi/MenuHarianList';
+import { GiziDashboard } from './pages/gizi/GiziDashboard';
+import { AkuntanDashboard } from './pages/akuntan/AkuntanDashboard';
 import { KepalaDashboard } from './pages/kepala/KepalaDashboard';
+
+// Sub-pages / CRUD Pages
+import { PenerimaManfaatPage } from './pages/aslap/PenerimaManfaatPage';
+import { HargaBahanPage } from './pages/mitra/HargaBahanPage';
+import { MitraPoPage } from './pages/mitra/MitraPoPage';
+import { MenuHarianPage } from './pages/gizi/MenuHarianPage';
+import { ApprovalPage } from './pages/kepala/ApprovalPage';
+import { SettingPage } from './pages/shared/SettingPage';
 
 // Akuntan — Halaman Terpisah
 import { JurnalTransaksiPage } from './pages/akuntan/JurnalTransaksiPage';
@@ -35,8 +45,8 @@ function RoleRedirect() {
   if (!user) return <Navigate to="/login" replace />;
   if (user.role === 'ASLAP') return <Navigate to="/aslap" replace />;
   if (user.role === 'MITRA') return <Navigate to="/mitra" replace />;
-  if (user.role === 'AHLI_GIZI') return <Navigate to="/gizi/menu-harian" replace />;
-  if (user.role === 'AKUNTAN') return <Navigate to="/akuntan/laporan/periode-setup" replace />;
+  if (user.role === 'AHLI_GIZI') return <Navigate to="/gizi" replace />;
+  if (user.role === 'AKUNTAN') return <Navigate to="/akuntan" replace />;
   if (user.role === 'KEPALA_SPPG') return <Navigate to="/kepala" replace />;
   return <div>Selamat datang, {user.nama} ({user.role}). Halaman modul Anda belum diimplementasikan.</div>;
 }
@@ -56,6 +66,8 @@ function App() {
             }
           >
             <Route index element={<RoleRedirect />} />
+            
+            {/* ===== ASLAP Routes ===== */}
             <Route
               path="aslap"
               element={
@@ -65,10 +77,28 @@ function App() {
               }
             />
             <Route
+              path="aslap/penerima-manfaat"
+              element={
+                <ProtectedRoute allowedRoles={['ASLAP']}>
+                  <PenerimaManfaatPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ===== MITRA Routes ===== */}
+            <Route
               path="mitra"
               element={
                 <ProtectedRoute allowedRoles={['MITRA']}>
                   <MitraDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="mitra/harga-bahan"
+              element={
+                <ProtectedRoute allowedRoles={['MITRA']}>
+                  <HargaBahanPage />
                 </ProtectedRoute>
               }
             />
@@ -80,16 +110,34 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* ===== AHLI_GIZI Routes ===== */}
+            <Route
+              path="gizi"
+              element={
+                <ProtectedRoute allowedRoles={['AHLI_GIZI']}>
+                  <GiziDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="gizi/menu-harian"
               element={
                 <ProtectedRoute allowedRoles={['AHLI_GIZI']}>
-                  <MenuHarianList />
+                  <MenuHarianPage />
                 </ProtectedRoute>
               }
             />
 
             {/* ===== AKUNTAN Routes ===== */}
+            <Route
+              path="akuntan"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <AkuntanDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="akuntan/laporan/periode-setup"
               element={
@@ -212,6 +260,25 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="kepala/approval"
+              element={
+                <ProtectedRoute allowedRoles={['KEPALA_SPPG']}>
+                  <ApprovalPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* ===== SHARED Routes ===== */}
+            <Route
+              path="setting"
+              element={
+                <ProtectedRoute>
+                  <SettingPage />
+                </ProtectedRoute>
+              }
+            />
+
             <Route path="*" element={<div>Halaman tidak ditemukan</div>} />
           </Route>
         </Routes>

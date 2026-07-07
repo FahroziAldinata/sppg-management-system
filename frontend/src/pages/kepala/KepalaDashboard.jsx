@@ -1,286 +1,159 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 
 export const KepalaDashboard = () => {
-    const { request } = useApi();
-    const [periods, setPeriods] = useState([]);
-    const [periodeId, setPeriodeId] = useState('');
-    const [error, setError] = useState('');
+  const { request } = useApi();
+  const navigate = useNavigate();
 
-    // State Approval
-    const [approvalList, setApprovalList] = useState([]);
+  const [periods, setPeriods] = useState([]);
+  const [selectedPeriod, setSelectedPeriod] = useState(null);
+  const [stats, setStats] = useState({ pendingApprovals: 0, publishedDocs: 0, budgetUsed: 0, budgetTotal: 0 });
+  const [loading, setLoading] = useState(true);
 
-    // State Pending Targets (DIAJUKAN)
-    const [pendingMenuList, setPendingMenuList] = useState([]);
-    const [pendingRabList, setPendingRabList] = useState([]);
-
-    // Fetch list periode saat mount
-    useEffect(() => {
-        request('/aslap/periode')
-            .then(r => r.json())
-            .then(d => {
-                setPeriods(d);
-                if (d.length) setPeriodeId(d[0].id);
-            })
-            .catch(() => {});
-    }, []);
-
-    // Trigger loadApprovals + loadPendingTargets setiap periodeId berubah
-    useEffect(() => {
-        if (periodeId) {
-            loadApprovals(periodeId);
-            loadPendingTargets(periodeId);
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        const resP = await request('/aslap/periode');
+        const dataP = await resP.json();
+        setPeriods(dataP);
+        
+        let activeP = null;
+        if (dataP.length > 0) {
+          activeP = dataP[0];
+          setSelectedPeriod(activeP);
+          await loadStats(activeP);
         }
-    }, [periodeId]);
-
-    const loadApprovals = async (pid) => {
-        if (!pid) return;
-        try {
-            setError('');
-            const r = await request(`/kepala/approval?periodeId=${pid}`);
-            if (r.ok) {
-                const resJson = await r.json();
-                setApprovalList(resJson.data || []);
-            } else {
-                const d = await r.json().catch(() => ({ error: 'Gagal memuat riwayat approval' }));
-                setError(d.error);
-            }
-        } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
-        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
+    loadDashboardData();
+  }, []);
 
-    const loadPendingTargets = async (pid) => {
-        if (!pid) return;
-        try {
-            setError('');
-            const [menuRes, rabRes] = await Promise.all([
-                request(`/gizi/menu-harian?periodeId=${pid}`),
-                request(`/akuntan/rab-harian?periodeId=${pid}`)
-            ]);
+  const loadStats = async (period) => {
+    try {
+      const pid = period.id;
+      // 1. Fetch pending approvals (Menu + RAB)
+      const [menuRes, rabRes, docRes] = await Promise.all([
+        request(`/gizi/menu-harian?periodeId=${pid}`),
+        request(`/akuntan/rab-harian?periodeId=${pid}`),
+        request(`/akuntan/dokumen-resmi?periodeId=${pid}`)
+      ]);
 
-            const menuData = menuRes.ok ? await menuRes.json() : [];
-            const rabData = rabRes.ok ? await rabRes.json() : [];
+      const menuData = menuRes.ok ? await menuRes.json() : [];
+      const rabData = rabRes.ok ? await rabRes.json() : [];
+      const docData = docRes.ok ? await docRes.json() : [];
 
-            // Filter hanya yang statusnya DIAJUKAN (siap untuk di-approve/reject)
-            setPendingMenuList(menuData.filter(m => m.status === 'DIAJUKAN'));
-            setPendingRabList(rabData.filter(r => r.status === 'DIAJUKAN'));
+      const pendingMenu = menuData.filter(m => m.status === 'DIAJUKAN').length;
+      const pendingRab = rabData.filter(r => r.status === 'DIAJUKAN').length;
 
-            if (!menuRes.ok) setError('Gagal memuat data menu harian.');
-            if (!rabRes.ok) setError('Gagal memuat data RAB harian.');
-        } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
-        }
-    };
+      // Calculate total actual used budget from BKU or RabHarian
+      const approvedRabs = rabData.filter(r => r.status === 'DISETUJUI');
+      const totalUsed = approvedRabs.reduce((sum, r) => sum + (Number(r.realisasiTotal) || 0), 0);
 
-    const handleApproval = async (targetType, targetId, status, catatan) => {
-        setError('');
+      setStats({
+        pendingApprovals: pendingMenu + pendingRab,
+        publishedDocs: docData.length,
+        budgetUsed: totalUsed,
+        budgetTotal: Number(period.anggaranAlokasi) || 0
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
-        // Validasi status nilai
-        if (status !== 'DISETUJUI' && status !== 'DITOLAK') {
-            setError('Status approval harus DISETUJUI atau DITOLAK.');
-            return;
-        }
+  const handlePeriodChange = async (pid) => {
+    const period = periods.find(p => p.id === pid);
+    setSelectedPeriod(period);
+    await loadStats(period);
+  };
 
-        // Validasi catatan wajib jika DITOLAK — mirror validasi backend
-        if (status === 'DITOLAK' && (!catatan || catatan.trim() === '')) {
-            setError('Catatan wajib diisi jika status ditolak.');
-            return;
-        }
+  if (loading) return <p>Memuat Ringkasan Beranda Kepala SPPG...</p>;
 
-        // Build body: tepat satu dari menuHarianId/rabHarianId terisi.
-        // Sertakan catatan hanya jika ada isinya (jika null/kosong, backend akan menolak karena validasi typeof === 'string')
-        const body = { status };
-        if (catatan) {
-            body.catatan = catatan;
-        }
+  return (
+    <div style={{ padding: '10px' }}>
+      {/* Welcome Banner */}
+      <div style={{ backgroundColor: '#007bff', color: 'white', padding: '20px', borderRadius: '6px', marginBottom: '25px' }}>
+        <h2 style={{ margin: '0 0 8px 0' }}>Halo, Kepala Satuan Pelayanan (SPPG)!</h2>
+        <p style={{ margin: '0', opacity: '0.9', fontSize: '14px' }}>
+          Selamat datang kembali. Di bawah ini adalah ringkasan persetujuan, realisasi keuangan, dan dokumen resmi yang diterbitkan untuk periode aktif.
+        </p>
+      </div>
 
-        if (targetType === 'MENU') {
-            body.menuHarianId = targetId;
-        } else if (targetType === 'RAB') {
-            body.rabHarianId = targetId;
-        } else {
-            setError('Developer error: targetType tidak valid.');
-            return;
-        }
-
-        try {
-            const r = await request('/kepala/approval', {
-                method: 'POST',
-                body: JSON.stringify(body)
-            });
-
-            if (r.ok) {
-                // Refresh kedua: riwayat approval + tabel pending (hapus row yang baru diproses)
-                loadApprovals(periodeId);
-                loadPendingTargets(periodeId);
-            } else {
-                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                setError(d.error || 'Gagal memproses approval');
-            }
-        } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
-        }
-    };
-
-    return (
-        <div>
-            <h2>Dashboard Kepala SPPG</h2>
-            {error && <div style={{ color: 'red', position: 'sticky', top: 0, background: '#fff', padding: '8px', zIndex: 10, border: '1px solid red' }}>{error}</div>}
-
-            {/* Pilihan Periode */}
-            <div style={{ marginBottom: '10px' }}>
-                <label>Periode: </label>
-                <select value={periodeId} onChange={e => setPeriodeId(e.target.value)}>
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai.split('T')[0]} - {p.tanggalSelesai.split('T')[0]}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            <hr style={{ margin: '20px 0' }} />
-
-            {/* ================================================ */}
-            {/* SECTION: MENU HARIAN MENUNGGU APPROVAL           */}
-            {/* ================================================ */}
-            <h3>Menu Harian — Menunggu Persetujuan</h3>
-            <table border="1" cellPadding="5" style={{ marginBottom: '20px' }}>
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {pendingMenuList.map(m => (
-                        <tr key={m.id}>
-                            <td>{m.tanggal.split('T')[0]}</td>
-                            <td>{m.status}</td>
-                            <td>
-                                <button
-                                    onClick={() => handleApproval('MENU', m.id, 'DISETUJUI', null)}
-                                >
-                                    Setujui
-                                </button>
-                                {' '}
-                                <button
-                                    onClick={() => {
-                                        const catatan = prompt('Catatan penolakan (wajib):');
-                                        if (catatan && catatan.trim() !== '') {
-                                            handleApproval('MENU', m.id, 'DITOLAK', catatan.trim());
-                                        }
-                                    }}
-                                >
-                                    Tolak
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    {pendingMenuList.length === 0 && (
-                        <tr>
-                            <td colSpan={3} style={{ textAlign: 'center' }}>
-                                Tidak ada menu harian yang menunggu persetujuan.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-
-            <hr style={{ margin: '20px 0' }} />
-
-            {/* ================================================ */}
-            {/* SECTION: RAB HARIAN MENUNGGU APPROVAL            */}
-            {/* ================================================ */}
-            <h3>RAB Harian — Menunggu Persetujuan</h3>
-            <table border="1" cellPadding="5" style={{ marginBottom: '20px' }}>
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        <th>Dibuat Oleh</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {pendingRabList.map(r => (
-                        <tr key={r.id}>
-                            <td>{r.tanggal.split('T')[0]}</td>
-                            <td>{r.status}</td>
-                            <td>{r.createdBy?.nama || r.createdBy?.username || '—'}</td>
-                            <td>
-                                <button
-                                    onClick={() => handleApproval('RAB', r.id, 'DISETUJUI', null)}
-                                >
-                                    Setujui
-                                </button>
-                                {' '}
-                                <button
-                                    onClick={() => {
-                                        const catatan = prompt('Catatan penolakan (wajib):');
-                                        if (catatan && catatan.trim() !== '') {
-                                            handleApproval('RAB', r.id, 'DITOLAK', catatan.trim());
-                                        }
-                                    }}
-                                >
-                                    Tolak
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    {pendingRabList.length === 0 && (
-                        <tr>
-                            <td colSpan={4} style={{ textAlign: 'center' }}>
-                                Tidak ada RAB harian yang menunggu persetujuan.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
-
-            <hr style={{ margin: '20px 0' }} />
-
-            {/* ================================================ */}
-            {/* SECTION: RIWAYAT APPROVAL                        */}
-            {/* ================================================ */}
-            <h3>Riwayat Approval</h3>
-            <table border="1" cellPadding="5" style={{ marginBottom: '20px' }}>
-                <thead>
-                    <tr>
-                        <th>Jenis</th>
-                        <th>Tanggal Dokumen</th>
-                        <th>Status</th>
-                        <th>Catatan</th>
-                        <th>Diproses Oleh</th>
-                        <th>Waktu Approval</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {approvalList.map(a => (
-                        <tr key={a.id}>
-                            <td>{a.menuHarian ? 'Menu Harian' : 'RAB Harian'}</td>
-                            <td>
-                                {a.menuHarian
-                                    ? a.menuHarian.tanggal.split('T')[0]
-                                    : a.rabHarian?.tanggal.split('T')[0] || '—'}
-                            </td>
-                            <td>{a.status}</td>
-                            <td>{a.catatan || '—'}</td>
-                            <td>{a.approvedBy?.nama || a.approvedBy?.username || '—'}</td>
-                            <td>{new Date(a.createdAt).toLocaleString('id-ID')}</td>
-                        </tr>
-                    ))}
-                    {approvalList.length === 0 && (
-                        <tr>
-                            <td colSpan={6} style={{ textAlign: 'center' }}>
-                                Belum ada riwayat approval untuk periode ini.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+      {/* Period Selection Info */}
+      <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '15px', backgroundColor: '#f9f9f9', marginBottom: '25px' }}>
+        <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode &amp; Setup Lembaga</h3>
+        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
+          <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
+          <select 
+            value={selectedPeriod?.id || ''}
+            onChange={(e) => handlePeriodChange(e.target.value)}
+            style={{ padding: '5px' }}
+          >
+            {periods.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.tanggalMulai} - {p.tanggalSelesai}
+              </option>
+            ))}
+          </select>
         </div>
-    );
+
+        {selectedPeriod?.setupLembaga && (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+            <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
+            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.periodeId}</strong></div>
+            <div>Akuntan SPPG: <strong>{selectedPeriod.setupLembaga.namaAkuntanSPPG}</strong></div>
+            <div>Tahun Anggaran: <strong>{selectedPeriod.setupLembaga.tahunAnggaran}</strong></div>
+          </div>
+        )}
+      </div>
+
+      {/* Summary Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Persetujuan Menunggu (Pending)</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0', color: stats.pendingApprovals > 0 ? '#dc3545' : '#333' }}>
+            {stats.pendingApprovals} Dokumen
+          </div>
+          <div style={{ fontSize: '12px', color: '#888' }}>Menu Harian &amp; RAB perlu ditinjau</div>
+        </div>
+
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Realisasi Keuangan</div>
+          <div style={{ fontSize: '20px', fontWeight: 'bold', margin: '5px 0' }}>
+            Rp{stats.budgetUsed.toLocaleString('id-ID')} / Rp{stats.budgetTotal.toLocaleString('id-ID')}
+          </div>
+          <div style={{ fontSize: '12px', color: '#888' }}>Realisasi pagu anggaran belanja</div>
+        </div>
+
+        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: '#fff' }}>
+          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Dokumen Resmi Diterbitkan</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.publishedDocs} Dokumen</div>
+          <div style={{ fontSize: '12px', color: '#888' }}>LPA, SPTJ, &amp; BAPSD terbit</div>
+        </div>
+      </div>
+
+      {/* Quick Actions Panel */}
+      <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '20px', backgroundColor: '#fdfdfd' }}>
+        <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
+        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          <button 
+            onClick={() => navigate('/kepala/approval')}
+            style={{ padding: '10px 20px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Kelola Persetujuan (Approval)
+          </button>
+          <button 
+            onClick={() => navigate('/setting')}
+            style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+          >
+            Pengaturan Akun
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
