@@ -196,6 +196,18 @@ export const Layout = () => {
         zIndex: 90,
         backgroundColor: 'var(--bg-elevated)'
       }}>
+          {/* Static Header & Home Link for Akuntan (Outside Scroll Area) */}
+          {user?.role === 'AKUNTAN' && (
+            <div style={{ marginBottom: '8px', borderBottom: '1px solid var(--border)', paddingBottom: '12px' }}>
+              <div style={{ padding: '0 14px', marginBottom: '8px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Menu Akuntan
+              </div>
+              <ul style={{ listStyleType: 'none', margin: 0, padding: 0 }}>
+                {renderLink('/akuntan', 'Beranda / Dashboard', Home)}
+              </ul>
+            </div>
+          )}
+
           <nav style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
             <ul style={{ listStyleType: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               
@@ -233,15 +245,10 @@ export const Layout = () => {
                 </>
               )}
 
-              {/* AKUNTAN Navigation */}
+              {/* AKUNTAN Navigation (Beranda dipindah ke atas nav scroll area) */}
               {user?.role === 'AKUNTAN' && (
                 <>
-                  <li style={{ padding: '0 14px', marginBottom: '8px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Menu Akuntan
-                  </li>
-                  {renderLink('/akuntan', 'Beranda / Dashboard', Home)}
-                  
-                  <li style={{ padding: '8px 14px 4px 14px', fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border)', marginTop: '8px' }}>
+                  <li style={{ padding: '0 14px 4px 14px', fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                     Operasional
                   </li>
                   {renderLink('/akuntan/laporan/periode-setup', 'Setup Periode', Calendar)}
