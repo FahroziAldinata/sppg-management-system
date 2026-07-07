@@ -193,11 +193,10 @@ export const Layout = () => {
         justifyContent: 'space-between',
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-lg)',
-        overflowY: 'auto',
         zIndex: 90,
         backgroundColor: 'var(--bg-elevated)'
       }}>
-          <nav>
+          <nav style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
             <ul style={{ listStyleType: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               
               {/* ASLAP Navigation */}
