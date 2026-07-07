@@ -101,16 +101,16 @@ export const Layout = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <img
             src={theme === 'dark' ? '/icons/logo-bgn-dark.png' : '/icons/logo-bgn-light.png'}
-            alt="STOP-SPPG Logo"
+            alt="SIKOP-SPPG Logo"
             style={{
               height: '36px',
               objectFit: 'contain'
             }}
           />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <strong style={{ fontSize: '15px', fontWeight: '800', letterSpacing: '-0.5px', lineHeight: '1.2' }}>STOP-SPPG</strong>
-            <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: '500', marginTop: '1px' }} title="Sistem Terpadu Operasional dan Keuangan SPPG">
-              Sistem Terpadu Operasional dan Keuangan SPPG
+            <strong style={{ fontSize: '15px', fontWeight: '800', letterSpacing: '-0.5px', lineHeight: '1.2' }}>SIKOP-SPPG</strong>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: '500', marginTop: '1px' }} title="Sistem Informasi Keuangan dan Operasional Pelayanan SPPG">
+              Sistem Informasi Keuangan dan Operasional Pelayanan SPPG
             </span>
           </div>
         </div>

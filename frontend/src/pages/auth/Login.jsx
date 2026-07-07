@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { User, Lock, LogIn } from 'lucide-react';
+import { User, Lock, LogIn, Sun, Moon } from 'lucide-react';
 
 export const Login = () => {
-  const { token, login } = useAuth();
+  const { token, login, theme, toggleTheme } = useAuth();
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -96,11 +96,39 @@ export const Login = () => {
         zIndex: 1,
         position: 'relative'
       }}>
+        {/* Theme Toggle Button */}
+        <button
+          type="button"
+          onClick={toggleTheme}
+          title={theme === 'light' ? 'Ganti ke Mode Gelap' : 'Ganti ke Mode Terang'}
+          style={{
+            position: 'absolute',
+            top: '15px',
+            right: '15px',
+            width: '34px',
+            height: '34px',
+            borderRadius: 'var(--radius-md)',
+            border: '1px solid var(--border)',
+            backgroundColor: 'var(--bg-elevated)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: 'var(--text)',
+            transition: 'all var(--transition-fast)',
+            zIndex: 10
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--border)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'; }}
+        >
+          {theme === 'light' ? <Moon size={16} strokeWidth={2} /> : <Sun size={16} strokeWidth={2} />}
+        </button>
+
         {/* Header Title */}
         <div style={{ textAlign: 'center', marginBottom: '35px' }}>
           <img
-            src="/icons/logo-bgn-dark.png"
-            alt="STOP-SPPG Logo"
+            src={theme === 'dark' ? '/icons/logo-bgn-dark.png' : '/icons/logo-bgn-light.png'}
+            alt="SIKOP-SPPG Logo"
             style={{
               height: '52px',
               objectFit: 'contain',
@@ -109,7 +137,7 @@ export const Login = () => {
             }}
           />
           <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text)', letterSpacing: '-0.5px' }}>Selamat Datang</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '5px' }}>Masuk ke akun STOP-SPPG Anda untuk melapor</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '5px' }}>Masuk ke akun SIKOP-SPPG Anda untuk melapor</p>
         </div>
 
         {error && (
