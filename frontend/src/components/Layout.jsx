@@ -1,178 +1,342 @@
 import React from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  Sun,
+  Moon,
+  LogOut,
+  Settings,
+  Home,
+  Calendar,
+  BookOpen,
+  FileText,
+  Package,
+  ShoppingCart,
+  ClipboardCheck,
+  FileSpreadsheet,
+  TrendingUp,
+  PlusCircle,
+  RefreshCw,
+  Award,
+  BarChart2,
+  CalendarRange,
+  Users,
+  CheckSquare
+} from 'lucide-react';
 
 export const Layout = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, theme, toggleTheme } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
+  const isActive = (path) => location.pathname === path;
+
+  // Sidebar link rendering helper with matching icon
+  const renderLink = (to, label, IconComponent) => {
+    const active = isActive(to);
+    return (
+      <li>
+        <Link
+          to={to}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+            padding: '10px 14px',
+            textDecoration: 'none',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '13px',
+            fontWeight: active ? '700' : '500',
+            color: active ? 'var(--color-primary)' : 'var(--text)',
+            backgroundColor: active ? 'var(--color-primary-light)' : 'transparent',
+            boxShadow: active ? '0 2px 8px rgba(7, 30, 73, 0.08)' : 'none',
+            border: active ? '1px solid rgba(7, 30, 73, 0.1)' : '1px solid transparent',
+            transition: 'all var(--transition-fast)'
+          }}
+          onMouseEnter={(e) => {
+            if (!active) {
+              e.currentTarget.style.backgroundColor = 'var(--border)';
+              e.currentTarget.style.borderRadius = '12px'; // subtle morph/blob radius shift on hover
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!active) {
+              e.currentTarget.style.backgroundColor = 'transparent';
+              e.currentTarget.style.borderRadius = 'var(--radius-md)';
+            }
+          }}
+        >
+          <IconComponent size={16} strokeWidth={active ? 2.5 : 2} style={{ color: active ? 'var(--color-primary)' : 'var(--text-muted)' }} />
+          <span>{label}</span>
+        </Link>
+      </li>
+    );
+  };
+
   return (
-    <div>
-      <div style={{ padding: '10px', backgroundColor: '#f8f9fa', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <strong>Sistem SPPG</strong> | Halo, {user?.nama} ({user?.role})
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
+      
+      {/* Sticky Header with Backdrop Blur Glass Effect */}
+      <header className="glass-panel" style={{
+        position: 'sticky',
+        top: 0,
+        height: 'var(--header-height)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0 24px',
+        zIndex: 100,
+        boxShadow: 'var(--shadow)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: 'var(--radius-sm)',
+            backgroundColor: 'var(--color-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#fff',
+            fontWeight: 'bold',
+            fontSize: '16px'
+          }}>
+            S
+          </div>
+          <strong style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px' }}>Sistem SPPG</strong>
         </div>
-        <div>
-          <button onClick={handleLogout} style={{ padding: '4px 10px', backgroundColor: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-            Logout
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {/* User Display */}
+          <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'right' }}>
+            <span style={{ fontSize: '13px', fontWeight: '700' }}>{user?.nama}</span>
+            <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>{user?.role}</span>
+          </div>
+
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            title={theme === 'light' ? 'Ganti ke Mode Gelap' : 'Ganti ke Mode Terang'}
+            style={{
+              width: '38px',
+              height: '38px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--bg-elevated)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              color: 'var(--text)'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--border)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg-elevated)'; }}
+          >
+            {theme === 'light' ? <Moon size={18} strokeWidth={2} /> : <Sun size={18} strokeWidth={2} />}
+          </button>
+
+          {/* Logout Header Button */}
+          <button
+            onClick={handleLogout}
+            title="Keluar"
+            style={{
+              padding: '6px 12px',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              color: 'var(--color-danger)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '12px',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'; }}
+          >
+            <LogOut size={14} strokeWidth={2.2} />
+            <span>Keluar</span>
           </button>
         </div>
-      </div>
-      <hr style={{ margin: '0' }} />
-      <div style={{ display: 'flex', minHeight: 'calc(100vh - 50px)' }}>
-        {/* Navigation Sidebar */}
-        <div style={{ width: '220px', padding: '15px', borderRight: '1px solid #ddd', backgroundColor: '#fdfdfd' }}>
+      </header>
+
+      {/* Main Layout Body */}
+      <div style={{ display: 'flex', flex: 1 }}>
+        
+        {/* Sticky Sidebar */}
+        <aside className="glass-panel" style={{
+          position: 'sticky',
+          top: 'var(--header-height)',
+          width: 'var(--sidebar-width)',
+          height: 'calc(100vh - var(--header-height))',
+          padding: '24px 16px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+          borderRight: '1px solid var(--border)',
+          overflowY: 'auto'
+        }}>
           <nav>
-            <ul style={{ listStyleType: 'none', padding: '0', margin: '0', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <ul style={{ listStyleType: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               
               {/* ASLAP Navigation */}
               {user?.role === 'ASLAP' && (
                 <>
-                  <li style={{ fontWeight: 'bold', fontSize: '11px', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>Menu Aslap</li>
-                  <li>
-                    <Link to="/aslap" style={{ textDecoration: 'none', color: '#007bff' }}>Beranda / Dashboard</Link>
+                  <li style={{ padding: '0 14px', marginBottom: '8px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Menu Aslap
                   </li>
-                  <li>
-                    <Link to="/aslap/penerima-manfaat" style={{ textDecoration: 'none', color: '#333' }}>Penerima Manfaat</Link>
-                  </li>
+                  {renderLink('/aslap', 'Beranda / Dashboard', Home)}
+                  {renderLink('/aslap/penerima-manfaat', 'Penerima Manfaat', Users)}
                 </>
               )}
 
               {/* MITRA Navigation */}
               {user?.role === 'MITRA' && (
                 <>
-                  <li style={{ fontWeight: 'bold', fontSize: '11px', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>Menu Mitra</li>
-                  <li>
-                    <Link to="/mitra" style={{ textDecoration: 'none', color: '#28a745' }}>Beranda / Dashboard</Link>
+                  <li style={{ padding: '0 14px', marginBottom: '8px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Menu Mitra
                   </li>
-                  <li>
-                    <Link to="/mitra/harga-bahan" style={{ textDecoration: 'none', color: '#333' }}>Harga Bahan</Link>
-                  </li>
-                  <li>
-                    <Link to="/mitra/po" style={{ textDecoration: 'none', color: '#333' }}>Nota Pesanan (PO)</Link>
-                  </li>
+                  {renderLink('/mitra', 'Beranda / Dashboard', Home)}
+                  {renderLink('/mitra/harga-bahan', 'Harga Bahan', BookOpen)}
+                  {renderLink('/mitra/po', 'Nota Pesanan (PO)', ClipboardCheck)}
                 </>
               )}
 
               {/* AHLI_GIZI Navigation */}
               {user?.role === 'AHLI_GIZI' && (
                 <>
-                  <li style={{ fontWeight: 'bold', fontSize: '11px', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>Menu Gizi</li>
-                  <li>
-                    <Link to="/gizi" style={{ textDecoration: 'none', color: '#fd7e14' }}>Beranda / Dashboard</Link>
+                  <li style={{ padding: '0 14px', marginBottom: '8px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Menu Gizi
                   </li>
-                  <li>
-                    <Link to="/gizi/menu-harian" style={{ textDecoration: 'none', color: '#333' }}>Menu Harian</Link>
-                  </li>
+                  {renderLink('/gizi', 'Beranda / Dashboard', Home)}
+                  {renderLink('/gizi/menu-harian', 'Menu Harian', FileSpreadsheet)}
                 </>
               )}
 
               {/* AKUNTAN Navigation */}
               {user?.role === 'AKUNTAN' && (
                 <>
-                  <li style={{ fontWeight: 'bold', fontSize: '11px', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>Menu Akuntan</li>
-                  <li>
-                    <Link to="/akuntan" style={{ textDecoration: 'none', color: '#6f42c1', fontWeight: 'bold' }}>Beranda / Dashboard</Link>
+                  <li style={{ padding: '0 14px', marginBottom: '8px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Menu Akuntan
                   </li>
-                  <li style={{ margin: '5px 0 2px 0', fontSize: '11px', color: '#999', borderTop: '1px solid #eee', paddingTop: '4px' }}>OPERASIONAL</li>
-                  <li>
-                    <Link to="/akuntan/laporan/periode-setup" style={{ textDecoration: 'none', color: '#555' }}>Setup Periode</Link>
+                  {renderLink('/akuntan', 'Beranda / Dashboard', Home)}
+                  
+                  <li style={{ padding: '8px 14px 4px 14px', fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border)', marginTop: '8px' }}>
+                    Operasional
                   </li>
-                  <li>
-                    <Link to="/akuntan/jurnal" style={{ textDecoration: 'none', color: '#555' }}>Jurnal Transaksi</Link>
+                  {renderLink('/akuntan/laporan/periode-setup', 'Setup Periode', Calendar)}
+                  {renderLink('/akuntan/jurnal', 'Jurnal Transaksi', BookOpen)}
+                  {renderLink('/akuntan/rab-harian', 'RAB Harian', FileSpreadsheet)}
+                  {renderLink('/akuntan/anggaran-harian', 'Anggaran Harian', TrendingUp)}
+                  {renderLink('/akuntan/dokumen-resmi', 'Dokumen Resmi', Award)}
+                  {renderLink('/akuntan/nominatif-upah', 'Nominatif Upah', Users)}
+
+                  <li style={{ padding: '8px 14px 4px 14px', fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border)', marginTop: '8px' }}>
+                    Stok &amp; Gudang
                   </li>
-                  <li>
-                    <Link to="/akuntan/rab-harian" style={{ textDecoration: 'none', color: '#555' }}>RAB Harian</Link>
+                  {renderLink('/akuntan/saldo-awal-barang', 'Input Saldo Awal', PlusCircle)}
+                  {renderLink('/akuntan/mutasi-stok', 'Mutasi Stok', RefreshCw)}
+                  {renderLink('/akuntan/validasi-stok', 'Validasi Stok', ClipboardCheck)}
+
+                  <li style={{ padding: '8px 14px 4px 14px', fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border)', marginTop: '8px' }}>
+                    Laporan
                   </li>
-                  <li>
-                    <Link to="/akuntan/anggaran-harian" style={{ textDecoration: 'none', color: '#555' }}>Anggaran Harian</Link>
-                  </li>
-                  <li>
-                    <Link to="/akuntan/dokumen-resmi" style={{ textDecoration: 'none', color: '#555' }}>Dokumen Resmi</Link>
-                  </li>
-                  <li>
-                    <Link to="/akuntan/nominatif-upah" style={{ textDecoration: 'none', color: '#555' }}>Nominatif Upah</Link>
-                  </li>
-                  <li style={{ margin: '5px 0 2px 0', fontSize: '11px', color: '#999', borderTop: '1px solid #eee', paddingTop: '4px' }}>STOK &amp; GUDANG</li>
-                  <li>
-                    <Link to="/akuntan/saldo-awal-barang" style={{ textDecoration: 'none', color: '#555' }}>Input Saldo Awal</Link>
-                  </li>
-                  <li>
-                    <Link to="/akuntan/mutasi-stok" style={{ textDecoration: 'none', color: '#555' }}>Mutasi Stok</Link>
-                  </li>
-                  <li>
-                    <Link to="/akuntan/validasi-stok" style={{ textDecoration: 'none', color: '#555' }}>Validasi Stok</Link>
-                  </li>
-                  <li style={{ margin: '5px 0 2px 0', fontSize: '11px', color: '#999', borderTop: '1px solid #eee', paddingTop: '4px' }}>LAPORAN</li>
-                  <li>
-                    <Link to="/akuntan/laporan" style={{ textDecoration: 'none', color: '#555' }}>Laporan BKU</Link>
-                  </li>
-                  <li>
-                    <Link to="/akuntan/laporan/stock-barang" style={{ textDecoration: 'none', color: '#555' }}>Stock Barang</Link>
-                  </li>
-                  <li>
-                    <Link to="/akuntan/laporan/kebutuhan-belanja-bahan" style={{ textDecoration: 'none', color: '#555' }}>Belanja Bahan</Link>
-                  </li>
-                  <li>
-                    <Link to="/akuntan/laporan/per-periode" style={{ textDecoration: 'none', color: '#555' }}>Per Periode</Link>
-                  </li>
-                  <li>
-                    <Link to="/akuntan/laporan/per-bulan" style={{ textDecoration: 'none', color: '#555' }}>Per Bulan</Link>
-                  </li>
+                  {renderLink('/akuntan/laporan', 'Laporan BKU', FileText)}
+                  {renderLink('/akuntan/laporan/stock-barang', 'Stock Barang', Package)}
+                  {renderLink('/akuntan/laporan/kebutuhan-belanja-bahan', 'Belanja Bahan', ShoppingCart)}
+                  {renderLink('/akuntan/laporan/per-periode', 'Per Periode', BarChart2)}
+                  {renderLink('/akuntan/laporan/per-bulan', 'Per Bulan', CalendarRange)}
                 </>
               )}
 
               {/* KEPALA_SPPG Navigation */}
               {user?.role === 'KEPALA_SPPG' && (
                 <>
-                  <li style={{ fontWeight: 'bold', fontSize: '11px', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>Menu Kepala</li>
-                  <li>
-                    <Link to="/kepala" style={{ textDecoration: 'none', color: '#007bff' }}>Beranda / Dashboard</Link>
+                  <li style={{ padding: '0 14px', marginBottom: '8px', fontSize: '10px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Menu Kepala
                   </li>
-                  <li>
-                    <Link to="/kepala/approval" style={{ textDecoration: 'none', color: '#333' }}>Approval / Persetujuan</Link>
-                  </li>
+                  {renderLink('/kepala', 'Beranda / Dashboard', Home)}
+                  {renderLink('/kepala/approval', 'Approval / Persetujuan', CheckSquare)}
                 </>
               )}
 
-              {/* SHARED SETTING & LOGOUT AT BOTTOM */}
-              <li style={{ borderTop: '2px solid #ddd', marginTop: '15px', paddingTop: '10px' }}>
-                <Link to="/setting" style={{ textDecoration: 'none', color: '#495057', display: 'block', fontWeight: '500' }}>
-                  ⚙️ Pengaturan Profil
-                </Link>
-              </li>
-              <li>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    background: 'none',
-                    border: 'none',
-                    padding: '0',
-                    color: '#dc3545',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontFamily: 'inherit',
-                    fontSize: 'inherit'
-                  }}
-                >
-                  🚪 Keluar (Logout)
-                </button>
-              </li>
-
             </ul>
           </nav>
-        </div>
-        {/* Main Content Area */}
-        <div style={{ flex: '1', padding: '20px' }}>
+
+          {/* Footer Navigation Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+            {/* Settings Tautan */}
+            <Link
+              to="/setting"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 14px',
+                textDecoration: 'none',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '13px',
+                fontWeight: isActive('/setting') ? '700' : '500',
+                color: isActive('/setting') ? 'var(--color-primary)' : 'var(--text)',
+                backgroundColor: isActive('/setting') ? 'var(--color-primary-light)' : 'transparent',
+                transition: 'all var(--transition-fast)'
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive('/setting')) {
+                  e.currentTarget.style.backgroundColor = 'var(--border)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive('/setting')) {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }
+              }}
+            >
+              <Settings size={16} strokeWidth={isActive('/setting') ? 2.5 : 2} style={{ color: isActive('/setting') ? 'var(--color-primary)' : 'var(--text-muted)' }} />
+              <span>Pengaturan Profil</span>
+            </Link>
+
+            {/* Logout Tautan */}
+            <button
+              onClick={handleLogout}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '10px 14px',
+                width: '100%',
+                background: 'none',
+                border: 'none',
+                textAlign: 'left',
+                borderRadius: 'var(--radius-md)',
+                fontSize: '13px',
+                fontWeight: '600',
+                color: 'var(--color-danger)',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all var(--transition-fast)'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.08)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            >
+              <LogOut size={16} strokeWidth={2} style={{ color: 'var(--color-danger)' }} />
+              <span>Keluar (Logout)</span>
+            </button>
+          </div>
+
+        </aside>
+
+        {/* Content Panel */}
+        <main style={{ flex: 1, padding: '30px 40px', overflowY: 'auto' }}>
           <Outlet />
-        </div>
+        </main>
+
       </div>
     </div>
   );
