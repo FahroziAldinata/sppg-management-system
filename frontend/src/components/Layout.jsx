@@ -79,12 +79,14 @@ export const Layout = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: 'var(--bg)', color: 'var(--text)' }}>
       
-      {/* Sticky Header with Backdrop Blur Glass Effect */}
+      {/* Fixed Header with Backdrop Blur Glass Effect */}
       <header className="glass-panel" style={{
-        position: 'sticky',
+        position: 'fixed',
         top: 0,
+        left: 0,
+        right: 0,
         height: 'var(--header-height)',
         display: 'flex',
         alignItems: 'center',
@@ -166,22 +168,21 @@ export const Layout = () => {
         </div>
       </header>
 
-      {/* Main Layout Body */}
-      <div style={{ display: 'flex', flex: 1 }}>
-        
-        {/* Sticky Sidebar */}
-        <aside className="glass-panel" style={{
-          position: 'sticky',
-          top: 'var(--header-height)',
-          width: 'var(--sidebar-width)',
-          height: 'calc(100vh - var(--header-height))',
-          padding: '24px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          borderRight: '1px solid var(--border)',
-          overflowY: 'auto'
-        }}>
+      {/* Fixed Sidebar */}
+      <aside className="glass-panel" style={{
+        position: 'fixed',
+        top: 'var(--header-height)',
+        left: 0,
+        bottom: 0,
+        width: 'var(--sidebar-width)',
+        padding: '24px 16px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        borderRight: '1px solid var(--border)',
+        overflowY: 'auto',
+        zIndex: 90
+      }}>
           <nav>
             <ul style={{ listStyleType: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
               
@@ -329,15 +330,19 @@ export const Layout = () => {
               <span>Keluar (Logout)</span>
             </button>
           </div>
+      </aside>
 
-        </aside>
-
-        {/* Content Panel */}
-        <main style={{ flex: 1, padding: '30px 40px', overflowY: 'auto' }}>
-          <Outlet />
-        </main>
-
-      </div>
+      {/* Main Content Area (Offset for Fixed Header and Sidebar) */}
+      <main style={{
+        marginLeft: 'var(--sidebar-width)',
+        paddingTop: 'calc(var(--header-height) + 30px)',
+        paddingLeft: '40px',
+        paddingRight: '40px',
+        paddingBottom: '40px',
+        minHeight: '100vh'
+      }}>
+        <Outlet />
+      </main>
     </div>
   );
 };

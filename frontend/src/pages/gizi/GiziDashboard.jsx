@@ -119,29 +119,28 @@ export const GiziDashboard = () => {
         )}
       </div>
 
-      {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Total Menu Disusun</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Total Menu Disusun</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.totalMenu} Hari</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Menu yang sudah dirancang</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Menu yang sudah dirancang</div>
         </div>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Menu Disetujui Kepala</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Menu Disetujui Kepala</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.approvedMenu} Hari</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Siap untuk diproses bahan-bahannya</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Siap untuk diproses bahan-bahannya</div>
         </div>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Kendaraan Pengantaran</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Kendaraan Pengantaran</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.totalKendaraan} Unit</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Total armada logistik aktif</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total armada logistik aktif</div>
         </div>
       </div>
 
       {/* Quick Actions Panel */}
-      <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '20px', backgroundColor: '#fdfdfd' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
           <button 

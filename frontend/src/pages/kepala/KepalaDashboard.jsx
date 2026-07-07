@@ -104,40 +104,39 @@ export const KepalaDashboard = () => {
         {selectedPeriod?.setupLembaga && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
             <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
-            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.periodeId}</strong></div>
+            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
             <div>Akuntan SPPG: <strong>{selectedPeriod.setupLembaga.namaAkuntanSPPG}</strong></div>
             <div>Tahun Anggaran: <strong>{selectedPeriod.setupLembaga.tahunAnggaran}</strong></div>
           </div>
         )}
       </div>
 
-      {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Persetujuan Menunggu (Pending)</div>
-          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0', color: stats.pendingApprovals > 0 ? '#dc3545' : '#333' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Persetujuan Menunggu (Pending)</div>
+          <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0', color: stats.pendingApprovals > 0 ? '#dc3545' : 'var(--text)' }}>
             {stats.pendingApprovals} Dokumen
           </div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Menu Harian &amp; RAB perlu ditinjau</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Menu Harian &amp; RAB perlu ditinjau</div>
         </div>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Realisasi Keuangan</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Realisasi Keuangan</div>
           <div style={{ fontSize: '20px', fontWeight: 'bold', margin: '5px 0' }}>
             Rp{stats.budgetUsed.toLocaleString('id-ID')} / Rp{stats.budgetTotal.toLocaleString('id-ID')}
           </div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Realisasi pagu anggaran belanja</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Realisasi pagu anggaran belanja</div>
         </div>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Dokumen Resmi Diterbitkan</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Dokumen Resmi Diterbitkan</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.publishedDocs} Dokumen</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>LPA, SPTJ, &amp; BAPSD terbit</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>LPA, SPTJ, &amp; BAPSD terbit</div>
         </div>
       </div>
 
       {/* Quick Actions Panel */}
-      <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '20px', backgroundColor: '#fdfdfd' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
           <button 

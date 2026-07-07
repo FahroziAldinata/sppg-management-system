@@ -105,7 +105,7 @@ export const AslapDashboard = () => {
         {selectedPeriod?.setupLembaga && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
             <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
-            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.periodeId}</strong></div>
+            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
             <div>Kepala SPPG: <strong>{selectedPeriod.setupLembaga.namaKepalaSPPG}</strong></div>
             <div>Tahun Anggaran: <strong>{selectedPeriod.setupLembaga.tahunAnggaran}</strong></div>
             <div style={{ gridColumn: 'span 2' }}>Alamat: {selectedPeriod.setupLembaga.alamat}</div>
@@ -115,22 +115,22 @@ export const AslapDashboard = () => {
 
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Sekolah Terdaftar</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Sekolah Terdaftar</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.schools}</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Total satuan pendidikan aktif</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total satuan pendidikan aktif</div>
         </div>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Posyandu Terdaftar</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Posyandu Terdaftar</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.posyandus}</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Total posyandu layanan non-siswa</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total posyandu layanan non-siswa</div>
         </div>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Input Penerima Manfaat</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Input Penerima Manfaat</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.pmEntries}</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Data terekam pada periode ini</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Data terekam pada periode ini</div>
         </div>
       </div>
 
