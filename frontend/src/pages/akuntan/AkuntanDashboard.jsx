@@ -97,7 +97,7 @@ export const AkuntanDashboard = () => {
       </div>
 
       {/* Period Selector */}
-      <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '15px', backgroundColor: '#f9f9f9', marginBottom: '25px' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode Aktif: </label>
           <select 
@@ -116,24 +116,24 @@ export const AkuntanDashboard = () => {
 
       {/* Financial Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Saldo Kas Berjalan (BKU)</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Saldo Kas Berjalan (BKU)</div>
           <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '5px 0' }}>
             Rp{Number(stats.totalKas).toLocaleString('id-ID')}
           </div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Total saldo s.d transaksi terakhir</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total saldo s.d transaksi terakhir</div>
         </div>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #17a2b8', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>RAB Harian Diajukan</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #17a2b8', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>RAB Harian Diajukan</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.rabCount} Dokumen</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Total rencana anggaran harian</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total rencana anggaran harian</div>
         </div>
 
-        <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: '#fff' }}>
-          <div style={{ fontSize: '12px', color: '#666', textTransform: 'uppercase', fontWeight: 'bold' }}>Jurnal Transaksi</div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Jurnal Transaksi</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.journalCount} Baris</div>
-          <div style={{ fontSize: '12px', color: '#888' }}>Pencatatan kas masuk/keluar ledger</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Pencatatan kas masuk/keluar ledger</div>
         </div>
       </div>
 

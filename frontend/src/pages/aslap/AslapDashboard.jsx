@@ -85,7 +85,7 @@ export const AslapDashboard = () => {
       </div>
 
       {/* Period Selection Info */}
-      <div style={{ border: '1px solid #ddd', borderRadius: '6px', padding: '15px', backgroundColor: '#f9f9f9', marginBottom: '25px' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
         <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode &amp; Setup Lembaga</h3>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
@@ -103,7 +103,7 @@ export const AslapDashboard = () => {
         </div>
 
         {selectedPeriod?.setupLembaga && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
             <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
             <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
             <div>Kepala SPPG: <strong>{selectedPeriod.setupLembaga.namaKepalaSPPG}</strong></div>

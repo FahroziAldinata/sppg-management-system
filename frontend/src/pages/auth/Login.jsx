@@ -10,6 +10,7 @@ export const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loginSuccessUser, setLoginSuccessUser] = useState(null);
 
   if (token) {
     return <Navigate to="/" replace />;
@@ -32,15 +33,18 @@ export const Login = () => {
       const data = await res.json();
 
       if (res.ok) {
-        login(data.token, data.user);
-        navigate('/');
+        setLoginSuccessUser(data.user);
+        setTimeout(() => {
+          login(data.token, data.user);
+          navigate('/');
+        }, 1200);
       } else {
         setError(data.error || 'Terjadi kesalahan');
+        setLoading(false);
       }
     } catch (err) {
       console.error(err);
       setError('Koneksi ke server gagal.');
-    } finally {
       setLoading(false);
     }
   };
@@ -211,6 +215,76 @@ export const Login = () => {
           </button>
         </form>
       </div>
+
+      {/* Loading & Success Popup Modal */}
+      {(loading || loginSuccessUser) && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(7, 30, 73, 0.4)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 999,
+          transition: 'all 0.3s ease'
+        }}>
+          <div className="glass-panel" style={{
+            padding: '30px 40px',
+            borderRadius: 'var(--radius-lg)',
+            textAlign: 'center',
+            boxShadow: 'var(--shadow-hover)',
+            backgroundColor: 'var(--bg-elevated)',
+            border: '1px solid var(--border)',
+            maxWidth: '320px',
+            width: '100%',
+            animation: 'scaleUp 0.2s ease-out'
+          }}>
+            <style>{`
+              @keyframes scaleUp {
+                from { transform: scale(0.95); opacity: 0; }
+                to { transform: scale(1); opacity: 1; }
+              }
+            `}</style>
+            
+            {loginSuccessUser ? (
+              <div>
+                <div style={{
+                  width: '50px',
+                  height: '50px',
+                  borderRadius: 'var(--radius-full)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  color: 'var(--color-success)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 15px auto',
+                  fontSize: '24px',
+                  fontWeight: 'bold'
+                }}>
+                  ✓
+                </div>
+                <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px', color: 'var(--text)' }}>Login Berhasil</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>
+                  Selamat datang kembali, <strong style={{ color: 'var(--text)' }}>{loginSuccessUser.nama}</strong>!
+                </p>
+              </div>
+            ) : (
+              <div>
+                <div className="skeleton-shimmer" style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: 'var(--radius-full)',
+                  margin: '0 auto 15px auto',
+                  opacity: 0.3
+                }} />
+                <h3 style={{ fontSize: '16px', fontWeight: '700', marginBottom: '8px', color: 'var(--text)' }}>Memproses</h3>
+                <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Sedang memverifikasi kredensial...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
