@@ -76,7 +76,7 @@ export const KepalaDashboard = () => {
   return (
     <div style={{ padding: '10px' }}>
       {/* Welcome Banner */}
-      <div style={{ backgroundColor: '#007bff', color: 'white', padding: '20px', borderRadius: '6px', marginBottom: '25px' }}>
+      <div style={{ backgroundColor: 'var(--color-role-kepala)', color: 'white', padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '25px' }}>
         <h2 style={{ margin: '0 0 8px 0' }}>Halo, Kepala Satuan Pelayanan (SPPG)!</h2>
         <p style={{ margin: '0', opacity: '0.9', fontSize: '14px' }}>
           Selamat datang kembali. Di bawah ini adalah ringkasan persetujuan, realisasi keuangan, dan dokumen resmi yang diterbitkan untuk periode aktif.
@@ -84,7 +84,7 @@ export const KepalaDashboard = () => {
       </div>
 
       {/* Period Selection Info */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
         <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode &amp; Setup Lembaga</h3>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
@@ -112,7 +112,7 @@ export const KepalaDashboard = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Persetujuan Menunggu (Pending)</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0', color: stats.pendingApprovals > 0 ? '#dc3545' : 'var(--text)' }}>
             {stats.pendingApprovals} Dokumen
@@ -120,7 +120,7 @@ export const KepalaDashboard = () => {
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Menu Harian &amp; RAB perlu ditinjau</div>
         </div>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Realisasi Keuangan</div>
           <div style={{ fontSize: '20px', fontWeight: 'bold', margin: '5px 0' }}>
             Rp{stats.budgetUsed.toLocaleString('id-ID')} / Rp{stats.budgetTotal.toLocaleString('id-ID')}
@@ -128,7 +128,7 @@ export const KepalaDashboard = () => {
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Realisasi pagu anggaran belanja</div>
         </div>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Dokumen Resmi Diterbitkan</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.publishedDocs} Dokumen</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>LPA, SPTJ, &amp; BAPSD terbit</div>
@@ -136,7 +136,8 @@ export const KepalaDashboard = () => {
       </div>
 
       {/* Quick Actions Panel */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+      {/* ponytail: unify shade pastel to bg-elevated */}
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
           <button 

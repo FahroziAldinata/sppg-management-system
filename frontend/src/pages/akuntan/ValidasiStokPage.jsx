@@ -299,9 +299,10 @@ export const ValidasiStokPage = () => {
             {success && <div style={{ color: 'green', marginBottom: '10px', padding: '8px', border: '1px solid green' }}>{success}</div>}
 
             {/* Print Section (Checklist Generation) */}
-            <div style={{ border: '1px solid #007bff', padding: '15px', backgroundColor: '#f4f9ff', marginBottom: '25px', borderRadius: '4px' }}>
-                <h4 style={{ margin: '0 0 10px 0', color: '#0056b3' }}>Cetak Lembar Checklist Fisik Gudang</h4>
-                <p style={{ fontSize: '13px', color: '#555', marginTop: '0' }}>
+            {/* ponytail: unify shade pastel to bg-elevated */}
+            <div style={{ border: '1px solid var(--border)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px', borderRadius: 'var(--radius-md)' }}>
+                <h4 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Cetak Lembar Checklist Fisik Gudang</h4>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '0' }}>
                     Gunakan fitur ini untuk mencetak daftar inventaris sistem ke kertas guna mempermudah pencatatan stok fisik di gudang.
                 </p>
                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -366,12 +367,13 @@ export const ValidasiStokPage = () => {
 
                 {/* Tampilan Preview Akumulasi Catatan Sistem */}
                 {validasiPreview && (
-                    <div style={{ border: '1px dashed #777', padding: '10px', margin: '10px 0', backgroundColor: '#f0f4f8', fontSize: '14px' }}>
+                    <div style={{ border: '1px dashed var(--border)', padding: '10px', margin: '10px 0', backgroundColor: 'var(--bg-elevated)', fontSize: '14px', borderRadius: 'var(--radius-sm)' }}>
+                        {/* ponytail: unify shade pastel to bg-elevated */}
                         <h4 style={{ marginTop: '0', marginBottom: '8px' }}>Akumulasi Catatan Sistem s.d. Tanggal Terpilih:</h4>
                         <p style={{ margin: '4px 0' }}>Total Pembelian (Sistem): <strong>{validasiPreview.qtyDibeli}</strong></p>
                         <p style={{ margin: '4px 0' }}>Total Penggunaan (Sistem): <strong>{validasiPreview.qtyTerpakai}</strong></p>
                         <p style={{ margin: '4px 0' }}>Sisa Stok (Sistem): <strong>{validasiPreview.sisaSistem}</strong></p>
-                        <span style={{ fontSize: '12px', color: '#666' }}>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                             * Kolom input fisik di bawah terisi otomatis dari data sistem untuk mempermudah pencatatan.
                         </span>
                     </div>

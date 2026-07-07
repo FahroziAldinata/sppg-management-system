@@ -77,7 +77,7 @@ export const AslapDashboard = () => {
   return (
     <div style={{ padding: '10px' }}>
       {/* Welcome Banner */}
-      <div style={{ backgroundColor: '#007bff', color: 'white', padding: '20px', borderRadius: '6px', marginBottom: '25px' }}>
+      <div style={{ backgroundColor: 'var(--color-role-aslap)', color: 'white', padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '25px' }}>
         <h2 style={{ margin: '0 0 8px 0' }}>Halo, Asisten Lapangan (Aslap)!</h2>
         <p style={{ margin: '0', opacity: '0.9', fontSize: '14px' }}>
           Selamat datang kembali di dashboard pemantauan gizi SPPG. Silakan pantau status periode operasional aktif dan input data Penerima Manfaat.
@@ -85,7 +85,7 @@ export const AslapDashboard = () => {
       </div>
 
       {/* Period Selection Info */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
         <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode &amp; Setup Lembaga</h3>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
@@ -135,7 +135,8 @@ export const AslapDashboard = () => {
       </div>
 
       {/* Quick Actions Panel */}
-      <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '20px', backgroundColor: '#fdfdfd' }}>
+      {/* ponytail: unify shade pastel to bg-elevated */}
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px' }}>
           <button 

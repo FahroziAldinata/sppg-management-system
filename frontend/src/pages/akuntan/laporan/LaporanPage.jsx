@@ -319,7 +319,8 @@ export const LaporanPage = () => {
                             }
                         </p>
                     ) : (
-                        <div style={{ border: '1px solid #ccc', padding: '15px', backgroundColor: '#fafafa' }}>
+                        <div style={{ border: '1px solid var(--border)', padding: '15px', backgroundColor: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
+                            {/* ponytail: unify shade pastel to bg-elevated */}
                             <h4 style={{ textAlign: 'center', marginBottom: '20px' }}>
                                 LAPORAN PERTANGGUNGJAWABAN PENGGUNAAN DANA
                             </h4>
@@ -395,7 +396,8 @@ export const LaporanPage = () => {
                             Data SPTJ tidak ditemukan untuk periode ini.
                         </p>
                     ) : (
-                        <div style={{ border: '1px solid #ccc', padding: '15px', backgroundColor: '#fafafa', maxWidth: '650px', margin: '0 auto' }}>
+                        <div style={{ border: '1px solid var(--border)', padding: '15px', backgroundColor: 'var(--bg-elevated)', maxWidth: '650px', margin: '0 auto', borderRadius: 'var(--radius-md)' }}>
+                            {/* ponytail: unify shade pastel to bg-elevated */}
                             <h4 style={{ textAlign: 'center', marginBottom: '5px' }}>
                                 SURAT PERNYATAAN TANGGUNG JAWAB
                             </h4>
@@ -450,7 +452,8 @@ export const LaporanPage = () => {
                             }
                         </p>
                     ) : (
-                        <div style={{ border: '1px solid #ccc', padding: '20px', backgroundColor: '#fafafa', maxWidth: '700px', margin: '0 auto', fontSize: '14px', lineHeight: '1.6' }}>
+                        <div style={{ border: '1px solid var(--border)', padding: '20px', backgroundColor: 'var(--bg-elevated)', maxWidth: '700px', margin: '0 auto', fontSize: '14px', lineHeight: '1.6', borderRadius: 'var(--radius-md)' }}>
+                            {/* ponytail: unify shade pastel to bg-elevated */}
                             <h4 style={{ textAlign: 'center', marginBottom: '5px', textTransform: 'uppercase' }}>
                                 BERITA ACARA PENGALIHAN SISA DANA
                             </h4>

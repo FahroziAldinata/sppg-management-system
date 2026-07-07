@@ -84,7 +84,7 @@ export const GiziDashboard = () => {
   return (
     <div style={{ padding: '10px' }}>
       {/* Welcome Banner */}
-      <div style={{ backgroundColor: '#fd7e14', color: 'white', padding: '20px', borderRadius: '6px', marginBottom: '25px' }}>
+      <div style={{ backgroundColor: 'var(--color-role-gizi)', color: 'white', padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '25px' }}>
         <h2 style={{ margin: '0 0 8px 0' }}>Halo, Ahli Gizi SPPG!</h2>
         <p style={{ margin: '0', opacity: '0.9', fontSize: '14px' }}>
           Selamat datang kembali. Silakan pantau ketersediaan menu harian, status kelayakan menu, serta pengelolaan logistik kendaraan pengantaran.
@@ -92,7 +92,7 @@ export const GiziDashboard = () => {
       </div>
 
       {/* Period Selection Info */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
         <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode Berjalan</h3>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
@@ -120,19 +120,19 @@ export const GiziDashboard = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Total Menu Disusun</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.totalMenu} Hari</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Menu yang sudah dirancang</div>
         </div>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Menu Disetujui Kepala</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.approvedMenu} Hari</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Siap untuk diproses bahan-bahannya</div>
         </div>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Kendaraan Pengantaran</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.totalKendaraan} Unit</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total armada logistik aktif</div>
@@ -140,7 +140,8 @@ export const GiziDashboard = () => {
       </div>
 
       {/* Quick Actions Panel */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+      {/* ponytail: unify shade pastel to bg-elevated */}
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
           <button 

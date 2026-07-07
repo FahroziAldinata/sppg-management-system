@@ -10,10 +10,17 @@
   /* Fonts & Radius */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --radius-sm: 4px;
-  --radius-md: 8px;
+  --radius-md: 12px;
   --radius-lg: 16px;
   --radius-full: 9999px;
   --gap-outer: 16px;
+
+  /* Role Branding Colors */
+  --color-role-aslap: #0284c7;
+  --color-role-mitra: #059669;
+  --color-role-gizi: #ea580c;
+  --color-role-akuntan: #7c3aed;
+  --color-role-kepala: var(--color-primary);
 
   /* Transitions */
   --transition-fast: 0.15s ease;

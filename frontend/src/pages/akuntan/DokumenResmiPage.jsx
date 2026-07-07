@@ -184,9 +184,10 @@ export const DokumenResmiPage = () => {
 
             {/* Area Preview Data & Tombol Publish */}
             {previewData && (
-                <div style={{ border: '1px dashed #777', padding: '15px', marginBottom: '25px', backgroundColor: '#f9f9f9' }}>
+                <div style={{ border: '1px dashed var(--border)', padding: '15px', marginBottom: '25px', backgroundColor: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
+                    {/* ponytail: unify shade pastel to bg-elevated */}
                     <h4 style={{ marginTop: '0' }}>Preview Data Dokumen Resmi</h4>
-                    <pre style={{ overflowX: 'auto', whiteSpace: 'pre-wrap', maxHeight: '300px', fontSize: '13px', backgroundColor: '#fff', padding: '10px', border: '1px solid #ddd' }}>
+                    <pre style={{ overflowX: 'auto', whiteSpace: 'pre-wrap', maxHeight: '300px', fontSize: '13px', backgroundColor: 'var(--bg)', color: 'var(--text)', padding: '10px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
                         {JSON.stringify(previewData, null, 2)}
                     </pre>
                     <button

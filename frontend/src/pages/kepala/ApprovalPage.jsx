@@ -126,7 +126,8 @@ export const ApprovalPage = () => {
     return (
         <div>
             <h2>Dashboard Kepala SPPG</h2>
-            {error && <div style={{ color: 'red', position: 'sticky', top: 0, background: '#fff', padding: '8px', zIndex: 10, border: '1px solid red' }}>{error}</div>}
+            {/* ponytail: unify shade pastel to bg-elevated */}
+            {error && <div style={{ color: 'var(--color-danger)', position: 'sticky', top: 0, background: 'var(--bg-elevated)', padding: '8px', zIndex: 10, border: '1px solid var(--border)' }}>{error}</div>}
 
             {/* Pilihan Periode */}
             <div style={{ marginBottom: '10px' }}>

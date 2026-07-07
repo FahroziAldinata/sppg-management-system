@@ -165,12 +165,13 @@ export const PeriodeSetupPage = () => {
     return (
         <div style={{ maxWidth: '800px' }}>
             <h2>Buka Periode & Setup Lembaga Baru</h2>
-            <p style={{ color: '#666', fontSize: '14px', marginTop: '-10px', marginBottom: '20px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '-10px', marginBottom: '20px' }}>
                 Halaman ini digunakan untuk memulai periode operasional dan keuangan baru. Data lembaga di-autofill otomatis dari periode sebelumnya untuk menghemat waktu Anda.
             </p>
 
-            {error && <div style={{ color: 'red', marginBottom: '15px', padding: '10px', border: '1px solid red', backgroundColor: '#fff8f8' }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: '15px', padding: '10px', border: '1px solid green', backgroundColor: '#f8fff8' }}>{success}</div>}
+            {/* ponytail: unify shade pastel to bg-elevated */}
+            {error && <div style={{ color: 'var(--color-danger)', marginBottom: '15px', padding: '10px', border: '1px solid rgba(239, 68, 68, 0.2)', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 'var(--radius-sm)' }}>{error}</div>}
+            {success && <div style={{ color: 'var(--color-success)', marginBottom: '15px', padding: '10px', border: '1px solid rgba(16, 185, 129, 0.2)', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderRadius: 'var(--radius-sm)' }}>{success}</div>}
 
             {loading && <p>Memuat konfigurasi default...</p>}
 

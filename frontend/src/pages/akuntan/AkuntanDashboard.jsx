@@ -89,7 +89,7 @@ export const AkuntanDashboard = () => {
   return (
     <div style={{ padding: '10px' }}>
       {/* Welcome Banner */}
-      <div style={{ backgroundColor: '#6f42c1', color: 'white', padding: '20px', borderRadius: '6px', marginBottom: '25px' }}>
+      <div style={{ backgroundColor: 'var(--color-role-akuntan)', color: 'white', padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '25px' }}>
         <h2 style={{ margin: '0 0 8px 0' }}>Halo, Akuntan SPPG!</h2>
         <p style={{ margin: '0', opacity: '0.9', fontSize: '14px' }}>
           Selamat datang di panel beranda Akuntan. Di bawah ini adalah ringkasan keuangan serta akses cepat ke 14 modul pencatatan akuntansi &amp; laporan SPPG.
@@ -97,7 +97,7 @@ export const AkuntanDashboard = () => {
       </div>
 
       {/* Period Selector */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode Aktif: </label>
           <select 
@@ -116,7 +116,7 @@ export const AkuntanDashboard = () => {
 
       {/* Financial Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Saldo Kas Berjalan (BKU)</div>
           <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '5px 0' }}>
             Rp{Number(stats.totalKas).toLocaleString('id-ID')}
@@ -124,13 +124,13 @@ export const AkuntanDashboard = () => {
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total saldo s.d transaksi terakhir</div>
         </div>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #17a2b8', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #17a2b8', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>RAB Harian Diajukan</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.rabCount} Dokumen</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total rencana anggaran harian</div>
         </div>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Jurnal Transaksi</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.journalCount} Baris</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Pencatatan kas masuk/keluar ledger</div>
@@ -138,8 +138,9 @@ export const AkuntanDashboard = () => {
       </div>
 
       {/* 14 Modul Shortcuts Grid */}
-      <div style={{ border: '1px solid #ccc', borderRadius: '6px', padding: '20px', backgroundColor: '#fff' }}>
-        <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>
+      {/* ponytail: unify shade pastel to bg-elevated */}
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+        <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
           Akses Modul Akuntansi &amp; Laporan (14 Menu Utama)
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' }}>
@@ -149,25 +150,25 @@ export const AkuntanDashboard = () => {
               onClick={() => navigate(sc.path)}
               style={{
                 padding: '12px 15px',
-                backgroundColor: '#f8f9fa',
-                border: `1px solid #ddd`,
+                backgroundColor: 'var(--bg)',
+                border: `1px solid var(--border)`,
                 borderLeft: `4px solid ${sc.color}`,
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-sm)',
                 textAlign: 'left',
                 cursor: 'pointer',
                 fontWeight: 'bold',
                 fontSize: '13px',
-                color: '#333',
+                color: 'var(--text)',
                 transition: 'background-color 0.2s',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#eaeaea'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#f8f9fa'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--border)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg)'; }}
             >
               <span>{sc.label}</span>
-              <span style={{ fontSize: '16px', color: '#888' }}>&rarr;</span>
+              <span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>&rarr;</span>
             </button>
           ))}
         </div>

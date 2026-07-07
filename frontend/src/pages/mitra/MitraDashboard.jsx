@@ -104,7 +104,7 @@ export const MitraDashboard = () => {
   return (
     <div style={{ padding: '10px' }}>
       {/* Welcome Banner */}
-      <div style={{ backgroundColor: '#28a745', color: 'white', padding: '20px', borderRadius: '6px', marginBottom: '25px' }}>
+      <div style={{ backgroundColor: 'var(--color-role-mitra)', color: 'white', padding: '20px', borderRadius: 'var(--radius-md)', marginBottom: '25px' }}>
         <h2 style={{ margin: '0 0 8px 0' }}>Halo, Mitra Penyedia Bahan (Supplier)!</h2>
         <p style={{ margin: '0', opacity: '0.9', fontSize: '14px' }}>
           Selamat datang kembali. Anda dapat memantau status alokasi harga bahan pokok periode berjalan serta menyusun dokumen Nota Pesanan (PO) secara digital.
@@ -112,7 +112,7 @@ export const MitraDashboard = () => {
       </div>
 
       {/* Period Selection Info */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
         <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode Operasional</h3>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
@@ -140,19 +140,19 @@ export const MitraDashboard = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Bahan Pokok Master</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.totalBahan}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total jenis bahan makanan</div>
         </div>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Harga Terdaftar</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.inputHarga} / {stats.totalBahan}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Bahan yang sudah diinput harganya</div>
         </div>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Nota Pesanan (PO)</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.poCount} PO</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total nilai: <strong>Rp{stats.poValue.toLocaleString('id-ID')}</strong></div>
@@ -160,7 +160,8 @@ export const MitraDashboard = () => {
       </div>
 
       {/* Quick Actions Panel */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+      {/* ponytail: unify shade pastel to bg-elevated */}
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
           <button 

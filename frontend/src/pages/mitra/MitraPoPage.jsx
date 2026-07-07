@@ -336,8 +336,9 @@ export const MitraPoPage = () => {
                 </div>
 
                 {/* Info Menu Harian */}
+                {/* ponytail: unify shade pastel to bg-elevated */}
                 {poDate && (
-                    <div style={{ border: '1px dashed #007bff', padding: '10px', backgroundColor: '#f4f9ff', fontSize: '14px' }}>
+                    <div style={{ border: '1px dashed var(--border)', padding: '10px', backgroundColor: 'var(--bg-elevated)', fontSize: '14px', borderRadius: 'var(--radius-sm)' }}>
                         <strong>Rencana Menu Hari Ini:</strong> {menuDescription}
                     </div>
                 )}
@@ -398,8 +399,9 @@ export const MitraPoPage = () => {
                     </div>
                 )}
 
+                {/* ponytail: unify shade pastel to bg-elevated */}
                 {poDate && poItems.length === 0 && !loading && (
-                    <div style={{ color: 'orange', padding: '10px', border: '1px solid orange', backgroundColor: '#fffdf6' }}>
+                    <div style={{ color: 'var(--color-warning)', padding: '10px', border: '1px solid rgba(245, 158, 11, 0.2)', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderRadius: 'var(--radius-sm)' }}>
                         Tidak ada rencana menu harian aktif / disetujui untuk tanggal terpilih.
                     </div>
                 )}
