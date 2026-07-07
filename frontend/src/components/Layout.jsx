@@ -84,33 +84,35 @@ export const Layout = () => {
       {/* Fixed Header with Backdrop Blur Glass Effect */}
       <header className="glass-panel" style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
+        top: 'var(--gap-outer)',
+        left: 'var(--gap-outer)',
+        right: 'var(--gap-outer)',
         height: 'var(--header-height)',
+        borderRadius: 'var(--radius-lg)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 24px',
         zIndex: 100,
-        boxShadow: 'var(--shadow)'
+        boxShadow: 'var(--shadow)',
+        backgroundColor: 'var(--bg-elevated)',
+        border: '1px solid var(--border)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'var(--color-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff',
-            fontWeight: 'bold',
-            fontSize: '16px'
-          }}>
-            S
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img
+            src={theme === 'dark' ? '/icons/logo-bgn-dark.png' : '/icons/logo-bgn-light.png'}
+            alt="STOP-SPPG Logo"
+            style={{
+              height: '36px',
+              objectFit: 'contain'
+            }}
+          />
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <strong style={{ fontSize: '15px', fontWeight: '800', letterSpacing: '-0.5px', lineHeight: '1.2' }}>STOP-SPPG</strong>
+            <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: '500', marginTop: '1px' }} title="Sistem Terpadu Operasional dan Keuangan SPPG">
+              Sistem Terpadu Operasional dan Keuangan SPPG
+            </span>
           </div>
-          <strong style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px' }}>Sistem SPPG</strong>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -171,17 +173,19 @@ export const Layout = () => {
       {/* Fixed Sidebar */}
       <aside className="glass-panel" style={{
         position: 'fixed',
-        top: 'var(--header-height)',
-        left: 0,
-        bottom: 0,
+        top: 'calc(var(--header-height) + var(--gap-outer) * 2)',
+        left: 'var(--gap-outer)',
+        bottom: 'var(--gap-outer)',
         width: 'var(--sidebar-width)',
-        padding: '24px 16px',
+        padding: '24px var(--gap-outer)',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        borderRight: '1px solid var(--border)',
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-lg)',
         overflowY: 'auto',
-        zIndex: 90
+        zIndex: 90,
+        backgroundColor: 'var(--bg-elevated)'
       }}>
           <nav>
             <ul style={{ listStyleType: 'none', display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -334,8 +338,8 @@ export const Layout = () => {
 
       {/* Main Content Area (Offset for Fixed Header and Sidebar) */}
       <main style={{
-        marginLeft: 'var(--sidebar-width)',
-        paddingTop: 'calc(var(--header-height) + 30px)',
+        marginLeft: 'calc(var(--sidebar-width) + var(--gap-outer) * 2)',
+        paddingTop: 'calc(var(--header-height) + var(--gap-outer) * 2)',
         paddingLeft: '40px',
         paddingRight: '40px',
         paddingBottom: '40px',

@@ -94,21 +94,18 @@ export const Login = () => {
       }}>
         {/* Header Title */}
         <div style={{ textAlign: 'center', marginBottom: '35px' }}>
-          <div style={{
-            width: '60px',
-            height: '60px',
-            borderRadius: 'var(--radius-full)',
-            backgroundColor: 'var(--color-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 15px auto',
-            boxShadow: '0 4px 10px rgba(7, 30, 73, 0.2)'
-          }}>
-            <LogIn size={26} color="#fff" strokeWidth={2.2} />
-          </div>
+          <img
+            src="/icons/logo-bgn-dark.png"
+            alt="STOP-SPPG Logo"
+            style={{
+              height: '52px',
+              objectFit: 'contain',
+              margin: '0 auto 15px auto',
+              display: 'block'
+            }}
+          />
           <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text)', letterSpacing: '-0.5px' }}>Selamat Datang</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '5px' }}>Masuk ke akun SPPG Anda untuk melapor</p>
+          <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '5px' }}>Masuk ke akun STOP-SPPG Anda untuk melapor</p>
         </div>
 
         {error && (
