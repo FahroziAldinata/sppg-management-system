@@ -62,7 +62,10 @@ export const MenuHarianPage = () => {
 
     // Fetch kendaraan once on mount (global master data, not tied to periodeId)
     useEffect(() => {
-        request('/gizi/kendaraan').then(r => r.json()).then(d => setKendaraanList(d));
+        request('/gizi/kendaraan')
+            .then(r => r.json())
+            .then(d => setKendaraanList(d))
+            .catch(err => setError(err.message || 'Gagal memuat daftar kendaraan'));
     }, []);
 
     // Fetch Master Menu list saat periodeId berubah
