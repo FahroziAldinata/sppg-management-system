@@ -8,7 +8,7 @@ node index.js
 ```
 
 
-## 🌐 Langkah 2: Jalankan Aplikasi Frontend (React + Vite)
+##  Jalankan Aplikasi Frontend (React + Vite)
 
 
 ```powershell

@@ -4,6 +4,7 @@ import { useApi } from '../../hooks/useApi';
 import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 
+
 export const GiziDashboard = () => {
   const { request } = useApi();
   const navigate = useNavigate();
@@ -22,12 +23,12 @@ export const GiziDashboard = () => {
           request('/aslap/periode'),
           request('/gizi/kendaraan')
         ]);
-        
+
         const dataP = await resP.json();
         const dataK = await resK.json();
 
         setPeriods(dataP);
-        
+
         let activeP = null;
         if (dataP.length > 0) {
           activeP = dataP[0];
@@ -123,7 +124,7 @@ export const GiziDashboard = () => {
         <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode Berjalan</h3>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
-          <select 
+          <select
             value={selectedPeriod?.id || ''}
             onChange={(e) => handlePeriodChange(e.target.value)}
             style={{ padding: '5px' }}
@@ -145,7 +146,7 @@ export const GiziDashboard = () => {
           </div>
         )}
       </div>
-
+      <DashboardSummaryCards dashSummary={dashSummary} loadingSummary={loadingSummary} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
         <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Total Menu Disusun</div>
@@ -176,15 +177,11 @@ export const GiziDashboard = () => {
         </div>
       </div>
 
-      {/* Workflow Progress & Notifikasi */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '25px' }}>
+      {/* Workflow Progress */}
+      <div style={{ marginTop: '25px' }}>
         <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
           <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Progress Tahapan Operasional</h3>
           <WorkflowStepper workflowProgress={dashSummary?.workflowProgress} loading={loadingSummary} />
-        </div>
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Peringatan Aktif</h3>
-          <NotifikasiList notifikasi={dashSummary?.notifikasiPenting} loading={loadingSummary} />
         </div>
       </div>
     </div>

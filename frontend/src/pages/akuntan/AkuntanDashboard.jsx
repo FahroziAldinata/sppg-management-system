@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { WorkflowStepper } from '../../components/WorkflowStepper';
-import { NotifikasiList } from '../../components/NotifikasiList';
+import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 
 export const AkuntanDashboard = () => {
   const { request } = useApi();
-  const navigate = useNavigate();
 
   const [periods, setPeriods] = useState([]);
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
@@ -14,6 +13,8 @@ export const AkuntanDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dashSummary, setDashSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(true);
+
+
 
   const shortcuts = [
     { label: '1. Setup Periode', path: '/akuntan/laporan/periode-setup', color: '#007bff' },
@@ -32,13 +33,15 @@ export const AkuntanDashboard = () => {
     { label: '14. Nominatif Upah', path: '/akuntan/nominatif-upah', color: '#bd2130' }
   ];
 
+
+
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
         const resP = await request('/aslap/periode');
         const dataP = await resP.json();
         setPeriods(dataP);
-        
+
         if (dataP.length > 0) {
           const activePId = dataP[0].id;
           setSelectedPeriodId(activePId);
@@ -125,7 +128,7 @@ export const AkuntanDashboard = () => {
       <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode Aktif: </label>
-          <select 
+          <select
             value={selectedPeriodId}
             onChange={(e) => handlePeriodChange(e.target.value)}
             style={{ padding: '5px' }}
@@ -138,7 +141,7 @@ export const AkuntanDashboard = () => {
           </select>
         </div>
       </div>
-
+      <DashboardSummaryCards dashSummary={dashSummary} loadingSummary={loadingSummary} />
       {/* Financial Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
         <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
@@ -162,35 +165,13 @@ export const AkuntanDashboard = () => {
         </div>
       </div>
 
-      {/* 14 Modul Shortcuts Grid */}
-      {/* ponytail: unify shade pastel to bg-elevated */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
-        <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>
-          Akses Modul Akuntansi &amp; Laporan (14 Menu Utama)
-        </h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' }}>
-          {shortcuts.map(sc => (
-            <button key={sc.path} onClick={() => navigate(sc.path)}
-              style={{ padding: '12px 15px', backgroundColor: 'var(--bg)', border: `1px solid var(--border)`, borderLeft: `4px solid ${sc.color}`, borderRadius: 'var(--radius-sm)', textAlign: 'left', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', color: 'var(--text)', transition: 'background-color 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--border)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg)'; }}
-            >
-              <span>{sc.label}</span>
-              <span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>&rarr;</span>
-            </button>
-          ))}
-        </div>
-      </div>
+
 
       {/* Workflow Progress & Notifikasi */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '25px' }}>
         <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
           <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Progress Tahapan Operasional</h3>
           <WorkflowStepper workflowProgress={dashSummary?.workflowProgress} loading={loadingSummary} />
-        </div>
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Peringatan Aktif</h3>
-          <NotifikasiList notifikasi={dashSummary?.notifikasiPenting} loading={loadingSummary} />
         </div>
       </div>
     </div>

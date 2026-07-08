@@ -1,4 +1,9 @@
-@import './styles/tokens.css';
+@import "tailwindcss";
+@import "@heroui/styles/css";
+
+@import "./styles/tokens.css";
+
+/* CSS milikmu di bawah sini */
 
 * {
   box-sizing: border-box;
@@ -20,25 +25,26 @@ body {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: var(--radius-full);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
 /* Skeleton Loading Shimmer Effect */
 .skeleton-shimmer {
-  background: linear-gradient(
-    90deg,
-    var(--border) 25%,
-    var(--bg) 37%,
-    var(--border) 63%
-  );
+  background: linear-gradient(90deg,
+      var(--border) 25%,
+      var(--bg) 37%,
+      var(--border) 63%);
   background-size: 400% 100%;
   animation: skeleton-loading 1.4s ease infinite;
 }
@@ -47,13 +53,18 @@ body {
   0% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
 }
 
 /* Custom transitions for icons & interactive elements */
-a, button, select, input, textarea {
+a,
+button,
+select,
+input,
+textarea {
   transition: all var(--transition-fast);
 }
 
@@ -79,7 +90,9 @@ a, button, select, input, textarea {
 }
 
 /* Custom interactive input focus states */
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: none;
   border-color: var(--color-primary-light);
   box-shadow: 0 0 0 3px rgba(181, 224, 234, 0.25);

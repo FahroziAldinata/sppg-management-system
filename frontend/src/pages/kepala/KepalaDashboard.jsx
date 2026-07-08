@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { NotifikasiList } from '../../components/NotifikasiList';
+import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
+
 
 export const KepalaDashboard = () => {
   const { request } = useApi();
@@ -15,13 +17,15 @@ export const KepalaDashboard = () => {
   const [dashSummary, setDashSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(true);
 
+
+
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
         const resP = await request('/aslap/periode');
         const dataP = await resP.json();
         setPeriods(dataP);
-        
+
         let activeP = null;
         if (dataP.length > 0) {
           activeP = dataP[0];
@@ -113,7 +117,7 @@ export const KepalaDashboard = () => {
         <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode &amp; Setup Lembaga</h3>
         <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
           <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
-          <select 
+          <select
             value={selectedPeriod?.id || ''}
             onChange={(e) => handlePeriodChange(e.target.value)}
             style={{ padding: '5px' }}
@@ -135,7 +139,7 @@ export const KepalaDashboard = () => {
           </div>
         )}
       </div>
-
+      <DashboardSummaryCards dashSummary={dashSummary} loadingSummary={loadingSummary} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
         <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Persetujuan Menunggu (Pending)</div>
@@ -175,10 +179,6 @@ export const KepalaDashboard = () => {
         <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
           <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Progress Tahapan Operasional</h3>
           <WorkflowStepper workflowProgress={dashSummary?.workflowProgress} loading={loadingSummary} />
-        </div>
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Peringatan Aktif</h3>
-          <NotifikasiList notifikasi={dashSummary?.notifikasiPenting} loading={loadingSummary} />
         </div>
       </div>
     </div>

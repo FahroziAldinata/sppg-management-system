@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { RangeCalendar } from "@heroui/react";
+import { today, getLocalTimeZone } from "@internationalized/date";
 
 export const PeriodeSetupPage = () => {
     const { request } = useApi();
@@ -11,6 +13,7 @@ export const PeriodeSetupPage = () => {
     // Form fields state
     const [tanggalMulai, setTanggalMulai] = useState('');
     const [tanggalSelesai, setTanggalSelesai] = useState('');
+    const [selectedRange, setSelectedRange] = useState(null);
     const [anggaranAlokasi, setAnggaranAlokasi] = useState('');
     const [totalDanaDiterima, setTotalDanaDiterima] = useState('');
     const [namaLembaga, setNamaLembaga] = useState('');
@@ -37,7 +40,7 @@ export const PeriodeSetupPage = () => {
                 if (latest) {
                     // 1. Calculate suggested dates
                     const prevEnd = new Date(latest.tanggalSelesai);
-                    
+
                     // Suggested start = prevEnd + 1 day
                     const sugStart = new Date(Date.UTC(prevEnd.getUTCFullYear(), prevEnd.getUTCMonth(), prevEnd.getUTCDate() + 1));
                     const sugStartStr = sugStart.toISOString().split('T')[0];
@@ -207,7 +210,7 @@ export const PeriodeSetupPage = () => {
                     flexDirection: 'column',
                     gap: '20px'
                 }}>
-                    
+
                     {/* SECTION 1: Detail Periode & Anggaran */}
                     <fieldset style={{
                         border: '1px solid var(--border)',
@@ -227,6 +230,7 @@ export const PeriodeSetupPage = () => {
                         }}>
                             1. Rentang Periode &amp; Pagu Dana
                         </legend>
+
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
                             <div>
                                 <label style={{
@@ -257,6 +261,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
+
                             <div>
                                 <label style={{
                                     textTransform: 'uppercase',
@@ -286,6 +291,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
+
                             <div>
                                 <label style={{
                                     textTransform: 'uppercase',
