@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { Table } from '../../../components/Table';
 
 export const LaporanPerPeriodePage = () => {
     const { request } = useApi();
@@ -79,70 +80,71 @@ export const LaporanPerPeriodePage = () => {
             {/* Render Table */}
             {!loading && reportData !== null && (
                 <div>
-                    <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px', marginBottom: '15px' }}>
-                        <thead>
-                            <tr style={{ backgroundColor: '#eaeaea' }}>
-                                <th>Kategori Pos Anggaran</th>
-                                <th style={{ textAlign: 'right' }}>Anggaran (RAB)</th>
-                                <th style={{ textAlign: 'right' }}>Realisasi (Aktual) *estimasi</th>
-                                <th style={{ textAlign: 'right' }}>Selisih (Sisa)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {/* Row 1: Bahan Makanan (Pendidikan) */}
-                            <tr>
-                                <td>Bahan Makanan (Pendidikan)</td>
-                                <td style={{ textAlign: 'right' }}>
-                                    Rp{reportData.bahanMakanan.pendidikan.rab.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                                <td style={{ textAlign: 'right', color: 'blue' }}>
-                                    Rp{reportData.bahanMakanan.pendidikan.aktual.toLocaleString('id-ID', { maximumFractionDigits: 0 })} (estimasi)
-                                </td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                                    Rp{reportData.bahanMakanan.pendidikan.selisih.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                            </tr>
-                            {/* Row 2: Bahan Makanan (Posyandu) */}
-                            <tr>
-                                <td>Bahan Makanan (Posyandu)</td>
-                                <td style={{ textAlign: 'right' }}>
-                                    Rp{reportData.bahanMakanan.posyandu.rab.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                                <td style={{ textAlign: 'right', color: 'blue' }}>
-                                    Rp{reportData.bahanMakanan.posyandu.aktual.toLocaleString('id-ID', { maximumFractionDigits: 0 })} (estimasi)
-                                </td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                                    Rp{reportData.bahanMakanan.posyandu.selisih.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                            </tr>
-                            {/* Row 3: Operasional */}
-                            <tr>
-                                <td>Biaya Operasional</td>
-                                <td style={{ textAlign: 'right' }}>
-                                    Rp{reportData.operasional.rab.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                                <td style={{ textAlign: 'right' }}>
-                                    Rp{reportData.operasional.aktual.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                                    Rp{reportData.operasional.selisih.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                            </tr>
-                            {/* Row 4: Insentif Fasilitas */}
-                            <tr>
-                                <td>Biaya Insentif Fasilitas</td>
-                                <td style={{ textAlign: 'right' }}>
-                                    Rp{reportData.insentifFasilitas.rab.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                                <td style={{ textAlign: 'right' }}>
-                                    Rp{reportData.insentifFasilitas.aktual.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                                    Rp{reportData.insentifFasilitas.selisih.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <Table
+                        columns={[
+                            { key: 'kategori', header: 'Kategori Pos Anggaran' },
+                            {
+                                key: 'rab',
+                                header: 'Anggaran (RAB)',
+                                align: 'right',
+                                render: (v) => (
+                                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                        Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+                                    </span>
+                                )
+                            },
+                            {
+                                key: 'aktual',
+                                header: 'Realisasi (Aktual)',
+                                align: 'right',
+                                render: (v, row) => (
+                                    <span style={{ color: row.isEstimasi ? 'var(--color-primary)' : 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>
+                                        Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}{row.isEstimasi ? ' (estimasi)' : ''}
+                                    </span>
+                                )
+                            },
+                            {
+                                key: 'selisih',
+                                header: 'Selisih (Sisa)',
+                                align: 'right',
+                                render: (v) => (
+                                    <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                        Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+                                    </strong>
+                                )
+                            }
+                        ]}
+                        data={[
+                            {
+                                kategori: 'Bahan Makanan (Pendidikan)',
+                                rab: reportData.bahanMakanan.pendidikan.rab,
+                                aktual: reportData.bahanMakanan.pendidikan.aktual,
+                                selisih: reportData.bahanMakanan.pendidikan.selisih,
+                                isEstimasi: true
+                            },
+                            {
+                                kategori: 'Bahan Makanan (Posyandu)',
+                                rab: reportData.bahanMakanan.posyandu.rab,
+                                aktual: reportData.bahanMakanan.posyandu.aktual,
+                                selisih: reportData.bahanMakanan.posyandu.selisih,
+                                isEstimasi: true
+                            },
+                            {
+                                kategori: 'Biaya Operasional',
+                                rab: reportData.operasional.rab,
+                                aktual: reportData.operasional.aktual,
+                                selisih: reportData.operasional.selisih,
+                                isEstimasi: false
+                            },
+                            {
+                                kategori: 'Biaya Insentif Fasilitas',
+                                rab: reportData.insentifFasilitas.rab,
+                                aktual: reportData.insentifFasilitas.aktual,
+                                selisih: reportData.insentifFasilitas.selisih,
+                                isEstimasi: false
+                            }
+                        ]}
+                    />
                     <p style={{ fontSize: '12px', color: '#666', fontStyle: 'italic' }}>
                         * Catatan: Realisasi Bahan Makanan untuk Pendidikan &amp; Posyandu dihitung menggunakan metode alokasi proporsional berdasarkan rasio RAB (PROPORSIONAL_RAB).
                     </p>

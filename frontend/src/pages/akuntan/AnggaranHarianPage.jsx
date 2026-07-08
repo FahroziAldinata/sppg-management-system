@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { Table, renderDate } from '../../components/Table';
 
 export const AnggaranHarianPage = () => {
     const { request } = useApi();
@@ -148,15 +149,60 @@ export const AnggaranHarianPage = () => {
     };
 
     return (
-        <div>
-            <h2>Pengajuan Anggaran Harian Resmi</h2>
-            {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: '10px', padding: '8px', border: '1px solid green' }}>{success}</div>}
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--text)' }}>Pengajuan Anggaran Harian Resmi</h2>
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div style={{
+                    color: 'var(--color-success)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-success)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
+                }}>
+                    {success}
+                </div>
+            )}
 
             {/* Filter Periode */}
             <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontWeight: '500', marginRight: '5px' }}>Pilih Periode Aktif: </label>
-                <select value={periodeId} onChange={e => setPeriodeId(e.target.value)}>
+                <label style={{
+                    textTransform: 'uppercase',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.07em',
+                    color: 'var(--text-muted)',
+                    display: 'block',
+                    marginBottom: '6px'
+                }}>
+                    Pilih Periode Aktif
+                </label>
+                <select
+                    value={periodeId}
+                    onChange={e => setPeriodeId(e.target.value)}
+                    style={{
+                        width: '300px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                    }}
+                >
                     {periods.map(p => (
                         <option key={p.id} value={p.id}>
                             {p.tanggalMulai} - {p.tanggalSelesai}
@@ -166,64 +212,175 @@ export const AnggaranHarianPage = () => {
             </div>
 
             {/* Form Anggaran */}
-            <h3>Buat Anggaran Harian</h3>
-            <form onSubmit={createAnggaranHarian} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '25px', display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '700px' }}>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Tanggal: </label>
-                    <input
-                        type="date"
-                        value={anggaranForm.tanggal}
-                        onChange={e => setAnggaranForm(prev => ({ ...prev, tanggal: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    />
+            <form onSubmit={createAnggaranHarian} style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+            }}>
+                <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Buat Anggaran Harian</h3>
+                
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Tanggal
+                        </label>
+                        <input
+                            type="date"
+                            value={anggaranForm.tanggal}
+                            onChange={e => setAnggaranForm(prev => ({ ...prev, tanggal: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        />
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Kategori Dana
+                        </label>
+                        <select
+                            value={anggaranForm.kategoriDana}
+                            onChange={e => setAnggaranForm(prev => ({ ...prev, kategoriDana: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        >
+                            <option value="">-- Pilih Kategori Dana --</option>
+                            <option value="BAHAN_MAKANAN">BAHAN_MAKANAN</option>
+                            <option value="OPERASIONAL">OPERASIONAL</option>
+                            <option value="INSENTIF_FASILITAS">INSENTIF_FASILITAS (SEWA)</option>
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Kategori Dana: </label>
-                    <select
-                        value={anggaranForm.kategoriDana}
-                        onChange={e => setAnggaranForm(prev => ({ ...prev, kategoriDana: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    >
-                        <option value="">-- Pilih Kategori Dana --</option>
-                        <option value="BAHAN_MAKANAN">BAHAN_MAKANAN</option>
-                        <option value="OPERASIONAL">OPERASIONAL</option>
-                        <option value="INSENTIF_FASILITAS">INSENTIF_FASILITAS (SEWA)</option>
-                    </select>
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Jumlah Paket (Total): </label>
-                    <input
-                        type="number"
-                        placeholder="Jumlah Paket"
-                        value={anggaranForm.jumlahPaket}
-                        onChange={e => setAnggaranForm(prev => ({ ...prev, jumlahPaket: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    />
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Keterangan (opsional): </label>
-                    <input
-                        type="text"
-                        placeholder="Keterangan"
-                        value={anggaranForm.keterangan}
-                        onChange={e => setAnggaranForm(prev => ({ ...prev, keterangan: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                    />
+
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Jumlah Paket (Total)
+                        </label>
+                        <input
+                            type="number"
+                            placeholder="Jumlah Paket"
+                            value={anggaranForm.jumlahPaket}
+                            onChange={e => setAnggaranForm(prev => ({ ...prev, jumlahPaket: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        />
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Keterangan (opsional)
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Keterangan"
+                            value={anggaranForm.keterangan}
+                            onChange={e => setAnggaranForm(prev => ({ ...prev, keterangan: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
                 </div>
 
                 {/* Case 2: Non BAHAN_MAKANAN -> Input Harga Satuan Flat */}
                 {anggaranForm.kategoriDana && anggaranForm.kategoriDana !== 'BAHAN_MAKANAN' && (
                     <div>
-                        <label style={{ display: 'block', marginBottom: '3px' }}>Harga Satuan: </label>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Harga Satuan
+                        </label>
                         <input
                             type="number"
                             placeholder="Harga Satuan (Rp)"
                             value={anggaranForm.hargaSatuan}
                             onChange={e => setAnggaranForm(prev => ({ ...prev, hargaSatuan: e.target.value }))}
-                            style={{ width: '100%', padding: '5px' }}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
                             required
                         />
                     </div>
@@ -231,15 +388,28 @@ export const AnggaranHarianPage = () => {
 
                 {/* Case 1: BAHAN_MAKANAN -> Sub-form & List Rincian per Kategori Penerima */}
                 {anggaranForm.kategoriDana === 'BAHAN_MAKANAN' && (
-                    <div style={{ border: '1px dashed #777', padding: '10px', marginTop: '10px' }}>
-                        <h4 style={{ marginTop: '0', marginBottom: '10px' }}>Rincian Bahan Makanan per Kategori Penerima</h4>
+                    <div style={{
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '16px',
+                        marginTop: '10px',
+                        backgroundColor: 'var(--bg)'
+                    }}>
+                        <h4 style={{ marginTop: '0', marginBottom: '16px', color: 'var(--text)', fontSize: '14px' }}>Rincian Bahan Makanan per Kategori Penerima</h4>
                         
                         {/* Sub-form Rincian */}
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
                             <select
                                 value={tempDetail.kategoriId}
                                 onChange={e => setTempDetail(prev => ({ ...prev, kategoriId: e.target.value }))}
-                                style={{ padding: '5px' }}
+                                style={{
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px'
+                                }}
                             >
                                 <option value="">-- Pilih Kategori --</option>
                                 {categories.map(cat => (
@@ -253,14 +423,32 @@ export const AnggaranHarianPage = () => {
                                 placeholder="Jumlah Paket"
                                 value={tempDetail.jumlahPaket}
                                 onChange={e => setTempDetail(prev => ({ ...prev, jumlahPaket: e.target.value }))}
-                                style={{ padding: '5px', width: '100px' }}
+                                style={{
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    width: '120px',
+                                    boxSizing: 'border-box'
+                                }}
                             />
                             <input
                                 type="number"
                                 placeholder="Harga Satuan"
                                 value={tempDetail.hargaSatuan}
                                 onChange={e => setTempDetail(prev => ({ ...prev, hargaSatuan: e.target.value }))}
-                                style={{ padding: '5px', width: '100px' }}
+                                style={{
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    width: '120px',
+                                    boxSizing: 'border-box'
+                                }}
                             />
                             <button
                                 type="button"
@@ -272,18 +460,27 @@ export const AnggaranHarianPage = () => {
                                     setAnggaranDetailBahan(prev => [...prev, { ...tempDetail }]);
                                     setTempDetail({ kategoriId: '', jumlahPaket: '', hargaSatuan: '' });
                                 }}
-                                style={{ padding: '5px 10px', backgroundColor: '#007bff', color: '#fff', border: 'none', cursor: 'pointer' }}
+                                style={{
+                                    padding: '10px 16px',
+                                    backgroundColor: 'var(--btn-primary-bg)',
+                                    color: 'var(--btn-primary-text)',
+                                    border: 'none',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    fontSize: '13px'
+                                }}
                             >
                                 Tambah ke Rincian
                             </button>
                         </div>
 
                         {/* List Rincian Sementara */}
-                        <ul style={{ paddingLeft: '20px', margin: '10px 0' }}>
+                        <ul style={{ paddingLeft: '20px', margin: '10px 0', color: 'var(--text)' }}>
                             {anggaranDetailBahan.map((detail, index) => {
                                 const catObj = categories.find(c => c.id === detail.kategoriId);
                                 return (
-                                    <li key={index} style={{ marginBottom: '5px' }}>
+                                    <li key={index} style={{ marginBottom: '8px', fontSize: '14px' }}>
                                         {catObj ? catObj.nama : detail.kategoriId} — {detail.jumlahPaket} paket @ Rp{Number(detail.hargaSatuan).toLocaleString('id-ID')} (Subtotal: Rp{Number(detail.jumlahPaket * detail.hargaSatuan).toLocaleString('id-ID')})
                                         {' '}
                                         <button
@@ -291,7 +488,14 @@ export const AnggaranHarianPage = () => {
                                             onClick={() => {
                                                 setAnggaranDetailBahan(prev => prev.filter((_, idx) => idx !== index));
                                             }}
-                                            style={{ color: 'red', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                                            style={{
+                                                color: 'var(--color-danger)',
+                                                border: 'none',
+                                                background: 'none',
+                                                cursor: 'pointer',
+                                                fontWeight: 'bold',
+                                                marginLeft: '8px'
+                                            }}
                                         >
                                             [Hapus]
                                         </button>
@@ -303,48 +507,72 @@ export const AnggaranHarianPage = () => {
                 )}
 
                 <div style={{ marginTop: '10px' }}>
-                    <button type="submit" style={{ padding: '6px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                    <button type="submit" style={{
+                        padding: '10px 20px',
+                        backgroundColor: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '14px'
+                    }}>
                         Simpan Anggaran
                     </button>
                 </div>
             </form>
 
             {/* List Anggaran */}
-            <h3>Daftar Anggaran Harian</h3>
-            {loading && <p>Memuat daftar anggaran...</p>}
-            {!loading && (
-                <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
-                            <th>Tanggal</th>
-                            <th>Kategori Dana</th>
-                            <th style={{ textAlign: 'right' }}>Jumlah Paket</th>
-                            <th style={{ textAlign: 'right' }}>Anggaran (RAB)</th>
-                            <th style={{ textAlign: 'right' }}>Realisasi (Aktual)</th>
-                            <th style={{ textAlign: 'right' }}>Selisih</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {anggaranList.map(a => (
-                            <tr key={a.id}>
-                                <td>{a.tanggal.split('T')[0]}</td>
-                                <td>{a.kategoriDana}</td>
-                                <td style={{ textAlign: 'right' }}>{a.jumlahPaket.toLocaleString('id-ID')}</td>
-                                <td style={{ textAlign: 'right' }}>Rp{Number(a.rab).toLocaleString('id-ID')}</td>
-                                <td style={{ textAlign: 'right' }}>Rp{Number(a.aktual).toLocaleString('id-ID')}</td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Rp{Number(a.selisih).toLocaleString('id-ID')}</td>
-                            </tr>
-                        ))}
-                        {anggaranList.length === 0 && (
-                            <tr>
-                                <td colSpan={6} style={{ textAlign: 'center', padding: '10px' }}>
-                                    Belum ada data Anggaran Harian untuk periode ini.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            )}
+            <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Anggaran Harian</h3>
+            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat daftar anggaran...</p>}
+            <Table
+                columns={[
+                    { key: 'tanggal', header: 'Tanggal', render: (v) => renderDate(v) },
+                    { key: 'kategoriDana', header: 'Kategori Dana' },
+                    {
+                        key: 'jumlahPaket',
+                        header: 'Jumlah Paket',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                {Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'rab',
+                        header: 'Anggaran (RAB)',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                                Rp{Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'aktual',
+                        header: 'Realisasi (Aktual)',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                                Rp{Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'selisih',
+                        header: 'Selisih',
+                        align: 'right',
+                        render: (v) => (
+                            <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                Rp{Number(v).toLocaleString('id-ID')}
+                            </strong>
+                        )
+                    }
+                ]}
+                data={anggaranList}
+                emptyText="Belum ada data Anggaran Harian untuk periode ini."
+            />
         </div>
     );
 };

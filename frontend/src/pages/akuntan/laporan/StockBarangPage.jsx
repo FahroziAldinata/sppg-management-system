@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { Table } from '../../../components/Table';
 
 export const StockBarangPage = () => {
     const { request } = useApi();
@@ -89,43 +90,74 @@ export const StockBarangPage = () => {
             {loading && <p>Memuat data laporan...</p>}
 
             {/* Render Table */}
-            {!loading && (
-                <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
-                            <th>Nama Bahan</th>
-                            <th>Satuan</th>
-                            <th style={{ textAlign: 'right' }}>Saldo Awal</th>
-                            <th style={{ textAlign: 'right' }}>Total Masuk</th>
-                            <th style={{ textAlign: 'right' }}>Total Keluar</th>
-                            <th style={{ textAlign: 'right' }}>Saldo Akhir</th>
-                            <th style={{ textAlign: 'right' }}>Harga Beli Terakhir</th>
-                            <th style={{ textAlign: 'right' }}>Nilai Stock</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {reportData.map((row) => (
-                            <tr key={row.bahanPokokId}>
-                                <td>{row.nama}</td>
-                                <td>{row.satuan}</td>
-                                <td style={{ textAlign: 'right' }}>{row.saldoAwalQty.toLocaleString('id-ID')}</td>
-                                <td style={{ textAlign: 'right', color: 'green' }}>{row.totalMasukQty.toLocaleString('id-ID')}</td>
-                                <td style={{ textAlign: 'right', color: 'red' }}>{row.totalKeluarQty.toLocaleString('id-ID')}</td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{row.saldoAkhirQty.toLocaleString('id-ID')}</td>
-                                <td style={{ textAlign: 'right' }}>Rp{row.hargaBeliTerakhir.toLocaleString('id-ID')}</td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Rp{row.nilaiStock.toLocaleString('id-ID')}</td>
-                            </tr>
-                        ))}
-                        {reportData.length === 0 && (
-                            <tr>
-                                <td colSpan="8" style={{ textAlign: 'center', padding: '10px' }}>
-                                    Tidak ada data stock barang untuk periode dan tanggal terpilih.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            )}
+            <Table
+                columns={[
+                    { key: 'nama', header: 'Nama Bahan' },
+                    { key: 'satuan', header: 'Satuan' },
+                    {
+                        key: 'saldoAwalQty',
+                        header: 'Saldo Awal',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                {Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'totalMasukQty',
+                        header: 'Total Masuk',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ color: 'var(--color-success)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                {Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'totalKeluarQty',
+                        header: 'Total Keluar',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ color: 'var(--color-danger)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                {Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'saldoAkhirQty',
+                        header: 'Saldo Akhir',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                {Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'hargaBeliTerakhir',
+                        header: 'Harga Beli Terakhir',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                Rp{Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'nilaiStock',
+                        header: 'Nilai Stock',
+                        align: 'right',
+                        render: (v) => (
+                            <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                Rp{Number(v).toLocaleString('id-ID')}
+                            </strong>
+                        )
+                    }
+                ]}
+                data={reportData}
+                emptyText="Tidak ada data stock barang untuk periode dan tanggal terpilih."
+            />
         </div>
     );
 };

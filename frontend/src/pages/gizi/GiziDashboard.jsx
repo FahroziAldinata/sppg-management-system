@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
+import { WorkflowStepper } from '../../components/WorkflowStepper';
+import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 
 export const GiziDashboard = () => {
   const { request } = useApi();
@@ -10,6 +12,8 @@ export const GiziDashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState(null);
   const [stats, setStats] = useState({ totalMenu: 0, approvedMenu: 0, draftMenu: 0, totalKendaraan: 0 });
   const [loading, setLoading] = useState(true);
+  const [dashSummary, setDashSummary] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -50,6 +54,19 @@ export const GiziDashboard = () => {
           draftMenu: mDraft,
           totalKendaraan: dataK.length
         });
+
+        if (activeP) {
+          try {
+            const resSummary = await request(`/dashboard/summary?periodeId=${activeP.id}`);
+            if (resSummary.ok) {
+              setDashSummary((await resSummary.json()).data);
+            }
+          } finally {
+            setLoadingSummary(false);
+          }
+        } else {
+          setLoadingSummary(false);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -62,7 +79,7 @@ export const GiziDashboard = () => {
   const handlePeriodChange = async (pid) => {
     const period = periods.find(p => p.id === pid);
     setSelectedPeriod(period);
-    
+
     try {
       const resM = await request(`/gizi/menu-harian?periodeId=${pid}`);
       if (resM.ok) {
@@ -76,6 +93,16 @@ export const GiziDashboard = () => {
       }
     } catch (e) {
       console.error(e);
+    }
+
+    setLoadingSummary(true);
+    try {
+      const resSummary = await request(`/dashboard/summary?periodeId=${pid}`);
+      if (resSummary.ok) {
+        setDashSummary((await resSummary.json()).data);
+      }
+    } finally {
+      setLoadingSummary(false);
     }
   };
 
@@ -144,18 +171,20 @@ export const GiziDashboard = () => {
       <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-          <button 
-            onClick={() => navigate('/gizi/menu-harian')}
-            style={{ padding: '10px 20px', backgroundColor: '#fd7e14', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-          >
-            Kelola Menu Harian
-          </button>
-          <button 
-            onClick={() => navigate('/setting')}
-            style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-          >
-            Pengaturan Akun
-          </button>
+          <button onClick={() => navigate('/gizi/menu-harian')} style={{ padding: '10px 20px', backgroundColor: '#fd7e14', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Kelola Menu Harian</button>
+          <button onClick={() => navigate('/setting')} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Pengaturan Akun</button>
+        </div>
+      </div>
+
+      {/* Workflow Progress & Notifikasi */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '25px' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Progress Tahapan Operasional</h3>
+          <WorkflowStepper workflowProgress={dashSummary?.workflowProgress} loading={loadingSummary} />
+        </div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Peringatan Aktif</h3>
+          <NotifikasiList notifikasi={dashSummary?.notifikasiPenting} loading={loadingSummary} />
         </div>
       </div>
     </div>

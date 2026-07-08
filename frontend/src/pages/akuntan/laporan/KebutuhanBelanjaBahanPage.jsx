@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { Table } from '../../../components/Table';
 
 export const KebutuhanBelanjaBahanPage = () => {
     const { request } = useApi();
@@ -114,41 +115,44 @@ export const KebutuhanBelanjaBahanPage = () => {
 
             {/* Render Table */}
             {!loading && reportData !== null && (
-                <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
-                            <th>Nama Bahan Pokok</th>
-                            <th>Satuan</th>
-                            <th style={{ textAlign: 'right' }}>Berat Kotor (kg)</th>
-                            <th style={{ textAlign: 'right' }}>Berat Bersih (kg)</th>
-                            <th style={{ textAlign: 'right' }}>Estimasi Biaya</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {reportData.map((row) => (
-                            <tr key={row.id}>
-                                <td>{row.nama}</td>
-                                <td>{row.satuan}</td>
-                                <td style={{ textAlign: 'right' }}>
-                                    {(row.totalBeratKotorGr / 1000).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </td>
-                                <td style={{ textAlign: 'right' }}>
-                                    {(row.totalBeratBersihGr / 1000).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                </td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                                    Rp{row.totalEstimasiBiaya.toLocaleString('id-ID')}
-                                </td>
-                            </tr>
-                        ))}
-                        {reportData.length === 0 && (
-                            <tr>
-                                <td colSpan="5" style={{ textAlign: 'center', padding: '10px' }}>
-                                    Tidak ada data kebutuhan belanja bahan untuk periode dan tanggal terpilih.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <Table
+                    columns={[
+                        { key: 'nama', header: 'Nama Bahan Pokok' },
+                        { key: 'satuan', header: 'Satuan' },
+                        {
+                            key: 'totalBeratKotorGr',
+                            header: 'Berat Kotor (kg)',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {(Number(v) / 1000).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'totalBeratBersihGr',
+                            header: 'Berat Bersih (kg)',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {(Number(v) / 1000).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'totalEstimasiBiaya',
+                            header: 'Estimasi Biaya',
+                            align: 'right',
+                            render: (v) => (
+                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                    Rp{Number(v).toLocaleString('id-ID')}
+                                </strong>
+                            )
+                        }
+                    ]}
+                    data={reportData}
+                    emptyText="Tidak ada data kebutuhan belanja bahan untuk periode dan tanggal terpilih."
+                />
             )}
 
             {/* Initial State Prompt */}

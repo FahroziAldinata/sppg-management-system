@@ -56,18 +56,20 @@ export const Layout = () => {
             backgroundColor: active ? 'var(--color-primary-light)' : 'transparent',
             boxShadow: active ? '0 2px 8px rgba(7, 30, 73, 0.08)' : 'none',
             border: active ? '1px solid rgba(7, 30, 73, 0.1)' : '1px solid transparent',
-            transition: 'all var(--transition-fast)'
+            transition: 'all var(--transition-fast), transform 0.2s ease-out'
           }}
           onMouseEnter={(e) => {
             if (!active) {
               e.currentTarget.style.backgroundColor = 'var(--border)';
               e.currentTarget.style.borderRadius = '12px'; // subtle morph/blob radius shift on hover
+              e.currentTarget.style.transform = 'translateX(4px)';
             }
           }}
           onMouseLeave={(e) => {
             if (!active) {
               e.currentTarget.style.backgroundColor = 'transparent';
               e.currentTarget.style.borderRadius = 'var(--radius-md)';
+              e.currentTarget.style.transform = 'translateX(0)';
             }
           }}
         >

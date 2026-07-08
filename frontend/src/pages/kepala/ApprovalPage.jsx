@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { Table, renderDate, renderStatus, renderTruncate } from '../../components/Table';
 
 export const ApprovalPage = () => {
     const { request } = useApi();
@@ -147,48 +148,39 @@ export const ApprovalPage = () => {
             {/* SECTION: MENU HARIAN MENUNGGU APPROVAL           */}
             {/* ================================================ */}
             <h3>Menu Harian — Menunggu Persetujuan</h3>
-            <table border="1" cellPadding="5" style={{ marginBottom: '20px' }}>
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {pendingMenuList.map(m => (
-                        <tr key={m.id}>
-                            <td>{m.tanggal.split('T')[0]}</td>
-                            <td>{m.status}</td>
-                            <td>
+            <Table
+                columns={[
+                    { key: 'tanggal', header: 'Tanggal', render: (v) => renderDate(v) },
+                    { key: 'status', header: 'Status', render: (v) => renderStatus(v) },
+                    {
+                        key: 'id',
+                        header: 'Aksi',
+                        render: (_, row) => (
+                            <div style={{ display: 'flex', gap: '8px' }}>
                                 <button
-                                    onClick={() => handleApproval('MENU', m.id, 'DISETUJUI', null)}
+                                    onClick={() => handleApproval('MENU', row.id, 'DISETUJUI', null)}
+                                    style={{ padding: '4px 8px', backgroundColor: 'var(--color-success)', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)' }}
                                 >
                                     Setujui
                                 </button>
-                                {' '}
                                 <button
                                     onClick={() => {
                                         const catatan = prompt('Catatan penolakan (wajib):');
                                         if (catatan && catatan.trim() !== '') {
-                                            handleApproval('MENU', m.id, 'DITOLAK', catatan.trim());
+                                            handleApproval('MENU', row.id, 'DITOLAK', catatan.trim());
                                         }
                                     }}
+                                    style={{ padding: '4px 8px', backgroundColor: 'var(--color-danger)', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)' }}
                                 >
                                     Tolak
                                 </button>
-                            </td>
-                        </tr>
-                    ))}
-                    {pendingMenuList.length === 0 && (
-                        <tr>
-                            <td colSpan={3} style={{ textAlign: 'center' }}>
-                                Tidak ada menu harian yang menunggu persetujuan.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                            </div>
+                        )
+                    }
+                ]}
+                data={pendingMenuList}
+                emptyText="Tidak ada menu harian yang menunggu persetujuan."
+            />
 
             <hr style={{ margin: '20px 0' }} />
 
@@ -196,50 +188,40 @@ export const ApprovalPage = () => {
             {/* SECTION: RAB HARIAN MENUNGGU APPROVAL            */}
             {/* ================================================ */}
             <h3>RAB Harian — Menunggu Persetujuan</h3>
-            <table border="1" cellPadding="5" style={{ marginBottom: '20px' }}>
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        <th>Dibuat Oleh</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {pendingRabList.map(r => (
-                        <tr key={r.id}>
-                            <td>{r.tanggal.split('T')[0]}</td>
-                            <td>{r.status}</td>
-                            <td>{r.createdBy?.nama || r.createdBy?.username || '—'}</td>
-                            <td>
+            <Table
+                columns={[
+                    { key: 'tanggal', header: 'Tanggal', render: (v) => renderDate(v) },
+                    { key: 'status', header: 'Status', render: (v) => renderStatus(v) },
+                    { key: 'createdBy', header: 'Dibuat Oleh', render: (v) => v?.nama || v?.username || '—' },
+                    {
+                        key: 'id',
+                        header: 'Aksi',
+                        render: (_, row) => (
+                            <div style={{ display: 'flex', gap: '8px' }}>
                                 <button
-                                    onClick={() => handleApproval('RAB', r.id, 'DISETUJUI', null)}
+                                    onClick={() => handleApproval('RAB', row.id, 'DISETUJUI', null)}
+                                    style={{ padding: '4px 8px', backgroundColor: 'var(--color-success)', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)' }}
                                 >
                                     Setujui
                                 </button>
-                                {' '}
                                 <button
                                     onClick={() => {
                                         const catatan = prompt('Catatan penolakan (wajib):');
                                         if (catatan && catatan.trim() !== '') {
-                                            handleApproval('RAB', r.id, 'DITOLAK', catatan.trim());
+                                            handleApproval('RAB', row.id, 'DITOLAK', catatan.trim());
                                         }
                                     }}
+                                    style={{ padding: '4px 8px', backgroundColor: 'var(--color-danger)', color: 'white', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)' }}
                                 >
                                     Tolak
                                 </button>
-                            </td>
-                        </tr>
-                    ))}
-                    {pendingRabList.length === 0 && (
-                        <tr>
-                            <td colSpan={4} style={{ textAlign: 'center' }}>
-                                Tidak ada RAB harian yang menunggu persetujuan.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+                            </div>
+                        )
+                    }
+                ]}
+                data={pendingRabList}
+                emptyText="Tidak ada RAB harian yang menunggu persetujuan."
+            />
 
             <hr style={{ margin: '20px 0' }} />
 
@@ -247,41 +229,30 @@ export const ApprovalPage = () => {
             {/* SECTION: RIWAYAT APPROVAL                        */}
             {/* ================================================ */}
             <h3>Riwayat Approval</h3>
-            <table border="1" cellPadding="5" style={{ marginBottom: '20px' }}>
-                <thead>
-                    <tr>
-                        <th>Jenis</th>
-                        <th>Tanggal Dokumen</th>
-                        <th>Status</th>
-                        <th>Catatan</th>
-                        <th>Diproses Oleh</th>
-                        <th>Waktu Approval</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {approvalList.map(a => (
-                        <tr key={a.id}>
-                            <td>{a.menuHarian ? 'Menu Harian' : 'RAB Harian'}</td>
-                            <td>
-                                {a.menuHarian
-                                    ? a.menuHarian.tanggal.split('T')[0]
-                                    : a.rabHarian?.tanggal.split('T')[0] || '—'}
-                            </td>
-                            <td>{a.status}</td>
-                            <td>{a.catatan || '—'}</td>
-                            <td>{a.approvedBy?.nama || a.approvedBy?.username || '—'}</td>
-                            <td>{new Date(a.createdAt).toLocaleString('id-ID')}</td>
-                        </tr>
-                    ))}
-                    {approvalList.length === 0 && (
-                        <tr>
-                            <td colSpan={6} style={{ textAlign: 'center' }}>
-                                Belum ada riwayat approval untuk periode ini.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+            <Table
+                columns={[
+                    {
+                        key: 'id',
+                        header: 'Jenis',
+                        render: (_, row) => row.menuHarian ? 'Menu Harian' : 'RAB Harian'
+                    },
+                    {
+                        key: 'id',
+                        header: 'Tanggal Dokumen',
+                        render: (_, row) => renderDate(row.menuHarian ? row.menuHarian.tanggal : row.rabHarian?.tanggal)
+                    },
+                    { key: 'status', header: 'Status', render: (v) => renderStatus(v) },
+                    { key: 'catatan', header: 'Catatan', render: (v) => renderTruncate(v) },
+                    { key: 'approvedBy', header: 'Diproses Oleh', render: (v) => v?.nama || v?.username || '—' },
+                    {
+                        key: 'createdAt',
+                        header: 'Waktu Approval',
+                        render: (v) => new Date(v).toLocaleString('id-ID')
+                    }
+                ]}
+                data={approvalList}
+                emptyText="Belum ada riwayat approval untuk periode ini."
+            />
         </div>
     );
 };

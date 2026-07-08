@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { Table, renderDate, renderCode, renderTruncate, renderCurrency, renderStatus } from '../../components/Table';
 
 export const JurnalTransaksiPage = () => {
     const { request } = useApi();
@@ -149,15 +150,60 @@ export const JurnalTransaksiPage = () => {
     };
 
     return (
-        <div>
-            <h2>Pencatatan Jurnal Transaksi Ledger</h2>
-            {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: '10px', padding: '8px', border: '1px solid green' }}>{success}</div>}
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--text)' }}>Pencatatan Jurnal Transaksi Ledger</h2>
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div style={{
+                    color: 'var(--color-success)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-success)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
+                }}>
+                    {success}
+                </div>
+            )}
 
             {/* Filter Periode */}
             <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontWeight: '500', marginRight: '5px' }}>Pilih Periode Aktif: </label>
-                <select value={periodeId} onChange={e => setPeriodeId(e.target.value)}>
+                <label style={{
+                    textTransform: 'uppercase',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.07em',
+                    color: 'var(--text-muted)',
+                    display: 'block',
+                    marginBottom: '6px'
+                }}>
+                    Pilih Periode Aktif
+                </label>
+                <select
+                    value={periodeId}
+                    onChange={e => setPeriodeId(e.target.value)}
+                    style={{
+                        width: '300px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                    }}
+                >
                     {periods.map(p => (
                         <option key={p.id} value={p.id}>
                             {p.tanggalMulai} - {p.tanggalSelesai}
@@ -167,129 +213,261 @@ export const JurnalTransaksiPage = () => {
             </div>
 
             {/* Form Jurnal */}
-            <h3>Buat Jurnal Transaksi</h3>
-            <form onSubmit={createJurnal} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '25px', display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '600px' }}>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Tanggal: </label>
-                    <input
-                        type="date"
-                        value={jurnalForm.tanggal}
-                        onChange={e => setJurnalForm(prev => ({ ...prev, tanggal: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    />
+            <form onSubmit={createJurnal} style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+            }}>
+                <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Buat Jurnal Transaksi</h3>
+                
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Tanggal
+                        </label>
+                        <input
+                            type="date"
+                            value={jurnalForm.tanggal}
+                            onChange={e => setJurnalForm(prev => ({ ...prev, tanggal: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        />
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Uraian
+                        </label>
+                        <input
+                            type="text"
+                            placeholder="Contoh: Pembelian Beras 50kg"
+                            value={jurnalForm.uraian}
+                            onChange={e => setJurnalForm(prev => ({ ...prev, uraian: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Uraian: </label>
-                    <input
-                        type="text"
-                        placeholder="Contoh: Pembelian Beras 50kg"
-                        value={jurnalForm.uraian}
-                        onChange={e => setJurnalForm(prev => ({ ...prev, uraian: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    />
+
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Jenis Transaksi
+                        </label>
+                        <select
+                            value={jurnalForm.jenis}
+                            onChange={e => setJurnalForm(prev => ({ ...prev, jenis: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        >
+                            <option value="">-- Pilih Jenis --</option>
+                            <option value="MASUK">MASUK (Penerimaan Kas)</option>
+                            <option value="KELUAR">KELUAR (Pengeluaran Kas)</option>
+                        </select>
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Nominal
+                        </label>
+                        <input
+                            type="number"
+                            placeholder="Nominal (Rp)"
+                            value={jurnalForm.nominal}
+                            onChange={e => setJurnalForm(prev => ({ ...prev, nominal: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        />
+                    </div>
                 </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Jenis Transaksi: </label>
-                    <select
-                        value={jurnalForm.jenis}
-                        onChange={e => setJurnalForm(prev => ({ ...prev, jenis: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    >
-                        <option value="">-- Pilih Jenis --</option>
-                        <option value="MASUK">MASUK (Penerimaan Kas)</option>
-                        <option value="KELUAR">KELUAR (Pengeluaran Kas)</option>
-                    </select>
+
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Akun Kas
+                        </label>
+                        <select
+                            value={jurnalForm.akunKasId}
+                            onChange={e => setJurnalForm(prev => ({ ...prev, akunKasId: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        >
+                            <option value="">-- Pilih Akun Kas --</option>
+                            {akunList.filter(a => a.tipe === 'KAS').map(a => (
+                                <option key={a.id} value={a.id}>
+                                    [{a.kode}] {a.nama} ({a.tipe})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Akun Dana / Biaya
+                        </label>
+                        <select
+                            value={jurnalForm.akunDanaBiayaId}
+                            onChange={e => setJurnalForm(prev => ({ ...prev, akunDanaBiayaId: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        >
+                            <option value="">-- Pilih Akun Dana / Biaya --</option>
+                            {akunList.filter(a => a.tipe !== 'KAS').map(a => (
+                                <option key={a.id} value={a.id}>
+                                    [{a.kode}] {a.nama} ({a.tipe})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Nominal: </label>
-                    <input
-                        type="number"
-                        placeholder="Nominal (Rp)"
-                        value={jurnalForm.nominal}
-                        onChange={e => setJurnalForm(prev => ({ ...prev, nominal: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    />
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Akun Kas: </label>
-                    <select
-                        value={jurnalForm.akunKasId}
-                        onChange={e => setJurnalForm(prev => ({ ...prev, akunKasId: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    >
-                        <option value="">-- Pilih Akun Kas --</option>
-                        {akunList.filter(a => a.tipe === 'KAS').map(a => (
-                            <option key={a.id} value={a.id}>
-                                [{a.kode}] {a.nama} ({a.tipe})
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Akun Dana / Biaya: </label>
-                    <select
-                        value={jurnalForm.akunDanaBiayaId}
-                        onChange={e => setJurnalForm(prev => ({ ...prev, akunDanaBiayaId: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
-                        required
-                    >
-                        <option value="">-- Pilih Akun Dana / Biaya --</option>
-                        {akunList.filter(a => a.tipe !== 'KAS').map(a => (
-                            <option key={a.id} value={a.id}>
-                                [{a.kode}] {a.nama} ({a.tipe})
-                            </option>
-                        ))}
-                    </select>
-                </div>
+
                 <div style={{ marginTop: '10px' }}>
-                    <button type="submit" style={{ padding: '6px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                    <button type="submit" style={{
+                        padding: '10px 20px',
+                        backgroundColor: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '14px'
+                    }}>
                         Simpan Jurnal
                     </button>
                 </div>
             </form>
 
             {/* List Jurnal */}
-            <h3>Daftar Jurnal Transaksi</h3>
-            {loading && <p>Memuat riwayat transaksi...</p>}
+            <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Jurnal Transaksi</h3>
+            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat riwayat transaksi...</p>}
             {!loading && (
-                <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
-                            <th>Tanggal</th>
-                            <th>Nomor Bukti</th>
-                            <th>Uraian</th>
-                            <th>Jenis</th>
-                            <th style={{ textAlign: 'right' }}>Nominal</th>
-                            <th>Akun Kas</th>
-                            <th>Akun Dana / Biaya</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {jurnalList.map(j => (
-                            <tr key={j.id}>
-                                <td>{j.tanggal.split('T')[0]}</td>
-                                <td>{j.nomorBukti}</td>
-                                <td>{j.uraian}</td>
-                                <td>{j.jenis}</td>
-                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Rp{j.nominal.toLocaleString('id-ID')}</td>
-                                <td>{j.akunKas ? `[${j.akunKas.kode}] ${j.akunKas.nama}` : '—'}</td>
-                                <td>{j.akunDanaBiaya ? `[${j.akunDanaBiaya.kode}] ${j.akunDanaBiaya.nama}` : '—'}</td>
-                            </tr>
-                        ))}
-                        {jurnalList.length === 0 && (
-                            <tr>
-                                <td colSpan={7} style={{ textAlign: 'center', padding: '10px' }}>
-                                    Belum ada data Jurnal Transaksi untuk periode ini.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <Table
+                    columns={[
+                        { key: 'tanggal', header: 'Tanggal', render: (v) => renderDate(v) },
+                        { key: 'nomorBukti', header: 'Nomor Bukti', render: (v) => renderCode(v) },
+                        { key: 'uraian', header: 'Uraian', render: (v) => renderTruncate(v) },
+                        { key: 'jenis', header: 'Jenis', render: (v) => renderStatus(v) },
+                        {
+                            key: 'nominal',
+                            header: 'Nominal',
+                            align: 'right',
+                            render: (v) => (
+                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                                    Rp{Number(v).toLocaleString('id-ID')}
+                                </strong>
+                            )
+                        },
+                        { key: 'akunKas', header: 'Akun Kas', render: (v) => v ? `[${v.kode}] ${v.nama}` : '—' },
+                        { key: 'akunDanaBiaya', header: 'Akun Dana / Biaya', render: (v) => v ? `[${v.kode}] ${v.nama}` : '—' }
+                    ]}
+                    data={jurnalList}
+                    emptyText="Belum ada data Jurnal Transaksi untuk periode ini."
+                />
             )}
         </div>
     );

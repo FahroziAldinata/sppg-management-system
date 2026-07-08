@@ -70,55 +70,162 @@ export const SettingPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '500px' }}>
-            <h2>Pengaturan Profil &amp; Akun</h2>
-            <p style={{ color: '#666', fontSize: '13px', marginTop: '0' }}>
+        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--text)' }}>Pengaturan Profil &amp; Akun</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '0' }}>
                 Perbarui nama tampilan, username, atau kata sandi Anda di sini.
             </p>
 
-            {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: '10px', padding: '8px', border: '1px solid green' }}>{success}</div>}
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    marginBottom: '10px',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div style={{
+                    color: 'var(--color-success)',
+                    marginBottom: '10px',
+                    padding: '8px',
+                    border: '1px solid var(--color-success)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.05)'
+                }}>
+                    {success}
+                </div>
+            )}
 
-            <form onSubmit={handleUpdateProfile} style={{ border: '1px solid #ccc', padding: '15px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <form onSubmit={handleUpdateProfile} style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+            }}>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '3px', fontWeight: '500' }}>Nama Lengkap: </label>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Nama Lengkap:
+                    </label>
                     <input
                         type="text"
                         value={nama}
                         onChange={e => setNama(e.target.value)}
-                        style={{ width: '100%', padding: '5px' }}
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                        }}
                         required
                     />
                 </div>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '3px', fontWeight: '500' }}>Username: </label>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Username:
+                    </label>
                     <input
                         type="text"
                         value={username}
                         onChange={e => setUsername(e.target.value)}
-                        style={{ width: '100%', padding: '5px' }}
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                        }}
                         required
                     />
                 </div>
-                <hr style={{ border: '0', borderTop: '1px solid #eee', margin: '5px 0' }} />
+                <hr style={{ border: '0', borderTop: '1px solid var(--border)', margin: '5px 0' }} />
                 <div>
-                    <label style={{ display: 'block', marginBottom: '3px', fontWeight: '500' }}>Kata Sandi Baru (opsional): </label>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Kata Sandi Baru (opsional):
+                    </label>
                     <input
                         type="password"
                         placeholder="Kosongkan jika tidak ingin mengubah"
                         value={password}
                         onChange={e => setPassword(e.target.value)}
-                        style={{ width: '100%', padding: '5px' }}
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                        }}
                     />
                 </div>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '3px', fontWeight: '500' }}>Konfirmasi Kata Sandi Baru: </label>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Konfirmasi Kata Sandi Baru:
+                    </label>
                     <input
                         type="password"
                         placeholder="Ulangi kata sandi baru"
                         value={confirmPassword}
                         onChange={e => setConfirmPassword(e.target.value)}
-                        style={{ width: '100%', padding: '5px' }}
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                        }}
                     />
                 </div>
 
@@ -126,7 +233,16 @@ export const SettingPage = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        style={{ padding: '6px 15px', backgroundColor: '#007bff', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: 'var(--btn-primary-bg)',
+                            color: 'var(--btn-primary-text)',
+                            border: 'none',
+                            borderRadius: 'var(--radius-sm)',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '14px'
+                        }}
                     >
                         {loading ? 'Menyimpan...' : 'Perbarui Profil'}
                     </button>

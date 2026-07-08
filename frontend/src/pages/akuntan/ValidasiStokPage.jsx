@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { Table, renderDate, renderCurrency, renderTruncate } from '../../components/Table';
 
 export const ValidasiStokPage = () => {
     const { request } = useApi();
@@ -293,22 +294,73 @@ export const ValidasiStokPage = () => {
     }
 
     return (
-        <div>
-            <h2>Validasi &amp; Rekonsiliasi Stok Fisik</h2>
-            {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: '10px', padding: '8px', border: '1px solid green' }}>{success}</div>}
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--text)' }}>Validasi &amp; Rekonsiliasi Stok Fisik</h2>
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div style={{
+                    color: 'var(--color-success)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-success)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
+                }}>
+                    {success}
+                </div>
+            )}
 
             {/* Print Section (Checklist Generation) */}
-            {/* ponytail: unify shade pastel to bg-elevated */}
-            <div style={{ border: '1px solid var(--border)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px', borderRadius: 'var(--radius-md)' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                padding: '24px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px'
+            }}>
                 <h4 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Cetak Lembar Checklist Fisik Gudang</h4>
-                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '0' }}>
+                <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '0', marginBottom: '20px' }}>
                     Gunakan fitur ini untuk mencetak daftar inventaris sistem ke kertas guna mempermudah pencatatan stok fisik di gudang.
                 </p>
-                <div style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                     <div>
-                        <label style={{ marginRight: '5px' }}>Periode: </label>
-                        <select value={periodeId} onChange={e => setPeriodeId(e.target.value)}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Periode
+                        </label>
+                        <select
+                            value={periodeId}
+                            onChange={e => setPeriodeId(e.target.value)}
+                            style={{
+                                width: '220px',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        >
                             {periods.map(p => (
                                 <option key={p.id} value={p.id}>
                                     {p.tanggalMulai} - {p.tanggalSelesai}
@@ -317,18 +369,48 @@ export const ValidasiStokPage = () => {
                         </select>
                     </div>
                     <div>
-                        <label style={{ marginRight: '5px' }}>Tanggal Target Pengecekan: </label>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Tanggal Target Pengecekan
+                        </label>
                         <input
                             type="date"
                             value={printDate}
                             onChange={e => setPrintDate(e.target.value)}
+                            style={{
+                                width: '200px',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
                         />
                     </div>
                     <button
                         type="button"
                         onClick={generatePrintChecklist}
                         disabled={printLoading}
-                        style={{ padding: '5px 15px', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' }}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: 'var(--btn-primary-bg)',
+                            color: 'var(--btn-primary-text)',
+                            border: 'none',
+                            borderRadius: 'var(--radius-sm)',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            height: '42px'
+                        }}
                     >
                         {printLoading ? 'Memuat...' : 'Generate Lembar Pengecekan'}
                     </button>
@@ -336,130 +418,262 @@ export const ValidasiStokPage = () => {
             </div>
 
             {/* Form Validasi */}
-            <h3>Input Rekonsiliasi Hasil Pengecekan Fisik</h3>
-            <form onSubmit={handleCreateValidasi} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '25px', display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '600px' }}>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Bahan Pokok: </label>
-                    <select
-                        value={validasiForm.bahanPokokId}
-                        onChange={e => setValidasiForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
-                        required
-                        style={{ width: '100%', padding: '5px' }}
-                    >
-                        <option value="">-- Pilih Bahan Pokok --</option>
-                        {bahanPokokList.map(b => (
-                            <option key={b.id} value={b.id}>
-                                {b.nama} ({b.satuan})
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Tanggal Validasi: </label>
-                    <input
-                        type="date"
-                        value={validasiForm.tanggal}
-                        onChange={e => setValidasiForm(prev => ({ ...prev, tanggal: e.target.value }))}
-                        required
-                        style={{ width: '100%', padding: '5px' }}
-                    />
+            <form onSubmit={handleCreateValidasi} style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+            }}>
+                <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Input Rekonsiliasi Hasil Pengecekan Fisik</h3>
+                
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Bahan Pokok
+                        </label>
+                        <select
+                            value={validasiForm.bahanPokokId}
+                            onChange={e => setValidasiForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        >
+                            <option value="">-- Pilih Bahan Pokok --</option>
+                            {bahanPokokList.map(b => (
+                                <option key={b.id} value={b.id}>
+                                    {b.nama} ({b.satuan})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Tanggal Validasi
+                        </label>
+                        <input
+                            type="date"
+                            value={validasiForm.tanggal}
+                            onChange={e => setValidasiForm(prev => ({ ...prev, tanggal: e.target.value }))}
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
                 </div>
 
                 {/* Tampilan Preview Akumulasi Catatan Sistem */}
                 {validasiPreview && (
-                    <div style={{ border: '1px dashed var(--border)', padding: '10px', margin: '10px 0', backgroundColor: 'var(--bg-elevated)', fontSize: '14px', borderRadius: 'var(--radius-sm)' }}>
-                        {/* ponytail: unify shade pastel to bg-elevated */}
-                        <h4 style={{ marginTop: '0', marginBottom: '8px' }}>Akumulasi Catatan Sistem s.d. Tanggal Terpilih:</h4>
-                        <p style={{ margin: '4px 0' }}>Total Pembelian (Sistem): <strong>{validasiPreview.qtyDibeli}</strong></p>
-                        <p style={{ margin: '4px 0' }}>Total Penggunaan (Sistem): <strong>{validasiPreview.qtyTerpakai}</strong></p>
-                        <p style={{ margin: '4px 0' }}>Sisa Stok (Sistem): <strong>{validasiPreview.sisaSistem}</strong></p>
-                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    <div style={{
+                        border: '1px dashed var(--border)',
+                        padding: '16px',
+                        margin: '8px 0',
+                        backgroundColor: 'var(--bg)',
+                        fontSize: '14px',
+                        borderRadius: 'var(--radius-sm)',
+                        color: 'var(--text)'
+                    }}>
+                        <h4 style={{ marginTop: '0', marginBottom: '12px', fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>
+                            Akumulasi Catatan Sistem s.d. Tanggal Terpilih:
+                        </h4>
+                        <p style={{ margin: '6px 0' }}>Total Pembelian (Sistem): <strong>{validasiPreview.qtyDibeli}</strong></p>
+                        <p style={{ margin: '6px 0' }}>Total Penggunaan (Sistem): <strong>{validasiPreview.qtyTerpakai}</strong></p>
+                        <p style={{ margin: '6px 0' }}>Sisa Stok (Sistem): <strong>{validasiPreview.sisaSistem}</strong></p>
+                        <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginTop: '10px' }}>
                             * Kolom input fisik di bawah terisi otomatis dari data sistem untuk mempermudah pencatatan.
                         </span>
                     </div>
                 )}
 
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Jumlah Pembelian Fisik: </label>
-                    <input
-                        type="number"
-                        step="0.001"
-                        placeholder="Qty Pembelian Fisik"
-                        value={validasiForm.qtyDibeli}
-                        onChange={e => setValidasiForm(prev => ({ ...prev, qtyDibeli: e.target.value }))}
-                        required
-                        style={{ width: '100%', padding: '5px' }}
-                    />
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Jumlah Pembelian Fisik
+                        </label>
+                        <input
+                            type="number"
+                            step="0.001"
+                            placeholder="Qty Pembelian Fisik"
+                            value={validasiForm.qtyDibeli}
+                            onChange={e => setValidasiForm(prev => ({ ...prev, qtyDibeli: e.target.value }))}
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Jumlah Pemakaian Fisik
+                        </label>
+                        <input
+                            type="number"
+                            step="0.001"
+                            placeholder="Qty Pemakaian Fisik"
+                            value={validasiForm.qtyTerpakai}
+                            onChange={e => setValidasiForm(prev => ({ ...prev, qtyTerpakai: e.target.value }))}
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
                 </div>
+
                 <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Jumlah Pemakaian Fisik: </label>
-                    <input
-                        type="number"
-                        step="0.001"
-                        placeholder="Qty Pemakaian Fisik"
-                        value={validasiForm.qtyTerpakai}
-                        onChange={e => setValidasiForm(prev => ({ ...prev, qtyTerpakai: e.target.value }))}
-                        required
-                        style={{ width: '100%', padding: '5px' }}
-                    />
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Catatan Penyesuaian (opsional): </label>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Catatan Penyesuaian (opsional)
+                    </label>
                     <input
                         type="text"
                         placeholder="Catatan / Selisih / Stok Hilang"
                         value={validasiForm.catatan}
                         onChange={e => setValidasiForm(prev => ({ ...prev, catatan: e.target.value }))}
-                        style={{ width: '100%', padding: '5px' }}
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                        }}
                     />
                 </div>
 
                 <div style={{ marginTop: '10px' }}>
-                    <button type="submit" style={{ padding: '6px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                    <button type="submit" style={{
+                        padding: '10px 20px',
+                        backgroundColor: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '14px'
+                    }}>
                         Simpan Validasi Stok
                     </button>
                 </div>
             </form>
 
             {/* Riwayat Validasi */}
-            <h3>Riwayat Validasi &amp; Rekonsiliasi Stok Fisik</h3>
-            <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                <thead>
-                    <tr style={{ backgroundColor: '#eaeaea' }}>
-                        <th>Tanggal Validasi</th>
-                        <th>Bahan Pokok</th>
-                        <th style={{ textAlign: 'right' }}>Pembelian (Fisik)</th>
-                        <th style={{ textAlign: 'right' }}>Pemakaian (Fisik)</th>
-                        <th style={{ textAlign: 'right' }}>Selisih Rekonsiliasi</th>
-                        <th>Catatan</th>
-                        <th>Divalidasi Oleh</th>
-                        <th>Waktu Input</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {validasiList.map(v => (
-                        <tr key={v.id}>
-                            <td>{v.tanggal.split('T')[0]}</td>
-                            <td>{v.bahanPokok ? v.bahanPokok.nama : '—'} ({v.bahanPokok ? v.bahanPokok.satuan : ''})</td>
-                            <td style={{ textAlign: 'right' }}>{Number(v.qtyDibeli).toLocaleString('id-ID')}</td>
-                            <td style={{ textAlign: 'right' }}>{Number(v.qtyTerpakai).toLocaleString('id-ID')}</td>
-                            <td style={{ textAlign: 'right', fontWeight: 'bold', color: v.selisih < 0 ? 'red' : 'green' }}>
-                                {Number(v.selisih).toLocaleString('id-ID')}
-                            </td>
-                            <td>{v.catatan || '—'}</td>
-                            <td>{v.validatedBy ? v.validatedBy.nama : '—'}</td>
-                            <td>{new Date(v.createdAt).toLocaleString('id-ID')}</td>
-                        </tr>
-                    ))}
-                    {validasiList.length === 0 && (
-                        <tr>
-                            <td colSpan="8" style={{ textAlign: 'center', padding: '10px' }}>
-                                Belum ada data riwayat validasi stok fisik.
-                            </td>
-                        </tr>
-                    )}
-                </tbody>
-            </table>
+            <Table
+                columns={[
+                    { key: 'tanggal', header: 'Tanggal Validasi', render: (v) => renderDate(v) },
+                    {
+                        key: 'bahanPokok',
+                        header: 'Bahan Pokok',
+                        render: (v) => v ? `${v.nama} (${v.satuan})` : '—'
+                    },
+                    {
+                        key: 'qtyDibeli',
+                        header: 'Pembelian (Fisik)',
+                        align: 'right',
+                        render: (v) => renderCurrency(v, false)
+                    },
+                    {
+                        key: 'qtyTerpakai',
+                        header: 'Pemakaian (Fisik)',
+                        align: 'right',
+                        render: (v) => renderCurrency(v, false)
+                    },
+                    {
+                        key: 'selisih',
+                        header: 'Selisih Rekonsiliasi',
+                        align: 'right',
+                        render: (v) => (
+                            <strong style={{ fontVariantNumeric: 'tabular-nums', color: Number(v) < 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>
+                                {Number(v).toLocaleString('id-ID')}
+                            </strong>
+                        )
+                    },
+                    { key: 'catatan', header: 'Catatan', render: (v) => renderTruncate(v) },
+                    { key: 'validatedBy', header: 'Divalidasi Oleh', render: (v) => v ? v.nama : '—' },
+                    {
+                        key: 'createdAt',
+                        header: 'Waktu Input',
+                        render: (v) => new Date(v).toLocaleString('id-ID')
+                    }
+                ]}
+                data={validasiList}
+                emptyText="Belum ada data riwayat validasi stok fisik."
+            />
         </div>
     );
 };

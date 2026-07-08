@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { Table } from '../../../components/Table';
 
 export const LaporanPerBulanPage = () => {
     const { request } = useApi();
@@ -90,42 +91,50 @@ export const LaporanPerBulanPage = () => {
 
             {/* Render Table */}
             {!loading && reportData !== null && (
-                <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
-                            <th>Bulan</th>
-                            <th style={{ textAlign: 'right' }}>Total Masuk</th>
-                            <th style={{ textAlign: 'right' }}>Total Keluar</th>
-                            <th style={{ textAlign: 'right' }}>Saldo Bersih</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {reportData.map((row) => {
-                            const saldoBersih = row.totalMasuk - row.totalKeluar;
-                            return (
-                                <tr key={row.key}>
-                                    <td>{formatIndoMonth(row.year, row.month)}</td>
-                                    <td style={{ textAlign: 'right', color: 'green' }}>
-                                        Rp{row.totalMasuk.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                    </td>
-                                    <td style={{ textAlign: 'right', color: 'red' }}>
-                                        Rp{row.totalKeluar.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                    </td>
-                                    <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                <Table
+                    columns={[
+                        {
+                            key: 'month',
+                            header: 'Bulan',
+                            render: (_, row) => formatIndoMonth(row.year, row.month)
+                        },
+                        {
+                            key: 'totalMasuk',
+                            header: 'Total Masuk',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ color: 'var(--color-success)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                    Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'totalKeluar',
+                            header: 'Total Keluar',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ color: 'var(--color-danger)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                    Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'key',
+                            header: 'Saldo Bersih',
+                            align: 'right',
+                            render: (_, row) => {
+                                const saldoBersih = row.totalMasuk - row.totalKeluar;
+                                return (
+                                    <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
                                         Rp{saldoBersih.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                        {reportData.length === 0 && (
-                            <tr>
-                                <td colSpan="4" style={{ textAlign: 'center', padding: '10px' }}>
-                                    Tidak ada data kas bulanan untuk periode terpilih.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                                    </strong>
+                                );
+                            }
+                        }
+                    ]}
+                    data={reportData}
+                    emptyText="Tidak ada data kas bulanan untuk periode terpilih."
+                />
             )}
 
             {/* Initial State Prompt */}

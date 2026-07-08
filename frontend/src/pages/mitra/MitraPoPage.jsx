@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { Table, renderDate, renderTruncate } from '../../components/Table';
 
 export const MitraPoPage = () => {
     const { request } = useApi();
@@ -313,21 +314,78 @@ export const MitraPoPage = () => {
             </div>
 
             {/* Input Form PO */}
-            <h3>Buat Nota Pesanan (PO) Baru</h3>
-            <form onSubmit={handleCreatePo} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <form onSubmit={handleCreatePo} style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                marginBottom: '30px'
+            }}>
+                <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text)' }}>
+                    Buat Nota Pesanan (PO) Baru
+                </h3>
+                
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '3px' }}>Tanggal Pengiriman: </label>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Tanggal Pengiriman
+                        </label>
                         <input
                             type="date"
                             value={poDate}
                             onChange={e => setPoDate(e.target.value)}
                             required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
                         />
                     </div>
-                    <div>
-                        <label style={{ display: 'block', marginBottom: '3px' }}>Pilih Supplier / CV: </label>
-                        <select value={supplierId} onChange={e => setSupplierId(e.target.value)} required>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Pilih Supplier / CV
+                        </label>
+                        <select 
+                            value={supplierId} 
+                            onChange={e => setSupplierId(e.target.value)} 
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        >
                             {suppliers.map(s => (
                                 <option key={s.id} value={s.id}>{s.nama}</option>
                             ))}
@@ -338,82 +396,144 @@ export const MitraPoPage = () => {
                 {/* Info Menu Harian */}
                 {/* ponytail: unify shade pastel to bg-elevated */}
                 {poDate && (
-                    <div style={{ border: '1px dashed var(--border)', padding: '10px', backgroundColor: 'var(--bg-elevated)', fontSize: '14px', borderRadius: 'var(--radius-sm)' }}>
+                    <div style={{ border: '1px dashed var(--border)', padding: '10px', backgroundColor: 'var(--bg)', fontSize: '14px', borderRadius: 'var(--radius-sm)', color: 'var(--text)' }}>
                         <strong>Rencana Menu Hari Ini:</strong> {menuDescription}
                     </div>
                 )}
 
                 {/* Loading state kebutuhan */}
-                {loading && <p>Menghitung kebutuhan bahan makanan...</p>}
+                {loading && <p style={{ color: 'var(--text-muted)' }}>Menghitung kebutuhan bahan makanan...</p>}
 
                 {/* Table Items Kebutuhan */}
                 {!loading && poItems.length > 0 && (
                     <div style={{ marginTop: '10px' }}>
-                        <h4 style={{ margin: '0 0 10px 0' }}>Daftar Kebutuhan Bahan Makanan (Berdasarkan Porsi PM &amp; Menu)</h4>
-                        <table border="1" cellPadding="5" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                            <thead>
-                                <tr style={{ backgroundColor: '#eaeaea' }}>
-                                    <th>Nama Bahan</th>
-                                    <th>Satuan</th>
-                                    <th style={{ textAlign: 'right' }}>Alokasi Siswa</th>
-                                    <th style={{ textAlign: 'right' }}>Alokasi B3</th>
-                                    <th style={{ width: '120px', textAlign: 'right' }}>Total Qty</th>
-                                    <th style={{ width: '140px', textAlign: 'right' }}>Harga Satuan (Rp)</th>
-                                    <th style={{ textAlign: 'right' }}>Subtotal (Rp)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {poItems.map((item, idx) => (
-                                    <tr key={item.bahanPokokId}>
-                                        <td>{item.nama}</td>
-                                        <td style={{ textAlign: 'center' }}>{item.satuan}</td>
-                                        <td style={{ textAlign: 'right' }}>{item.qtySiswa.toLocaleString('id-ID')}</td>
-                                        <td style={{ textAlign: 'right' }}>{item.qtyB3.toLocaleString('id-ID')}</td>
-                                        <td>
-                                            <input
-                                                type="number"
-                                                step="0.001"
-                                                value={item.qtyTotal}
-                                                onChange={e => handleItemChange(idx, 'qtyTotal', e.target.value)}
-                                                style={{ width: '100%', textAlign: 'right', padding: '3px' }}
-                                                required
-                                            />
-                                        </td>
-                                        <td>
-                                            <input
-                                                type="number"
-                                                step="0.01"
-                                                value={item.hargaSatuan}
-                                                onChange={e => handleItemChange(idx, 'hargaSatuan', e.target.value)}
-                                                style={{ width: '100%', textAlign: 'right', padding: '3px' }}
-                                                required
-                                            />
-                                        </td>
-                                        <td style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                                            Rp{item.subtotal.toLocaleString('id-ID')}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                        <h4 style={{ margin: '0 0 10px 0', color: 'var(--text)', fontSize: '14px', fontWeight: 600 }}>Daftar Kebutuhan Bahan Makanan (Berdasarkan Porsi PM &amp; Menu)</h4>
+                        <Table
+                            columns={[
+                                { key: 'nama', header: 'Nama Bahan' },
+                                { key: 'satuan', header: 'Satuan', align: 'center' },
+                                {
+                                    key: 'qtySiswa',
+                                    header: 'Alokasi Siswa',
+                                    align: 'right',
+                                    render: (v) => (
+                                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                            {Number(v).toLocaleString('id-ID')}
+                                        </span>
+                                    )
+                                },
+                                {
+                                    key: 'qtyB3',
+                                    header: 'Alokasi B3',
+                                    align: 'right',
+                                    render: (v) => (
+                                        <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                            {Number(v).toLocaleString('id-ID')}
+                                        </span>
+                                    )
+                                },
+                                {
+                                    key: 'qtyTotal',
+                                    header: 'Total Qty',
+                                    width: '120px',
+                                    align: 'right',
+                                    render: (v, row, idx) => (
+                                        <input
+                                            type="number"
+                                            step="0.001"
+                                            value={v}
+                                            onChange={e => handleItemChange(idx, 'qtyTotal', e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                textAlign: 'right',
+                                                padding: '6px 8px',
+                                                borderRadius: 'var(--radius-sm)',
+                                                border: '1px solid var(--input-border)',
+                                                backgroundColor: 'var(--bg)',
+                                                color: 'var(--text)',
+                                                fontSize: '14px',
+                                                boxSizing: 'border-box'
+                                            }}
+                                            required
+                                        />
+                                    )
+                                },
+                                {
+                                    key: 'hargaSatuan',
+                                    header: 'Harga Satuan (Rp)',
+                                    width: '140px',
+                                    align: 'right',
+                                    render: (v, row, idx) => (
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            value={v}
+                                            onChange={e => handleItemChange(idx, 'hargaSatuan', e.target.value)}
+                                            style={{
+                                                width: '100%',
+                                                textAlign: 'right',
+                                                padding: '6px 8px',
+                                                borderRadius: 'var(--radius-sm)',
+                                                border: '1px solid var(--input-border)',
+                                                backgroundColor: 'var(--bg)',
+                                                color: 'var(--text)',
+                                                fontSize: '14px',
+                                                boxSizing: 'border-box'
+                                            }}
+                                            required
+                                        />
+                                    )
+                                },
+                                {
+                                    key: 'subtotal',
+                                    header: 'Subtotal (Rp)',
+                                    align: 'right',
+                                    render: (v) => (
+                                        <strong style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                            Rp{Number(v).toLocaleString('id-ID')}
+                                        </strong>
+                                    )
+                                }
+                            ]}
+                            data={poItems}
+                        />
                     </div>
                 )}
 
                 {/* ponytail: unify shade pastel to bg-elevated */}
                 {poDate && poItems.length === 0 && !loading && (
-                    <div style={{ color: 'var(--color-warning)', padding: '10px', border: '1px solid rgba(245, 158, 11, 0.2)', backgroundColor: 'rgba(245, 158, 11, 0.1)', borderRadius: 'var(--radius-sm)' }}>
+                    <div style={{ color: 'var(--color-warning)', padding: '10px', border: '1px solid rgba(245, 158, 11, 0.2)', backgroundColor: 'rgba(245, 158, 11, 0.05)', borderRadius: 'var(--radius-sm)' }}>
                         Tidak ada rencana menu harian aktif / disetujui untuk tanggal terpilih.
                     </div>
                 )}
 
                 <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Catatan Tambahan (opsional): </label>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Catatan Tambahan (opsional)
+                    </label>
                     <input
                         type="text"
                         placeholder="Contoh: Pengiriman pagi s.d jam 06.00"
                         value={catatan}
                         onChange={e => setCatatan(e.target.value)}
-                        style={{ width: '100%', padding: '5px' }}
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                        }}
                     />
                 </div>
 
@@ -421,7 +541,17 @@ export const MitraPoPage = () => {
                     <button
                         type="submit"
                         disabled={poItems.length === 0}
-                        style={{ padding: '6px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', cursor: 'pointer' }}
+                        style={{
+                            padding: '10px 20px',
+                            backgroundColor: 'var(--btn-primary-bg)',
+                            color: 'var(--btn-primary-text)',
+                            border: 'none',
+                            borderRadius: 'var(--radius-sm)',
+                            cursor: poItems.length === 0 ? 'not-allowed' : 'pointer',
+                            fontWeight: 600,
+                            fontSize: '14px',
+                            opacity: poItems.length === 0 ? 0.6 : 1
+                        }}
                     >
                         Simpan Nota Pesanan
                     </button>
@@ -431,49 +561,43 @@ export const MitraPoPage = () => {
             {/* Riwayat PO List */}
             <h3>Riwayat Nota Pesanan (PO) Terdaftar</h3>
             {listLoading && <p>Memuat daftar riwayat PO...</p>}
-            {!listLoading && (
-                <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
-                            <th>Tanggal Pengiriman</th>
-                            <th>Nama Supplier</th>
-                            <th style={{ textAlign: 'right' }}>Jumlah Item</th>
-                            <th style={{ textAlign: 'right' }}>Total Nilai Pesanan</th>
-                            <th>Catatan</th>
-                            <th style={{ textAlign: 'center', width: '180px' }}>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {poList.map(po => {
-                            const totalNilai = po.items.reduce((sum, item) => sum + Number(item.subtotal), 0);
+            <Table
+                columns={[
+                    { key: 'tanggal', header: 'Tanggal Pengiriman', render: (v) => renderDate(v) },
+                    { key: 'supplier', header: 'Nama Supplier', render: (v) => v ? v.nama : '—' },
+                    { key: 'items', header: 'Jumlah Item', align: 'right', render: (v) => `${(v || []).length} jenis bahan` },
+                    {
+                        key: 'id',
+                        header: 'Total Nilai Pesanan',
+                        align: 'right',
+                        render: (_, row) => {
+                            const totalNilai = row.items.reduce((sum, item) => sum + Number(item.subtotal), 0);
                             return (
-                                <tr key={po.id}>
-                                    <td>{po.tanggal.split('T')[0]}</td>
-                                    <td>{po.supplier ? po.supplier.nama : '—'}</td>
-                                    <td style={{ textAlign: 'right' }}>{po.items.length} jenis bahan</td>
-                                    <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Rp{totalNilai.toLocaleString('id-ID')}</td>
-                                    <td>{po.catatan || '—'}</td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <button
-                                            onClick={() => { setPrintPoData(po); setIsPrinting(true); }}
-                                            style={{ padding: '3px 10px', backgroundColor: '#007bff', color: '#fff', border: 'none', cursor: 'pointer' }}
-                                        >
-                                            Cetak Nota (PO)
-                                        </button>
-                                    </td>
-                                </tr>
+                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                    Rp{totalNilai.toLocaleString('id-ID')}
+                                </strong>
                             );
-                        })}
-                        {poList.length === 0 && (
-                            <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '10px' }}>
-                                    Belum ada data Nota Pesanan (PO) untuk periode ini.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            )}
+                        }
+                    },
+                    { key: 'catatan', header: 'Catatan', render: (v) => renderTruncate(v) },
+                    {
+                        key: 'id',
+                        header: 'Aksi',
+                        align: 'center',
+                        width: '180px',
+                        render: (_, row) => (
+                            <button
+                                onClick={() => { setPrintPoData(row); setIsPrinting(true); }}
+                                style={{ padding: '3px 10px', backgroundColor: '#007bff', color: '#fff', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)' }}
+                            >
+                                Cetak Nota (PO)
+                            </button>
+                        )
+                    }
+                ]}
+                data={poList}
+                emptyText="Belum ada data Nota Pesanan (PO) untuk periode ini."
+            />
         </div>
     );
 };

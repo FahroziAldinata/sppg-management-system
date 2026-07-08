@@ -159,7 +159,15 @@ export const Login = () => {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Username Input */}
           <div>
-            <label htmlFor="username" style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--text)' }}>
+            <label htmlFor="username" style={{
+              textTransform: 'uppercase',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.07em',
+              color: 'var(--text-muted)',
+              display: 'block',
+              marginBottom: '6px'
+            }}>
               Username
             </label>
             <div style={{ position: 'relative' }}>
@@ -176,11 +184,12 @@ export const Login = () => {
                 style={{
                   width: '100%',
                   padding: '12px 12px 12px 38px',
-                  backgroundColor: 'var(--bg-elevated)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--bg)',
+                  border: '1px solid var(--input-border)',
+                  borderRadius: 'var(--radius-sm)',
                   color: 'var(--text)',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
@@ -188,7 +197,15 @@ export const Login = () => {
 
           {/* Password Input */}
           <div>
-            <label htmlFor="password" style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: '600', color: 'var(--text)' }}>
+            <label htmlFor="password" style={{
+              textTransform: 'uppercase',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.07em',
+              color: 'var(--text-muted)',
+              display: 'block',
+              marginBottom: '6px'
+            }}>
               Password
             </label>
             <div style={{ position: 'relative' }}>
@@ -205,11 +222,12 @@ export const Login = () => {
                 style={{
                   width: '100%',
                   padding: '12px 12px 12px 38px',
-                  backgroundColor: 'var(--bg-elevated)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'var(--bg)',
+                  border: '1px solid var(--input-border)',
+                  borderRadius: 'var(--radius-sm)',
                   color: 'var(--text)',
-                  fontSize: '14px'
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
                 }}
               />
             </div>
@@ -222,22 +240,19 @@ export const Login = () => {
             style={{
               width: '100%',
               padding: '12px',
-              backgroundColor: 'var(--color-primary)',
-              color: '#fff',
+              backgroundColor: 'var(--btn-primary-bg)',
+              color: 'var(--btn-primary-text)',
               border: 'none',
-              borderRadius: 'var(--radius-md)',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '14px',
-              fontWeight: '700',
+              fontWeight: '600',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '8px',
-              marginTop: '10px',
-              boxShadow: '0 4px 12px rgba(7, 30, 73, 0.15)'
+              marginTop: '10px'
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.filter = 'brightness(1.15)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.filter = 'none'; }}
           >
             {loading ? 'Memverifikasi...' : 'Masuk'}
           </button>

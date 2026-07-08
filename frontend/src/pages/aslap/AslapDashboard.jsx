@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
+import { WorkflowStepper } from '../../components/WorkflowStepper';
+import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 
 export const AslapDashboard = () => {
   const { request } = useApi();
@@ -10,6 +12,8 @@ export const AslapDashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState(null);
   const [stats, setStats] = useState({ schools: 0, posyandus: 0, pmEntries: 0 });
   const [loading, setLoading] = useState(true);
+  const [dashSummary, setDashSummary] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -47,6 +51,19 @@ export const AslapDashboard = () => {
           posyandus: dataY.length,
           pmEntries: pmCount
         });
+
+        if (activeP) {
+          try {
+            const resSummary = await request(`/dashboard/summary?periodeId=${activeP.id}`);
+            if (resSummary.ok) {
+              setDashSummary((await resSummary.json()).data);
+            }
+          } finally {
+            setLoadingSummary(false);
+          }
+        } else {
+          setLoadingSummary(false);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -59,8 +76,7 @@ export const AslapDashboard = () => {
   const handlePeriodChange = async (pid) => {
     const period = periods.find(p => p.id === pid);
     setSelectedPeriod(period);
-    
-    // Update PM entries count for newly selected period
+
     try {
       const resPm = await request(`/aslap/penerima-manfaat?periodeId=${pid}`);
       if (resPm.ok) {
@@ -69,6 +85,16 @@ export const AslapDashboard = () => {
       }
     } catch (e) {
       console.error(e);
+    }
+
+    setLoadingSummary(true);
+    try {
+      const resSummary = await request(`/dashboard/summary?periodeId=${pid}`);
+      if (resSummary.ok) {
+        setDashSummary((await resSummary.json()).data);
+      }
+    } finally {
+      setLoadingSummary(false);
     }
   };
 
@@ -113,6 +139,9 @@ export const AslapDashboard = () => {
         )}
       </div>
 
+      {/* Ringkasan Status Sistem */}
+      <DashboardSummaryCards dashSummary={dashSummary} loadingSummary={loadingSummary} />
+
       {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
         <div style={{ border: '1px solid var(--border)', borderRadius: '6px', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
@@ -139,19 +168,25 @@ export const AslapDashboard = () => {
       <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px' }}>
-          <button 
+          <button
             onClick={() => navigate('/aslap/penerima-manfaat')}
             style={{ padding: '10px 20px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
           >
             Kelola Penerima Manfaat
           </button>
-          <button 
+          <button
             onClick={() => navigate('/setting')}
             style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
           >
             Pengaturan Akun
           </button>
         </div>
+      </div>
+
+      {/* Workflow Progress */}
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)', marginTop: '25px' }}>
+        <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Progress Tahapan Operasional</h3>
+        <WorkflowStepper workflowProgress={dashSummary?.workflowProgress} loading={loadingSummary} />
       </div>
     </div>
   );

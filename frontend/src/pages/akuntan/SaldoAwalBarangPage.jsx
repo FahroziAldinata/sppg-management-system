@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { Table, renderCurrency } from '../../components/Table';
 
 export const SaldoAwalBarangPage = () => {
     const { request } = useApi();
@@ -121,15 +122,60 @@ export const SaldoAwalBarangPage = () => {
     };
 
     return (
-        <div>
-            <h2>Input Saldo Awal Barang (Persediaan Awal)</h2>
-            {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: '10px', padding: '8px', border: '1px solid green' }}>{success}</div>}
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--text)' }}>Input Saldo Awal Barang (Persediaan Awal)</h2>
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div style={{
+                    color: 'var(--color-success)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-success)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
+                }}>
+                    {success}
+                </div>
+            )}
 
             {/* Pilihan Periode */}
             <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontWeight: '500', marginRight: '5px' }}>Pilih Periode Aktif: </label>
-                <select value={periodeId} onChange={e => setPeriodeId(e.target.value)}>
+                <label style={{
+                    textTransform: 'uppercase',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.07em',
+                    color: 'var(--text-muted)',
+                    display: 'block',
+                    marginBottom: '6px'
+                }}>
+                    Pilih Periode Aktif
+                </label>
+                <select
+                    value={periodeId}
+                    onChange={e => setPeriodeId(e.target.value)}
+                    style={{
+                        width: '300px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                    }}
+                >
                     {periods.map(p => (
                         <option key={p.id} value={p.id}>
                             {p.tanggalMulai} - {p.tanggalSelesai}
@@ -139,92 +185,178 @@ export const SaldoAwalBarangPage = () => {
             </div>
 
             {/* Form Saldo Awal */}
-            <h3>Input Saldo Awal Barang (per Periode)</h3>
-            <form onSubmit={handleCreateSaldoAwal} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '25px', display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '600px' }}>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Bahan Pokok: </label>
-                    <select
-                        value={saldoAwalForm.bahanPokokId}
-                        onChange={e => setSaldoAwalForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
-                        required
-                        style={{ width: '100%', padding: '5px' }}
-                    >
-                        <option value="">-- Pilih Bahan Pokok --</option>
-                        {bahanPokokList.map(b => (
-                            <option key={b.id} value={b.id}>
-                                {b.nama} ({b.satuan})
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Saldo Awal Qty: </label>
-                    <input
-                        type="number"
-                        step="0.001"
-                        placeholder="Jumlah Stok Awal"
-                        value={saldoAwalForm.saldoAwalQty}
-                        onChange={e => setSaldoAwalForm(prev => ({ ...prev, saldoAwalQty: e.target.value }))}
-                        required
-                        style={{ width: '100%', padding: '5px' }}
-                    />
-                </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '3px' }}>Harga Beli Awal (Rp): </label>
-                    <input
-                        type="number"
-                        step="0.01"
-                        placeholder="Harga Beli Awal"
-                        value={saldoAwalForm.hargaBeliAwal}
-                        onChange={e => setSaldoAwalForm(prev => ({ ...prev, hargaBeliAwal: e.target.value }))}
-                        required
-                        style={{ width: '100%', padding: '5px' }}
-                    />
+            <form onSubmit={handleCreateSaldoAwal} style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
+            }}>
+                <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Input Saldo Awal Barang (per Periode)</h3>
+
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Bahan Pokok
+                        </label>
+                        <select
+                            value={saldoAwalForm.bahanPokokId}
+                            onChange={e => setSaldoAwalForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        >
+                            <option value="">-- Pilih Bahan Pokok --</option>
+                            {bahanPokokList.map(b => (
+                                <option key={b.id} value={b.id}>
+                                    {b.nama} ({b.satuan})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Saldo Awal Qty
+                        </label>
+                        <input
+                            type="number"
+                            step="0.001"
+                            placeholder="Jumlah Stok Awal"
+                            value={saldoAwalForm.saldoAwalQty}
+                            onChange={e => setSaldoAwalForm(prev => ({ ...prev, saldoAwalQty: e.target.value }))}
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Harga Beli Awal (Rp)
+                        </label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            placeholder="Harga Beli Awal"
+                            value={saldoAwalForm.hargaBeliAwal}
+                            onChange={e => setSaldoAwalForm(prev => ({ ...prev, hargaBeliAwal: e.target.value }))}
+                            required
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
                 </div>
                 <div style={{ marginTop: '10px' }}>
-                    <button type="submit" style={{ padding: '6px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', cursor: 'pointer' }}>
+                    <button type="submit" style={{
+                        padding: '10px 20px',
+                        backgroundColor: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '14px'
+                    }}>
                         Simpan Saldo Awal
                     </button>
                 </div>
             </form>
 
             {/* List Saldo Awal */}
-            <h3>Daftar Saldo Awal Barang Terdaftar</h3>
-            {loading && <p>Memuat daftar saldo awal...</p>}
-            {!loading && (
-                <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                    <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
-                            <th>Nama Bahan Pokok</th>
-                            <th style={{ width: '100px', textAlign: 'center' }}>Satuan</th>
-                            <th style={{ textAlign: 'right' }}>Saldo Awal (Qty)</th>
-                            <th style={{ textAlign: 'right' }}>Harga Beli Awal</th>
-                            <th style={{ textAlign: 'right' }}>Total Nilai Saldo Awal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {saldoAwalList.map(s => {
-                            const totalNilai = s.saldoAwalQty * s.hargaBeliAwal;
+            <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Saldo Awal Barang Terdaftar</h3>
+            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat daftar saldo awal...</p>}
+            <Table
+                columns={[
+                    { key: 'bahanPokok', header: 'Nama Bahan Pokok', render: (v) => v ? v.nama : '—' },
+                    { key: 'bahanPokokSatuan', header: 'Satuan', align: 'center', width: '100px', render: (_, row) => row.bahanPokok ? row.bahanPokok.satuan : '—' },
+                    {
+                        key: 'saldoAwalQty',
+                        header: 'Saldo Awal (Qty)',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                                {Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'hargaBeliAwal',
+                        header: 'Harga Beli Awal',
+                        align: 'right',
+                        render: (v) => (
+                            <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                                Rp{Number(v).toLocaleString('id-ID')}
+                            </span>
+                        )
+                    },
+                    {
+                        key: 'id',
+                        header: 'Total Nilai Saldo Awal',
+                        align: 'right',
+                        render: (_, row) => {
+                            const totalNilai = row.saldoAwalQty * row.hargaBeliAwal;
                             return (
-                                <tr key={s.id}>
-                                    <td>{s.bahanPokok ? s.bahanPokok.nama : '—'}</td>
-                                    <td style={{ textAlign: 'center' }}>{s.bahanPokok ? s.bahanPokok.satuan : '—'}</td>
-                                    <td style={{ textAlign: 'right' }}>{Number(s.saldoAwalQty).toLocaleString('id-ID')}</td>
-                                    <td style={{ textAlign: 'right' }}>Rp{Number(s.hargaBeliAwal).toLocaleString('id-ID')}</td>
-                                    <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Rp{totalNilai.toLocaleString('id-ID')}</td>
-                                </tr>
+                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                    Rp{totalNilai.toLocaleString('id-ID')}
+                                </strong>
                             );
-                        })}
-                        {saldoAwalList.length === 0 && (
-                            <tr>
-                                <td colSpan={5} style={{ textAlign: 'center', padding: '10px' }}>
-                                    Belum ada data saldo awal barang untuk periode ini.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
-            )}
+                        }
+                    }
+                ]}
+                data={saldoAwalList}
+                emptyText="Belum ada data saldo awal barang untuk periode ini."
+            />
         </div>
     );
 };

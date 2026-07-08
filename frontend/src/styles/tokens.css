@@ -38,6 +38,14 @@
   --glass-border: rgba(255, 255, 255, 0.5);
   --sidebar-width: 240px;
   --header-height: 64px;
+  --table-header-bg: rgba(181, 224, 234, 0.08);
+  --table-header-text: var(--color-primary);
+  --input-border: #b5e0ea;
+  --btn-primary-bg: var(--color-primary-light);
+  --btn-primary-text: var(--color-primary);
+  --btn-cancel-bg: var(--bg-elevated);
+  --btn-cancel-border: var(--text);
+  --btn-cancel-text: var(--text);
 }
 
 [data-theme="dark"] {
@@ -51,4 +59,12 @@
   --shadow-hover: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 16px -2px rgba(0, 0, 0, 0.4);
   --glass-bg: rgba(15, 22, 36, 0.75);
   --glass-border: rgba(255, 255, 255, 0.05);
+  --table-header-bg: rgba(181, 224, 234, 0.08);
+  --table-header-text: var(--text);
+  --input-border: #64748b;
+  --btn-primary-bg: var(--color-primary);
+  --btn-primary-text: var(--text);
+  --btn-cancel-bg: transparent;
+  --btn-cancel-border: var(--color-primary-light);
+  --btn-cancel-text: var(--color-primary-light);
 }

@@ -258,7 +258,7 @@ enum KomponenMenu {
 
 enum TipePenyimpanan {
   HABIS_HARI_ITU // JIT — sayur/daging segar
-  STOK_GUDANG    // disimpan bertahap — beras/minyak/bumbu kering/ATK/gas [SPEKULATIF]
+  STOK_GUDANG // disimpan bertahap — beras/minyak/bumbu kering/ATK/gas [SPEKULATIF]
 }
 
 enum JenisMutasiStok {
@@ -286,19 +286,19 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  hargaBahanDiinput      HargaBahanPeriode[]         @relation("MitraInputHargaBahan")
-  hargaPaketDiinput      HargaPaketKategoriPeriode[] @relation("PenginputHargaPaket")
-  menuBlokDibuat         MenuHarianBlok[]            @relation("AhliGiziBuatBlok")
-  masterMenuDibuat       MasterMenuMingguan[]        @relation("AhliGiziBuatMaster")
-  rabHarianDibuat        RabHarian[]                 @relation("AkuntanBuatRab")
-  jurnalDibuat           JurnalTransaksi[]           @relation("AkuntanBuatJurnal")
-  approvalDilakukan      Approval[]                  @relation("KepalaSPPGApprove")
-  validasiStokDilakukan  ValidasiStok[]              @relation("PelaksanaValidasi")
-  mutasiStokDicatat      MutasiStok[]                @relation("PencatatMutasiStok")
-  dokumenDiterbitkan     DokumenResmi[]              @relation("PenerbitDokumen")
-  inputPenerimaManfaat   InputPenerimaManfaat[]      @relation("AslapInputPM")
-  auditLogs              AuditLog[]
-  notifikasi             Notifikasi[]
+  hargaBahanDiinput     HargaBahanPeriode[]         @relation("MitraInputHargaBahan")
+  hargaPaketDiinput     HargaPaketKategoriPeriode[] @relation("PenginputHargaPaket")
+  menuBlokDibuat        MenuHarianBlok[]            @relation("AhliGiziBuatBlok")
+  masterMenuDibuat      MasterMenuMingguan[]        @relation("AhliGiziBuatMaster")
+  rabHarianDibuat       RabHarian[]                 @relation("AkuntanBuatRab")
+  jurnalDibuat          JurnalTransaksi[]           @relation("AkuntanBuatJurnal")
+  approvalDilakukan     Approval[]                  @relation("KepalaSPPGApprove")
+  validasiStokDilakukan ValidasiStok[]              @relation("PelaksanaValidasi")
+  mutasiStokDicatat     MutasiStok[]                @relation("PencatatMutasiStok")
+  dokumenDiterbitkan    DokumenResmi[]              @relation("PenerbitDokumen")
+  inputPenerimaManfaat  InputPenerimaManfaat[]      @relation("AslapInputPM")
+  auditLogs             AuditLog[]
+  notifikasi            Notifikasi[]
 
   @@index([role])
 }
@@ -308,14 +308,14 @@ model User {
 // -----------------------------------------------------------------------------
 
 model Periode {
-  id               String        @id @default(cuid())
-  tanggalMulai     DateTime      @db.Date
-  tanggalSelesai   DateTime      @db.Date
-  status           StatusPeriode @default(DRAFT)
-  anggaranAlokasi  Decimal       @db.Decimal(14, 2) // pagu/plafon dari BGN
-  totalDanaDiterima Decimal?     @db.Decimal(14, 2) // manual, diisi akuntan — dipakai di SPTJ, beda dari pagu
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  id                String        @id @default(cuid())
+  tanggalMulai      DateTime      @db.Date
+  tanggalSelesai    DateTime      @db.Date
+  status            StatusPeriode @default(DRAFT)
+  anggaranAlokasi   Decimal       @db.Decimal(14, 2) // pagu/plafon dari BGN
+  totalDanaDiterima Decimal?      @db.Decimal(14, 2) // manual, diisi akuntan — dipakai di SPTJ, beda dari pagu
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
   setupLembaga          SetupLembaga?
   saldoAwal             SaldoAwalPeriode[]
@@ -351,7 +351,7 @@ model SetupLembaga {
   tanggalPelaporan      DateTime @db.Date
   tempatPelaporan       String
   createdAt             DateTime @default(now())
-  updatedAt              DateTime @updatedAt
+  updatedAt             DateTime @updatedAt
 }
 
 // -----------------------------------------------------------------------------
@@ -380,7 +380,7 @@ model KategoriPenerima {
   kode         String       @unique // PAUD_TK, SD_1_3, SD_4_6, SMP_1_3, SMA_SMK_4_6, ATS_KURANG_9TH, ATS_9_18TH, PENDIDIK, TENAGA_KEPENDIDIKAN, BALITA, BUMIL, BUSUI, KADER_POSYANDU
   nama         String
   jenisSasaran JenisSasaran // PESERTA_DIDIK (terikat Sekolah) | NON_PESERTA_DIDIK (terikat Posyandu)
-  jenisPorsi   JenisPorsi?  // v5.4 DIKONFIRMASI BGN & akuntan (bukan rekomendasi lagi): staf/dewasa
+  jenisPorsi   JenisPorsi? // v5.4 DIKONFIRMASI BGN & akuntan (bukan rekomendasi lagi): staf/dewasa
   // (PENDIDIK, TENAGA_KEPENDIDIKAN, KADER_POSYANDU) = BESAR; ATS_9_18TH =
   // BESAR; ATS_KURANG_9TH = KECIL.
   urutan       Int          @default(0)
@@ -414,7 +414,7 @@ model KelompokUmurMenu {
 
 model Sekolah {
   id     String  @id @default(cuid())
-  nama   String  // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
+  nama   String // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
   npsn   String?
   alamat String?
   aktif  Boolean @default(true)
@@ -425,7 +425,7 @@ model Sekolah {
 
 model Posyandu {
   id     String  @id @default(cuid())
-  nama   String  // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
+  nama   String // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
   alamat String?
   aktif  Boolean @default(true)
 
@@ -460,8 +460,8 @@ model InputPenerimaManfaatDetail {
   posyanduId String?
   posyandu   Posyandu? @relation(fields: [posyanduId], references: [id])
 
-  lakiLaki    Int
-  perempuan   Int
+  lakiLaki  Int
+  perempuan Int
   // jumlahTotal = lakiLaki + perempuan, dihitung app-layer, tidak disimpan
 
   @@index([inputPenerimaManfaatId, kategoriId])
@@ -472,12 +472,12 @@ model InputPenerimaManfaatDetail {
 // KECIL 1-3). Tidak dipakai modul lain (Menu/RAB/Akuntansi) — mereka semua
 // baca dari InputPenerimaManfaatDetail (agregat), bukan dari sini.
 model SekolahKelasDetail {
-  id        String   @id @default(cuid())
+  id        String  @id @default(cuid())
   periodeId String
-  periode   Periode  @relation(fields: [periodeId], references: [id])
+  periode   Periode @relation(fields: [periodeId], references: [id])
   sekolahId String
-  sekolah   Sekolah  @relation(fields: [sekolahId], references: [id])
-  namaKelas String   // "1".."6", "TK A-B", "PIC"
+  sekolah   Sekolah @relation(fields: [sekolahId], references: [id])
+  namaKelas String // "1".."6", "TK A-B", "PIC"
   jumlah    Int
 
   @@unique([periodeId, sekolahId, namaKelas])
@@ -595,11 +595,11 @@ model MutasiStok {
 // perubahan harian terhadap master.
 
 model MasterMenuMingguan {
-  id       String    @id @default(cuid())
+  id        String    @id @default(cuid())
   periodeId String
-  periode  Periode   @relation(fields: [periodeId], references: [id])
-  jalur    JalurMenu
-  hari     HariMenu
+  periode   Periode   @relation(fields: [periodeId], references: [id])
+  jalur     JalurMenu
+  hari      HariMenu
 
   menuKarbohidrat String
   menuLaukHewani  String
@@ -637,10 +637,10 @@ model MenuHarian {
 // v5 BARU: "Kebutuhan Belanja Bahan" per porsi (KECIL/BESAR) diantar pakai
 // salah 1 dari 3 mobil yg tersedia.
 model Kendaraan {
-  id           String   @id @default(cuid())
+  id            String  @id @default(cuid())
   namaKendaraan String
-  platNomor    String?
-  aktif        Boolean  @default(true)
+  platNomor     String?
+  aktif         Boolean @default(true)
 
   pengiriman PengirimanHarian[]
 }
@@ -684,14 +684,14 @@ model AlergiCatatan {
   id             String         @id @default(cuid())
   blokId         String
   blok           MenuHarianBlok @relation(fields: [blokId], references: [id], onDelete: Cascade)
-  jenisAlergi    String         // mis. "nasi", "telur"
+  jenisAlergi    String // mis. "nasi", "telur"
   jumlahSiswa    Int
   bahanPengganti String?
 }
 
 // Nama menu dalam 1 blok, mis. "Nasi Putih", "Ayam Bumbu Kuning" (bisa >1 per blok)
 model MenuItem {
-  id       String        @id @default(cuid())
+  id       String         @id @default(cuid())
   blokId   String
   blok     MenuHarianBlok @relation(fields: [blokId], references: [id], onDelete: Cascade)
   namaMenu String
@@ -708,14 +708,14 @@ model MenuItemBahan {
   bahanPokokId String
   bahanPokok   BahanPokok @relation(fields: [bahanPokokId], references: [id])
 
-  beratBersihGr Decimal  @db.Decimal(10, 2) // manual
-  beratURT      String?                     // manual, mis. "1 CTNG", "2 SDM"
-  energiKkal    Decimal  @db.Decimal(10, 2) // MANUAL — dari rujukan TKPI, BUKAN dihitung sistem
-  proteinGr     Decimal  @db.Decimal(10, 2) // manual
-  lemakGr       Decimal  @db.Decimal(10, 2) // manual
-  karbohidratGr Decimal  @db.Decimal(10, 2) // manual
-  seratGr       Decimal  @db.Decimal(10, 2) // manual
-  bddPersen     Decimal  @db.Decimal(5, 2)  // manual, "Bagian Dapat Dimakan" %
+  beratBersihGr Decimal @db.Decimal(10, 2) // manual
+  beratURT      String? // manual, mis. "1 CTNG", "2 SDM"
+  energiKkal    Decimal @db.Decimal(10, 2) // MANUAL — dari rujukan TKPI, BUKAN dihitung sistem
+  proteinGr     Decimal @db.Decimal(10, 2) // manual
+  lemakGr       Decimal @db.Decimal(10, 2) // manual
+  karbohidratGr Decimal @db.Decimal(10, 2) // manual
+  seratGr       Decimal @db.Decimal(10, 2) // manual
+  bddPersen     Decimal @db.Decimal(5, 2) // manual, "Bagian Dapat Dimakan" %
 
   beratKotorGr    Decimal @db.Decimal(10, 2) // FORMULA: beratBersihGr / bddPersen * 100
   hargaSatuan     Decimal @db.Decimal(12, 2) // manual
@@ -786,8 +786,8 @@ model Supplier {
   kontak String?
   aktif  Boolean @default(true)
 
-  transaksi        TransaksiPembelian[]
-  mutasiStokMasuk  MutasiStok[]          @relation("SupplierMasukBarang")
+  transaksi       TransaksiPembelian[]
+  mutasiStokMasuk MutasiStok[]         @relation("SupplierMasukBarang")
 }
 
 model TransaksiPembelian {
@@ -805,14 +805,14 @@ model TransaksiPembelian {
 }
 
 model TransaksiPembelianItem {
-  id           String              @id @default(cuid())
+  id           String             @id @default(cuid())
   transaksiId  String
-  transaksi    TransaksiPembelian  @relation(fields: [transaksiId], references: [id], onDelete: Cascade)
+  transaksi    TransaksiPembelian @relation(fields: [transaksiId], references: [id], onDelete: Cascade)
   bahanPokokId String
-  bahanPokok   BahanPokok          @relation(fields: [bahanPokokId], references: [id])
-  qty          Decimal             @db.Decimal(10, 3)
-  hargaSatuan  Decimal             @db.Decimal(12, 2)
-  subtotal     Decimal             @db.Decimal(14, 2)
+  bahanPokok   BahanPokok         @relation(fields: [bahanPokokId], references: [id])
+  qty          Decimal            @db.Decimal(10, 3)
+  hargaSatuan  Decimal            @db.Decimal(12, 2)
+  subtotal     Decimal            @db.Decimal(14, 2)
 }
 
 // -----------------------------------------------------------------------------
@@ -829,9 +829,9 @@ model AnggaranHarian {
   jumlahPaket Int
   hargaSatuan Decimal? @db.Decimal(12, 2) // dipakai OPERASIONAL & INSENTIF_FASILITAS
 
-  rab     Decimal @db.Decimal(14, 2) @default(0)
-  aktual  Decimal @db.Decimal(14, 2) @default(0) // AUTO dari SUM JurnalTransaksi — [TODO] butuh mapping Akun<->KategoriDana, lihat gap tercatat sebelumnya
-  selisih Decimal @db.Decimal(14, 2) @default(0)
+  rab     Decimal @default(0) @db.Decimal(14, 2)
+  aktual  Decimal @default(0) @db.Decimal(14, 2) // AUTO dari SUM JurnalTransaksi — [TODO] butuh mapping Akun<->KategoriDana, lihat gap tercatat sebelumnya
+  selisih Decimal @default(0) @db.Decimal(14, 2)
 
   keterangan String?
   createdAt  DateTime @default(now())
@@ -875,8 +875,8 @@ model Akun {
   kategoriDana KategoriDana?
 
   saldoAwal       SaldoAwalPeriode[]
-  jurnalDanaBiaya JurnalTransaksi[] @relation("AkunDanaBiaya")
-  jurnalKas       JurnalTransaksi[] @relation("AkunKas")
+  jurnalDanaBiaya JurnalTransaksi[]  @relation("AkunDanaBiaya")
+  jurnalKas       JurnalTransaksi[]  @relation("AkunKas")
 }
 
 model SaldoAwalPeriode {
@@ -892,14 +892,14 @@ model SaldoAwalPeriode {
 }
 
 model JurnalTransaksi {
-  id          String         @id @default(cuid())
-  periodeId   String
-  periode     Periode        @relation(fields: [periodeId], references: [id])
-  tanggal     DateTime       @db.Date
-  nomorBukti  Int
-  uraian      String
-  jenis       JenisTransaksi
-  nominal     Decimal        @db.Decimal(14, 2)
+  id         String         @id @default(cuid())
+  periodeId  String
+  periode    Periode        @relation(fields: [periodeId], references: [id])
+  tanggal    DateTime       @db.Date
+  nomorBukti Int
+  uraian     String
+  jenis      JenisTransaksi
+  nominal    Decimal        @db.Decimal(14, 2)
 
   akunDanaBiayaId String
   akunDanaBiaya   Akun   @relation("AkunDanaBiaya", fields: [akunDanaBiayaId], references: [id])
@@ -942,14 +942,14 @@ model JurnalTransaksi {
 // "Sewa" utk LPA baris tabel (ikut format asli), boleh disamakan ke
 // "Insentif Fasilitas" di tempat lain.
 model DokumenResmi {
-  id            String            @id @default(cuid())
-  periodeId     String
-  periode       Periode           @relation(fields: [periodeId], references: [id])
-  jenisDokumen  JenisDokumenResmi
-  nomorDokumen  String?           // manual, format beda-beda per jenis, opsional (SPTJ kadang tanpa nomor)
-  createdById   String
-  createdBy     User              @relation("PenerbitDokumen", fields: [createdById], references: [id])
-  createdAt     DateTime          @default(now())
+  id           String            @id @default(cuid())
+  periodeId    String
+  periode      Periode           @relation(fields: [periodeId], references: [id])
+  jenisDokumen JenisDokumenResmi
+  nomorDokumen String? // manual, format beda-beda per jenis, opsional (SPTJ kadang tanpa nomor)
+  createdById  String
+  createdBy    User              @relation("PenerbitDokumen", fields: [createdById], references: [id])
+  createdAt    DateTime          @default(now())
 
   @@unique([periodeId, jenisDokumen])
 }
@@ -1003,7 +1003,7 @@ model Approval {
   rabHarian    RabHarian?  @relation(fields: [rabHarianId], references: [id])
 
   status       StatusApproval
-  catatan      String?        // wajib diisi kalau DITOLAK (app-layer)
+  catatan      String? // wajib diisi kalau DITOLAK (app-layer)
   approvedById String
   approvedBy   User           @relation("KepalaSPPGApprove", fields: [approvedById], references: [id])
   createdAt    DateTime       @default(now())

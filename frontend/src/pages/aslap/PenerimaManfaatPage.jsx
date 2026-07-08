@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { Table } from '../../components/Table';
 
 export const PenerimaManfaatPage = () => {
   const { request } = useApi();
@@ -240,22 +241,64 @@ export const PenerimaManfaatPage = () => {
   };
 
   return (
-    <div>
-      <h2>Pengelolaan Penerima Manfaat (Sekolah &amp; Posyandu)</h2>
+    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+      <h2 style={{ color: 'var(--text)' }}>Pengelolaan Penerima Manfaat (Sekolah &amp; Posyandu)</h2>
       
       {/* Messages */}
-      {error && <div style={{ color: 'red', margin: '10px 0', padding: '8px', border: '1px solid red' }}>Error: {error}</div>}
-      {success && <div style={{ color: 'green', margin: '10px 0', padding: '8px', border: '1px solid green' }}>{success}</div>}
+      {error && (
+        <div style={{
+          color: 'var(--color-danger)',
+          margin: '10px 0',
+          padding: '8px',
+          border: '1px solid var(--color-danger)',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: 'rgba(239, 68, 68, 0.05)'
+        }}>
+          Error: {error}
+        </div>
+      )}
+      {success && (
+        <div style={{
+          color: 'var(--color-success)',
+          margin: '10px 0',
+          padding: '8px',
+          border: '1px solid var(--color-success)',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: 'rgba(16, 185, 129, 0.05)'
+        }}>
+          {success}
+        </div>
+      )}
 
       {/* Period Selection */}
-      <div style={{ marginBottom: '15px' }}>
-        <label htmlFor="period-select" style={{ fontWeight: '500' }}>Pilih Periode Aktif: </label>
+      <div style={{ marginBottom: '20px' }}>
+        <label htmlFor="period-select" style={{
+          textTransform: 'uppercase',
+          fontSize: '11px',
+          fontWeight: 700,
+          letterSpacing: '0.07em',
+          color: 'var(--text-muted)',
+          display: 'block',
+          marginBottom: '6px'
+        }}>
+          Pilih Periode Aktif
+        </label>
         <select 
           id="period-select"
           value={selectedPeriodId}
           onChange={(e) => {
             setSelectedPeriodId(e.target.value);
             resetForm();
+          }}
+          style={{
+            width: '300px',
+            padding: '10px 12px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--input-border)',
+            backgroundColor: 'var(--bg)',
+            color: 'var(--text)',
+            fontSize: '14px',
+            boxSizing: 'border-box'
           }}
         >
           {periods.map(p => (
@@ -267,132 +310,324 @@ export const PenerimaManfaatPage = () => {
       </div>
 
       {/* Create / Edit Form */}
-      <h3>{editingId ? 'Edit Data Penerima' : 'Tambah Data Baru'}</h3>
-      <form onSubmit={handleSubmit} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '25px' }}>
-        <div style={{ marginBottom: '15px' }}>
-          <h4 style={{ margin: '0 0 8px 0' }}>Hari Aktif Operasional:</h4>
-          {daysList.map(day => (
-            <label key={day} style={{ marginRight: '15px', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-              <input
-                type="checkbox"
-                checked={formHariAktif.includes(day)}
-                onChange={() => handleDayCheckboxChange(day)}
-              />
-              {day}
-            </label>
-          ))}
+      <form onSubmit={handleSubmit} style={{
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '24px',
+        backgroundColor: 'var(--bg-elevated)',
+        boxShadow: 'var(--shadow)',
+        marginBottom: '30px'
+      }}>
+        <h3 style={{ margin: '0 0 20px 0', color: 'var(--text)' }}>
+          {editingId ? 'Edit Data Penerima' : 'Tambah Data Baru'}
+        </h3>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            textTransform: 'uppercase',
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.07em',
+            color: 'var(--text-muted)',
+            display: 'block',
+            marginBottom: '8px'
+          }}>
+            Hari Aktif Operasional
+          </label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px' }}>
+            {daysList.map(day => (
+              <label key={day} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '14px', color: 'var(--text)' }}>
+                <input
+                  type="checkbox"
+                  checked={formHariAktif.includes(day)}
+                  onChange={() => handleDayCheckboxChange(day)}
+                  style={{ cursor: 'pointer' }}
+                />
+                {day}
+              </label>
+            ))}
+          </div>
         </div>
 
-        <div style={{ marginBottom: '15px' }}>
-          <h4 style={{ margin: '0 0 10px 0' }}>Rincian Detail Penerima Manfaat:</h4>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            textTransform: 'uppercase',
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.07em',
+            color: 'var(--text-muted)',
+            display: 'block',
+            marginBottom: '8px'
+          }}>
+            Rincian Detail Penerima Manfaat
+          </label>
           {formDetail.map((det, index) => {
             const selectedCat = categoryMap[det.kategoriId];
             const isSiswa = selectedCat ? selectedCat.jenisSasaran === 'PESERTA_DIDIK' : false;
             const isNonSiswa = selectedCat ? selectedCat.jenisSasaran === 'NON_PESERTA_DIDIK' : false;
 
             return (
-              <div key={index} style={{ border: '1px dashed #aaa', padding: '10px', marginBottom: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div key={index} style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                padding: '16px',
+                marginBottom: '16px',
+                backgroundColor: 'var(--bg)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h5 style={{ margin: '0' }}>Item #{index + 1}</h5>
+                  <h5 style={{ margin: '0', fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Item #{index + 1}</h5>
                   <button 
                     type="button" 
                     onClick={() => removeDetailRow(index)}
-                    style={{ color: 'red', cursor: 'pointer', border: 'none', background: 'none', fontWeight: 'bold' }}
+                    style={{ color: 'var(--color-danger)', cursor: 'pointer', border: 'none', background: 'none', fontWeight: 600, fontSize: '13px' }}
                     disabled={formDetail.length === 1}
                   >
-                    [Hapus]
+                    Hapus
                   </button>
                 </div>
                 
-                <div>
-                  <label style={{ marginRight: '5px' }}>Kategori Klien: </label>
-                  <select
-                    value={det.kategoriId}
-                    onChange={(e) => handleDetailChange(index, 'kategoriId', e.target.value)}
-                  >
-                    {categories.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.nama} ({c.jenisSasaran})
-                      </option>
-                    ))}
-                  </select>
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                  <div style={{ flex: '1 1 200px' }}>
+                    <label style={{
+                      textTransform: 'uppercase',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      letterSpacing: '0.07em',
+                      color: 'var(--text-muted)',
+                      display: 'block',
+                      marginBottom: '6px'
+                    }}>
+                      Kategori Klien
+                    </label>
+                    <select
+                      value={det.kategoriId}
+                      onChange={(e) => handleDetailChange(index, 'kategoriId', e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg-elevated)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.nama} ({c.jenisSasaran})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {isSiswa && (
+                    <div style={{ flex: '2 1 300px', display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{
+                          textTransform: 'uppercase',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          letterSpacing: '0.07em',
+                          color: 'var(--text-muted)',
+                          display: 'block',
+                          marginBottom: '6px'
+                        }}>
+                          Sekolah Terdaftar
+                        </label>
+                        <select
+                          value={det.sekolahId}
+                          onChange={(e) => {
+                            handleDetailChange(index, 'sekolahId', e.target.value);
+                            handleDetailChange(index, 'sekolahNama', '');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg-elevated)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <option value="">-- Pilih --</option>
+                          {schools.map(s => (
+                            <option key={s.id} value={s.id}>{s.nama}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <span style={{ margin: '10px 0', fontWeight: 'bold', color: 'var(--text-muted)' }}>ATAU</span>
+                      <div style={{ flex: 1 }}>
+                        <label style={{
+                          textTransform: 'uppercase',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          letterSpacing: '0.07em',
+                          color: 'var(--text-muted)',
+                          display: 'block',
+                          marginBottom: '6px'
+                        }}>
+                          Nama Sekolah Baru
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Nama Sekolah Baru"
+                          value={det.sekolahNama}
+                          onChange={(e) => {
+                            handleDetailChange(index, 'sekolahNama', e.target.value);
+                            handleDetailChange(index, 'sekolahId', '');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg-elevated)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {isNonSiswa && (
+                    <div style={{ flex: '2 1 300px', display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{
+                          textTransform: 'uppercase',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          letterSpacing: '0.07em',
+                          color: 'var(--text-muted)',
+                          display: 'block',
+                          marginBottom: '6px'
+                        }}>
+                          Posyandu Terdaftar
+                        </label>
+                        <select
+                          value={det.posyanduId}
+                          onChange={(e) => {
+                            handleDetailChange(index, 'posyanduId', e.target.value);
+                            handleDetailChange(index, 'posyanduNama', '');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg-elevated)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <option value="">-- Pilih --</option>
+                          {posyandus.map(y => (
+                            <option key={y.id} value={y.id}>{y.nama}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <span style={{ margin: '10px 0', fontWeight: 'bold', color: 'var(--text-muted)' }}>ATAU</span>
+                      <div style={{ flex: 1 }}>
+                        <label style={{
+                          textTransform: 'uppercase',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          letterSpacing: '0.07em',
+                          color: 'var(--text-muted)',
+                          display: 'block',
+                          marginBottom: '6px'
+                        }}>
+                          Nama Posyandu Baru
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="Nama Posyandu Baru"
+                          value={det.posyanduNama}
+                          onChange={(e) => {
+                            handleDetailChange(index, 'posyanduNama', e.target.value);
+                            handleDetailChange(index, 'posyanduId', '');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg-elevated)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {isSiswa && (
-                  <div style={{ paddingLeft: '10px', borderLeft: '3px solid #007bff' }}>
-                    <label>Pilih Sekolah Terdaftar: </label>
-                    <select
-                      value={det.sekolahId}
-                      onChange={(e) => {
-                        handleDetailChange(index, 'sekolahId', e.target.value);
-                        handleDetailChange(index, 'sekolahNama', '');
-                      }}
-                    >
-                      <option value="">-- Pilih --</option>
-                      {schools.map(s => (
-                        <option key={s.id} value={s.id}>{s.nama}</option>
-                      ))}
-                    </select>
-                    <span style={{ margin: '0 8px', fontWeight: 'bold' }}>ATAU</span>
-                    <input
-                      type="text"
-                      placeholder="Input Nama Sekolah Baru"
-                      value={det.sekolahNama}
-                      onChange={(e) => {
-                        handleDetailChange(index, 'sekolahNama', e.target.value);
-                        handleDetailChange(index, 'sekolahId', '');
-                      }}
-                    />
-                  </div>
-                )}
-
-                {isNonSiswa && (
-                  <div style={{ paddingLeft: '10px', borderLeft: '3px solid #28a745' }}>
-                    <label>Pilih Posyandu Terdaftar: </label>
-                    <select
-                      value={det.posyanduId}
-                      onChange={(e) => {
-                        handleDetailChange(index, 'posyanduId', e.target.value);
-                        handleDetailChange(index, 'posyanduNama', '');
-                      }}
-                    >
-                      <option value="">-- Pilih --</option>
-                      {posyandus.map(y => (
-                        <option key={y.id} value={y.id}>{y.nama}</option>
-                      ))}
-                    </select>
-                    <span style={{ margin: '0 8px', fontWeight: 'bold' }}>ATAU</span>
-                    <input
-                      type="text"
-                      placeholder="Input Nama Posyandu Baru"
-                      value={det.posyanduNama}
-                      onChange={(e) => {
-                        handleDetailChange(index, 'posyanduNama', e.target.value);
-                        handleDetailChange(index, 'posyanduId', '');
-                      }}
-                    />
-                  </div>
-                )}
 
                 <div style={{ display: 'flex', gap: '15px' }}>
                   <div>
-                    <label>Jumlah Laki-laki: </label>
+                    <label style={{
+                      textTransform: 'uppercase',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      letterSpacing: '0.07em',
+                      color: 'var(--text-muted)',
+                      display: 'block',
+                      marginBottom: '6px'
+                    }}>
+                      Jumlah Laki-laki
+                    </label>
                     <input
                       type="number"
                       min="0"
                       value={det.lakiLaki}
                       onChange={(e) => handleDetailChange(index, 'lakiLaki', e.target.value)}
-                      style={{ width: '80px' }}
+                      style={{
+                        width: '120px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg-elevated)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
                   <div>
-                    <label>Jumlah Perempuan: </label>
+                    <label style={{
+                      textTransform: 'uppercase',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      letterSpacing: '0.07em',
+                      color: 'var(--text-muted)',
+                      display: 'block',
+                      marginBottom: '6px'
+                    }}>
+                      Jumlah Perempuan
+                    </label>
                     <input
                       type="number"
                       min="0"
                       value={det.perempuan}
                       onChange={(e) => handleDetailChange(index, 'perempuan', e.target.value)}
-                      style={{ width: '80px' }}
+                      style={{
+                        width: '120px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg-elevated)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                      }}
                     />
                   </div>
                 </div>
@@ -400,17 +635,44 @@ export const PenerimaManfaatPage = () => {
             );
           })}
           
-          <button type="button" onClick={addDetailRow} style={{ padding: '4px 10px', backgroundColor: '#6c757d', color: '#fff', border: 'none', cursor: 'pointer' }}>
+          <button type="button" onClick={addDetailRow} style={{
+            padding: '8px 16px',
+            backgroundColor: 'var(--btn-cancel-bg)',
+            border: '1px solid var(--btn-cancel-border)',
+            color: 'var(--btn-cancel-text)',
+            borderRadius: 'var(--radius-sm)',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '13px'
+          }}>
             + Tambah Baris Detail
           </button>
         </div>
 
-        <div>
-          <button type="submit" style={{ padding: '6px 15px', backgroundColor: '#007bff', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button type="submit" style={{
+            padding: '10px 20px',
+            backgroundColor: 'var(--btn-primary-bg)',
+            color: 'var(--btn-primary-text)',
+            border: 'none',
+            borderRadius: 'var(--radius-sm)',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '14px'
+          }}>
             {editingId ? 'Simpan Perubahan' : 'Kirim / Simpan Data'}
           </button>
           {editingId && (
-            <button type="button" onClick={resetForm} style={{ marginLeft: '10px', padding: '6px 15px', backgroundColor: '#6c757d', color: '#fff', border: 'none', cursor: 'pointer' }}>
+            <button type="button" onClick={resetForm} style={{
+              padding: '10px 20px',
+              backgroundColor: 'var(--btn-cancel-bg)',
+              border: '1px solid var(--btn-cancel-border)',
+              color: 'var(--btn-cancel-text)',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '14px'
+            }}>
               Batal Edit
             </button>
           )}
@@ -418,45 +680,51 @@ export const PenerimaManfaatPage = () => {
       </form>
 
       {/* List / Table of existing records */}
-      <h3>Daftar Input Penerima Manfaat Terdaftar</h3>
-      {items.length === 0 ? (
-        <p style={{ fontStyle: 'italic', color: '#888' }}>Belum ada data penerima manfaat untuk periode ini.</p>
-      ) : (
-        <table border="1" cellPadding="6" style={{ borderCollapse: 'collapse', width: '100%', fontSize: '14px' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#eaeaea' }}>
-              <th style={{ width: '150px' }}>Hari Aktif</th>
-              <th>Pembuat</th>
-              <th>Rincian Detail Penerima (Sasaran &amp; Jumlah)</th>
-              <th style={{ width: '130px', textAlign: 'center' }}>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map(row => (
-              <tr key={row.id}>
-                <td style={{ fontWeight: 'bold' }}>{row.hariAktif.join(', ')}</td>
-                <td>{row.createdBy?.nama || 'System'}</td>
-                <td>
-                  <ul style={{ margin: '0', paddingLeft: '20px' }}>
-                    {row.detail.map((d, index) => (
-                      <li key={d.id || index}>
-                        <strong>{d.kategori?.nama}</strong>:{' '}
-                        {d.sekolah?.nama && `Sekolah: ${d.sekolah.nama}`}
-                        {d.posyandu?.nama && `Posyandu: ${d.posyandu.nama}`}
-                        {` (L: ${d.lakiLaki}, P: ${d.perempuan})`}
-                      </li>
-                    ))}
-                  </ul>
-                </td>
-                <td style={{ textAlign: 'center' }}>
-                  <button onClick={() => handleEditClick(row)} style={{ padding: '3px 8px', marginRight: '5px', cursor: 'pointer' }}>Edit</button>
-                  <button onClick={() => handleDeleteClick(row.id)} style={{ padding: '3px 8px', color: 'red', cursor: 'pointer' }}>Hapus</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <Table
+        columns={[
+          {
+            key: 'hariAktif',
+            header: 'Hari Aktif',
+            width: '150px',
+            render: (val) => <strong style={{ color: 'var(--text)' }}>{val.join(', ')}</strong>
+          },
+          {
+            key: 'createdBy',
+            header: 'Pembuat',
+            render: (val) => val?.nama || 'System'
+          },
+          {
+            key: 'detail',
+            header: 'Rincian Detail Penerima (Sasaran & Jumlah)',
+            render: (val) => (
+              <ul style={{ margin: '0', paddingLeft: '20px' }}>
+                {val.map((d, index) => (
+                  <li key={d.id || index}>
+                    <strong>{d.kategori?.nama}</strong>:{' '}
+                    {d.sekolah?.nama && `Sekolah: ${d.sekolah.nama}`}
+                    {d.posyandu?.nama && `Posyandu: ${d.posyandu.nama}`}
+                    {` (L: ${d.lakiLaki}, P: ${d.perempuan})`}
+                  </li>
+                ))}
+              </ul>
+            )
+          },
+          {
+            key: 'id',
+            header: 'Aksi',
+            align: 'center',
+            width: '130px',
+            render: (val, row) => (
+              <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
+                <button onClick={() => handleEditClick(row)} style={{ padding: '3px 8px', cursor: 'pointer' }}>Edit</button>
+                <button onClick={() => handleDeleteClick(val)} style={{ padding: '3px 8px', color: 'red', cursor: 'pointer' }}>Hapus</button>
+              </div>
+            )
+          }
+        ]}
+        data={items}
+        emptyText="Belum ada data penerima manfaat untuk periode ini."
+      />
     </div>
   );
 };

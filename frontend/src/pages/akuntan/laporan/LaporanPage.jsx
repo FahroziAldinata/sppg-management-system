@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { Table } from '../../../components/Table';
 
 export const LaporanPage = () => {
     const { request } = useApi();
@@ -275,37 +276,45 @@ export const LaporanPage = () => {
 
             {/* Render Tabel BKU & BP */}
             {!loading && (jenisLaporan === 'BKU' || jenisLaporan === 'BP') && (
-                <table border="1" cellPadding="5" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead>
-                        <tr>
-                            <th>Tanggal</th>
-                            <th>No Bukti</th>
-                            <th>Uraian</th>
-                            <th>Debet</th>
-                            <th>Kredit</th>
-                            <th>Saldo Berjalan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {reportData.map((row) => (
-                            <tr key={row.id}>
-                                <td>{row.tanggal}</td>
-                                <td>{row.noBukti}</td>
-                                <td>{row.uraian}</td>
-                                <td>{row.debet > 0 ? `Rp${row.debet.toLocaleString('id-ID')}` : '—'}</td>
-                                <td>{row.kredit > 0 ? `Rp${row.kredit.toLocaleString('id-ID')}` : '—'}</td>
-                                <td>Rp{row.saldoBerjalan.toLocaleString('id-ID')}</td>
-                            </tr>
-                        ))}
-                        {reportData.length === 0 && (
-                            <tr>
-                                <td colSpan="6" style={{ textAlign: 'center', padding: '10px' }}>
-                                    Tidak ada data untuk laporan terpilih pada periode ini.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <Table
+                    columns={[
+                        { key: 'tanggal', header: 'Tanggal' },
+                        { key: 'noBukti', header: 'No Bukti' },
+                        { key: 'uraian', header: 'Uraian' },
+                        {
+                            key: 'debet',
+                            header: 'Debet',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'kredit',
+                            header: 'Kredit',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'saldoBerjalan',
+                            header: 'Saldo Berjalan',
+                            align: 'right',
+                            render: (v) => (
+                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                    Rp{Number(v).toLocaleString('id-ID')}
+                                </strong>
+                            )
+                        }
+                    ]}
+                    data={reportData}
+                    emptyText="Tidak ada data untuk laporan terpilih pada periode ini."
+                />
             )}
 
             {/* Render Laporan LPA */}
@@ -350,7 +359,57 @@ export const LaporanPage = () => {
                                 </tbody>
                             </table>
 
-                            <table border="1" cellPadding="6" style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px', fontSize: '14px' }}>
+                            <Table
+                                 columns={[
+                                     {
+                                         key: 'label',
+                                         header: 'Kategori Penggunaan',
+                                         render: (v, row) => row.isTotal ? <strong>{v}</strong> : v
+                                     },
+                                     {
+                                         key: 'diajukan',
+                                         header: 'Anggaran Diajukan (RAB)',
+                                         align: 'right',
+                                         render: (v, row) => (
+                                             <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: row.isTotal ? 700 : 400 }}>
+                                                 Rp{Number(v).toLocaleString('id-ID')}
+                                             </span>
+                                         )
+                                     },
+                                     {
+                                         key: 'terealisasi',
+                                         header: 'Realisasi (Aktual)',
+                                         align: 'right',
+                                         render: (v, row) => (
+                                             <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: row.isTotal ? 700 : 400 }}>
+                                                 Rp{Number(v).toLocaleString('id-ID')}
+                                             </span>
+                                         )
+                                     },
+                                     {
+                                         key: 'sisa',
+                                         header: 'Sisa Dana',
+                                         align: 'right',
+                                         render: (v, row) => (
+                                             <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: row.isTotal ? 700 : 400 }}>
+                                                 Rp{Number(v).toLocaleString('id-ID')}
+                                             </span>
+                                         )
+                                     }
+                                 ]}
+                                 data={[
+                                     ...lpaData.rincian,
+                                     {
+                                         label: 'Total',
+                                         diajukan: lpaData.total.diajukan,
+                                         terealisasi: lpaData.total.terealisasi,
+                                         sisa: lpaData.total.sisa,
+                                         isTotal: true
+                                     }
+                                 ]}
+                             />
+                             {false && (<table>
+
                                 <thead>
                                     <tr style={{ backgroundColor: '#eaeaea' }}>
                                         <th>Kategori Penggunaan</th>
@@ -375,7 +434,8 @@ export const LaporanPage = () => {
                                         <td style={{ textAlign: 'right' }}>Rp{lpaData.total.sisa.toLocaleString('id-ID')}</td>
                                     </tr>
                                 </tbody>
-                            </table>
+                             </table>)}
+                            
 
                             <div style={{ float: 'right', textAlign: 'center', marginTop: '20px', fontSize: '14px' }}>
                                 <p>{lpaData.tempatPelaporan || 'SPPG'}, {lpaData.tanggalPelaporan ? new Date(lpaData.tanggalPelaporan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</p>

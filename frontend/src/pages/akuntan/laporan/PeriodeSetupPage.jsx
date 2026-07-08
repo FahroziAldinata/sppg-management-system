@@ -163,142 +163,413 @@ export const PeriodeSetupPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '800px' }}>
-            <h2>Buka Periode & Setup Lembaga Baru</h2>
+        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--text)' }}>Buka Periode & Setup Lembaga Baru</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '-10px', marginBottom: '20px' }}>
                 Halaman ini digunakan untuk memulai periode operasional dan keuangan baru. Data lembaga di-autofill otomatis dari periode sebelumnya untuk menghemat waktu Anda.
             </p>
 
-            {/* ponytail: unify shade pastel to bg-elevated */}
-            {error && <div style={{ color: 'var(--color-danger)', marginBottom: '15px', padding: '10px', border: '1px solid rgba(239, 68, 68, 0.2)', backgroundColor: 'rgba(239, 68, 68, 0.1)', borderRadius: 'var(--radius-sm)' }}>{error}</div>}
-            {success && <div style={{ color: 'var(--color-success)', marginBottom: '15px', padding: '10px', border: '1px solid rgba(16, 185, 129, 0.2)', backgroundColor: 'rgba(16, 185, 129, 0.1)', borderRadius: 'var(--radius-sm)' }}>{success}</div>}
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div style={{
+                    color: 'var(--color-success)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-success)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
+                }}>
+                    {success}
+                </div>
+            )}
 
-            {loading && <p>Memuat konfigurasi default...</p>}
+            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat konfigurasi default...</p>}
 
             {!loading && (
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <form onSubmit={handleSubmit} style={{
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '24px',
+                    backgroundColor: 'var(--bg-elevated)',
+                    boxShadow: 'var(--shadow)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px'
+                }}>
                     
                     {/* SECTION 1: Detail Periode & Anggaran */}
-                    <fieldset style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '4px' }}>
-                        <legend style={{ fontWeight: 'bold', padding: '0 5px' }}>1. Rentang Periode &amp; Pagu Dana</legend>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '10px' }}>
+                    <fieldset style={{
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '20px',
+                        margin: 0,
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)'
+                    }}>
+                        <legend style={{
+                            fontWeight: '700',
+                            padding: '0 8px',
+                            color: 'var(--text)',
+                            fontSize: '12px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
+                        }}>
+                            1. Rentang Periode &amp; Pagu Dana
+                        </legend>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Tanggal Mulai *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Tanggal Mulai *
+                                </label>
                                 <input
                                     type="date"
                                     value={tanggalMulai}
                                     onChange={e => setTanggalMulai(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Tanggal Selesai *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Tanggal Selesai *
+                                </label>
                                 <input
                                     type="date"
                                     value={tanggalSelesai}
                                     onChange={e => setTanggalSelesai(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Anggaran Alokasi (Pagu BGN) *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Anggaran Alokasi (Pagu BGN) *
+                                </label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     placeholder="Masukkan Pagu Dana"
                                     value={anggaranAlokasi}
                                     onChange={e => setAnggaranAlokasi(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Total Dana Diterima (Opsional)</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Total Dana Diterima (Opsional)
+                                </label>
                                 <input
                                     type="number"
                                     step="0.01"
                                     placeholder="Diisi jika dana sudah cair ke VA"
                                     value={totalDanaDiterima}
                                     onChange={e => setTotalDanaDiterima(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                 />
                             </div>
                         </div>
                     </fieldset>
 
                     {/* SECTION 2: Setup Lembaga & Pejabat Penandatangan */}
-                    <fieldset style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '4px' }}>
-                        <legend style={{ fontWeight: 'bold', padding: '0 5px' }}>2. Pengaturan Lembaga &amp; Pejabat Penandatangan</legend>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '10px' }}>
+                    <fieldset style={{
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '20px',
+                        margin: 0,
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)'
+                    }}>
+                        <legend style={{
+                            fontWeight: '700',
+                            padding: '0 8px',
+                            color: 'var(--text)',
+                            fontSize: '12px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
+                        }}>
+                            2. Pengaturan Lembaga &amp; Pejabat Penandatangan
+                        </legend>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Nama Satuan Pelayanan (SPPG) *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Nama Satuan Pelayanan (SPPG) *
+                                </label>
                                 <input
                                     type="text"
                                     value={namaLembaga}
                                     onChange={e => setNamaLembaga(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Nomor Rekening Virtual Account (VA) *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Nomor Rekening Virtual Account (VA) *
+                                </label>
                                 <input
                                     type="text"
                                     value={nomorRekeningVA}
                                     onChange={e => setNomorRekeningVA(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div style={{ gridColumn: 'span 2' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Alamat Lembaga *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Alamat Lembaga *
+                                </label>
                                 <input
                                     type="text"
                                     value={alamat}
                                     onChange={e => setAlamat(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Nama Kepala SPPG *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Nama Kepala SPPG *
+                                </label>
                                 <input
                                     type="text"
                                     value={namaKepalaSPPG}
                                     onChange={e => setNamaKepalaSPPG(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Nama Akuntan SPPG *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Nama Akuntan SPPG *
+                                </label>
                                 <input
                                     type="text"
                                     value={namaAkuntanSPPG}
                                     onChange={e => setNamaAkuntanSPPG(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Nama Yayasan Pembina *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Nama Yayasan Pembina *
+                                </label>
                                 <input
                                     type="text"
                                     value={namaYayasan}
                                     onChange={e => setNamaYayasan(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Nama Ketua Yayasan *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Nama Ketua Yayasan *
+                                </label>
                                 <input
                                     type="text"
                                     value={ketuaYayasan}
                                     onChange={e => setKetuaYayasan(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
@@ -306,46 +577,138 @@ export const PeriodeSetupPage = () => {
                     </fieldset>
 
                     {/* SECTION 3: Pelaporan & Target Periode Berikutnya */}
-                    <fieldset style={{ padding: '15px', border: '1px solid #ccc', borderRadius: '4px' }}>
-                        <legend style={{ fontWeight: 'bold', padding: '0 5px' }}>3. Pelaporan &amp; Periode Berikutnya</legend>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '10px' }}>
+                    <fieldset style={{
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-sm)',
+                        padding: '20px',
+                        margin: 0,
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)'
+                    }}>
+                        <legend style={{
+                            fontWeight: '700',
+                            padding: '0 8px',
+                            color: 'var(--text)',
+                            fontSize: '12px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em'
+                        }}>
+                            3. Pelaporan &amp; Periode Berikutnya
+                        </legend>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Tahun Anggaran *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Tahun Anggaran *
+                                </label>
                                 <input
                                     type="number"
                                     value={tahunAnggaran}
                                     onChange={e => setTahunAnggaran(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Tempat Pelaporan (Kota) *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Tempat Pelaporan (Kota) *
+                                </label>
                                 <input
                                     type="text"
                                     value={tempatPelaporan}
                                     onChange={e => setTempatPelaporan(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Tanggal Tanda Tangan Laporan *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Tanggal Tanda Tangan Laporan *
+                                </label>
                                 <input
                                     type="date"
                                     value={tanggalPelaporan}
                                     onChange={e => setTanggalPelaporan(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
                             <div>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>Awal Periode Berikutnya *</label>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Awal Periode Berikutnya *
+                                </label>
                                 <input
                                     type="date"
                                     value={awalPeriodeBerikutnya}
                                     onChange={e => setAwalPeriodeBerikutnya(e.target.value)}
-                                    style={{ width: '100%', padding: '6px', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
                                     required
                                 />
                             </div>
@@ -356,14 +719,16 @@ export const PeriodeSetupPage = () => {
                         type="submit"
                         disabled={submitting}
                         style={{
-                            padding: '10px',
-                            fontWeight: 'bold',
-                            backgroundColor: submitting ? '#ccc' : '#007bff',
-                            color: 'white',
+                            padding: '12px 24px',
+                            fontWeight: '600',
+                            backgroundColor: submitting ? 'var(--border)' : 'var(--btn-primary-bg)',
+                            color: submitting ? 'var(--text-muted)' : 'var(--btn-primary-text)',
                             border: 'none',
-                            borderRadius: '4px',
+                            borderRadius: 'var(--radius-sm)',
                             cursor: submitting ? 'not-allowed' : 'pointer',
-                            marginTop: '10px'
+                            marginTop: '10px',
+                            fontSize: '14px',
+                            alignSelf: 'flex-start'
                         }}
                     >
                         {submitting ? 'Menyimpan...' : 'Buka & Setup Periode Baru'}

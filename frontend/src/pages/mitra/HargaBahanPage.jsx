@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { Table } from '../../components/Table';
 
 export const HargaBahanPage = () => {
   const { request } = useApi();
@@ -157,50 +158,132 @@ export const HargaBahanPage = () => {
 
       <hr />
 
-      <h3>{editingId ? 'Edit Harga Bahan' : 'Tambah Harga Bahan Baru'}</h3>
-      <form onSubmit={handleSubmit} style={{ border: '1px solid #ccc', padding: '15px', maxWidth: '500px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '3px' }}>Bahan Pokok: </label>
-          <select
-            value={formBahanId}
-            onChange={(e) => setFormBahanId(e.target.value)}
-            required
-            style={{ width: '100%', padding: '5px' }}
-          >
-            <option value="">-- Pilih Bahan --</option>
-            {bahanList.map(b => (
-              <option key={b.id} value={b.id}>{b.nama} ({b.satuan})</option>
-            ))}
-          </select>
+      <form onSubmit={handleSubmit} style={{
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '24px',
+        backgroundColor: 'var(--bg-elevated)',
+        boxShadow: 'var(--shadow)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+        marginBottom: '30px'
+      }}>
+        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text)' }}>
+          {editingId ? 'Edit Harga Bahan' : 'Tambah Harga Bahan Baru'}
+        </h3>
+        
+        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 200px' }}>
+            <label style={{
+              textTransform: 'uppercase',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.07em',
+              color: 'var(--text-muted)',
+              display: 'block',
+              marginBottom: '6px'
+            }}>
+              Bahan Pokok
+            </label>
+            <select
+              value={formBahanId}
+              onChange={(e) => setFormBahanId(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--input-border)',
+                backgroundColor: 'var(--bg)',
+                color: 'var(--text)',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            >
+              <option value="">-- Pilih Bahan --</option>
+              {bahanList.map(b => (
+                <option key={b.id} value={b.id}>{b.nama} ({b.satuan})</option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ flex: '1 1 200px' }}>
+            <label style={{
+              textTransform: 'uppercase',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.07em',
+              color: 'var(--text-muted)',
+              display: 'block',
+              marginBottom: '6px'
+            }}>
+              Harga Satuan (Rp)
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={formHarga}
+              onChange={(e) => setFormHarga(e.target.value)}
+              required
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--input-border)',
+                backgroundColor: 'var(--bg)',
+                color: 'var(--text)',
+                fontSize: '14px',
+                boxSizing: 'border-box'
+              }}
+            />
+          </div>
         </div>
+
         <div>
-          <label style={{ display: 'block', marginBottom: '3px' }}>Harga Satuan (Rp): </label>
-          <input
-            type="number"
-            min="0"
-            step="0.01"
-            value={formHarga}
-            onChange={(e) => setFormHarga(e.target.value)}
-            required
-            style={{ width: '100%', padding: '5px' }}
-          />
-        </div>
-        <div>
-          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginTop: '5px' }}>
+          <label style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            color: 'var(--text)'
+          }}>
             <input
               type="checkbox"
               checked={formIsFallback}
               onChange={(e) => setFormIsFallback(e.target.checked)}
+              style={{ cursor: 'pointer' }}
             />
             Jadikan harga fallback
           </label>
         </div>
-        <div style={{ marginTop: '10px' }}>
-          <button type="submit" style={{ padding: '6px 15px', backgroundColor: '#28a745', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
-            {editingId ? 'Simpan Perubahan' : 'Tambah Harga'}
+
+        <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+          <button type="submit" style={{
+            padding: '10px 20px',
+            backgroundColor: 'var(--btn-primary-bg)',
+            color: 'var(--btn-primary-text)',
+            border: 'none',
+            borderRadius: 'var(--radius-sm)',
+            cursor: 'pointer',
+            fontWeight: 600,
+            fontSize: '14px'
+          }}>
+            {editingId ? 'Simpan Perubahan' : 'Simpan Data'}
           </button>
           {editingId && (
-            <button type="button" onClick={resetForm} style={{ marginLeft: '10px', padding: '6px 15px', backgroundColor: '#6c757d', color: '#fff', border: 'none', cursor: 'pointer' }}>
+            <button type="button" onClick={resetForm} style={{
+              padding: '10px 20px',
+              backgroundColor: 'var(--btn-cancel-bg)',
+              border: '1px solid var(--btn-cancel-border)',
+              color: 'var(--btn-cancel-text)',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '14px'
+            }}>
               Batal Edit
             </button>
           )}
@@ -209,38 +292,44 @@ export const HargaBahanPage = () => {
 
       <hr style={{ margin: '20px 0' }} />
 
-      <h3>Daftar Harga Bahan Periode Ini</h3>
-      {items.length === 0 ? (
-        <p style={{ fontStyle: 'italic', color: '#888' }}>Belum ada data harga bahan untuk periode ini.</p>
-      ) : (
-        <table border="1" cellPadding="6" style={{ borderCollapse: 'collapse', width: '100%', fontSize: '14px' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#eaeaea' }}>
-              <th>Bahan Pokok</th>
-              <th style={{ width: '100px', textAlign: 'center' }}>Satuan</th>
-              <th style={{ textAlign: 'right' }}>Harga Satuan</th>
-              <th style={{ textAlign: 'center', width: '100px' }}>Fallback</th>
-              <th>Diinput oleh</th>
-              <th style={{ width: '130px', textAlign: 'center' }}>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map(row => (
-              <tr key={row.id}>
-                <td>{row.bahanPokok?.nama}</td>
-                <td style={{ textAlign: 'center' }}>{row.bahanPokok?.satuan}</td>
-                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Rp{Number(row.harga).toLocaleString('id-ID')}</td>
-                <td style={{ textAlign: 'center' }}>{row.isFallback ? 'Ya' : 'Tidak'}</td>
-                <td>{row.createdBy?.nama || '-'}</td>
-                <td style={{ textAlign: 'center' }}>
-                  <button onClick={() => handleEditClick(row)} style={{ padding: '3px 8px', marginRight: '5px', cursor: 'pointer' }}>Edit</button>
-                  <button onClick={() => handleDeleteClick(row.id)} style={{ padding: '3px 8px', color: 'red', cursor: 'pointer' }}>Hapus</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <Table
+        columns={[
+          { key: 'bahanPokok', header: 'Bahan Pokok', render: (val) => val?.nama || '—' },
+          { key: 'satuan', header: 'Satuan', align: 'center', width: '100px', render: (_, row) => row.bahanPokok?.satuan || '—' },
+          {
+            key: 'harga',
+            header: 'Harga Satuan',
+            align: 'right',
+            render: (val) => (
+              <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
+                Rp{Number(val).toLocaleString('id-ID')}
+              </strong>
+            )
+          },
+          {
+            key: 'isFallback',
+            header: 'Fallback',
+            align: 'center',
+            width: '100px',
+            render: (val) => val ? 'Ya' : 'Tidak'
+          },
+          { key: 'createdBy', header: 'Diinput oleh', render: (val) => val?.nama || '—' },
+          {
+            key: 'id',
+            header: 'Aksi',
+            align: 'center',
+            width: '130px',
+            render: (val, row) => (
+              <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
+                <button onClick={() => handleEditClick(row)} style={{ padding: '3px 8px', cursor: 'pointer' }}>Edit</button>
+                <button onClick={() => handleDeleteClick(val)} style={{ padding: '3px 8px', color: 'red', cursor: 'pointer' }}>Hapus</button>
+              </div>
+            )
+          }
+        ]}
+        data={items}
+        emptyText="Belum ada data harga bahan untuk periode ini."
+      />
     </div>
   );
 };

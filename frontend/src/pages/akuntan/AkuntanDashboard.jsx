@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
+import { WorkflowStepper } from '../../components/WorkflowStepper';
+import { NotifikasiList } from '../../components/NotifikasiList';
 
 export const AkuntanDashboard = () => {
   const { request } = useApi();
@@ -10,6 +12,8 @@ export const AkuntanDashboard = () => {
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
   const [stats, setStats] = useState({ totalKas: 0, rabCount: 0, journalCount: 0 });
   const [loading, setLoading] = useState(true);
+  const [dashSummary, setDashSummary] = useState(null);
+  const [loadingSummary, setLoadingSummary] = useState(true);
 
   const shortcuts = [
     { label: '1. Setup Periode', path: '/akuntan/laporan/periode-setup', color: '#007bff' },
@@ -39,6 +43,17 @@ export const AkuntanDashboard = () => {
           const activePId = dataP[0].id;
           setSelectedPeriodId(activePId);
           await loadStats(activePId);
+
+          try {
+            const resSummary = await request(`/dashboard/summary?periodeId=${activePId}`);
+            if (resSummary.ok) {
+              setDashSummary((await resSummary.json()).data);
+            }
+          } finally {
+            setLoadingSummary(false);
+          }
+        } else {
+          setLoadingSummary(false);
         }
       } catch (err) {
         console.error(err);
@@ -82,6 +97,16 @@ export const AkuntanDashboard = () => {
   const handlePeriodChange = async (pid) => {
     setSelectedPeriodId(pid);
     await loadStats(pid);
+
+    setLoadingSummary(true);
+    try {
+      const resSummary = await request(`/dashboard/summary?periodeId=${pid}`);
+      if (resSummary.ok) {
+        setDashSummary((await resSummary.json()).data);
+      }
+    } finally {
+      setLoadingSummary(false);
+    }
   };
 
   if (loading) return <p>Memuat Ringkasan Beranda Akuntan...</p>;
@@ -145,25 +170,8 @@ export const AkuntanDashboard = () => {
         </h3>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '15px' }}>
           {shortcuts.map(sc => (
-            <button
-              key={sc.path}
-              onClick={() => navigate(sc.path)}
-              style={{
-                padding: '12px 15px',
-                backgroundColor: 'var(--bg)',
-                border: `1px solid var(--border)`,
-                borderLeft: `4px solid ${sc.color}`,
-                borderRadius: 'var(--radius-sm)',
-                textAlign: 'left',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '13px',
-                color: 'var(--text)',
-                transition: 'background-color 0.2s',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}
+            <button key={sc.path} onClick={() => navigate(sc.path)}
+              style={{ padding: '12px 15px', backgroundColor: 'var(--bg)', border: `1px solid var(--border)`, borderLeft: `4px solid ${sc.color}`, borderRadius: 'var(--radius-sm)', textAlign: 'left', cursor: 'pointer', fontWeight: 'bold', fontSize: '13px', color: 'var(--text)', transition: 'background-color 0.2s', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--border)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--bg)'; }}
             >
@@ -171,6 +179,18 @@ export const AkuntanDashboard = () => {
               <span style={{ fontSize: '16px', color: 'var(--text-muted)' }}>&rarr;</span>
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* Workflow Progress & Notifikasi */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '25px' }}>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Progress Tahapan Operasional</h3>
+          <WorkflowStepper workflowProgress={dashSummary?.workflowProgress} loading={loadingSummary} />
+        </div>
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+          <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Peringatan Aktif</h3>
+          <NotifikasiList notifikasi={dashSummary?.notifikasiPenting} loading={loadingSummary} />
         </div>
       </div>
     </div>

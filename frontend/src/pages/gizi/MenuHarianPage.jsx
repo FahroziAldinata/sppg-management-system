@@ -520,62 +520,257 @@ export const MenuHarianPage = () => {
     };
 
     return (
-        <div>
-            <h2>Menu Harian</h2>
-            {error && <div style={{ color: 'red' }}>{error}</div>}
-            <select value={periodeId} onChange={e => setPeriodeId(e.target.value)}>
-                {periods.map(p => <option key={p.id} value={p.id}>{p.tanggalMulai.split('T')[0]} - {p.tanggalSelesai.split('T')[0]}</option>)}
-            </select>
-            <form onSubmit={create}>
-                <input type="date" value={tanggal} onChange={e => setTanggal(e.target.value)} required />
-                <button type="submit">Buat Menu Harian</button>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <h2 style={{ color: 'var(--text)' }}>Menu Harian</h2>
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    margin: '10px 0',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
+
+            <div style={{ marginBottom: '20px' }}>
+                <label style={{
+                    textTransform: 'uppercase',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.07em',
+                    color: 'var(--text-muted)',
+                    display: 'block',
+                    marginBottom: '6px'
+                }}>
+                    Pilih Periode Aktif
+                </label>
+                <select
+                    value={periodeId}
+                    onChange={e => setPeriodeId(e.target.value)}
+                    style={{
+                        width: '300px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                    }}
+                >
+                    {periods.map(p => (
+                        <option key={p.id} value={p.id}>
+                            {p.tanggalMulai.split('T')[0]} - {p.tanggalSelesai.split('T')[0]}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
+            <form onSubmit={create} style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                display: 'flex',
+                gap: '16px',
+                alignItems: 'flex-end',
+                marginBottom: '30px',
+                maxWidth: '500px'
+            }}>
+                <div style={{ flex: 1 }}>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Pilih Tanggal Menu Harian
+                    </label>
+                    <input
+                        type="date"
+                        value={tanggal}
+                        onChange={e => setTanggal(e.target.value)}
+                        required
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                        }}
+                    />
+                </div>
+                <button type="submit" style={{
+                    padding: '10px 20px',
+                    backgroundColor: 'var(--btn-primary-bg)',
+                    color: 'var(--btn-primary-text)',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '14px',
+                    height: '42px'
+                }}>
+                    Buat Menu Harian
+                </button>
             </form>
 
             {/* ================================================ */}
             {/* SECTION 1 — MANAJEMEN KENDARAAN (render 1x saja) */}
             {/* ================================================ */}
-            <section style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '15px' }}>
-                <h3>Manajemen Kendaraan</h3>
+            <section style={{
+                border: '1px solid var(--border)',
+                padding: '24px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px'
+            }}>
+                <h3 style={{ margin: '0 0 20px 0', color: 'var(--text)' }}>Manajemen Kendaraan</h3>
 
                 {/* Form Tambah / Edit */}
-                <form onSubmit={editingKendaraan ? updateKendaraan : addKendaraan}>
-                    <input
-                        placeholder="Nama Kendaraan"
-                        value={kendaraanForm.namaKendaraan}
-                        onChange={e => setKendaraanForm(prev => ({ ...prev, namaKendaraan: e.target.value }))}
-                        required
-                    />
-                    <input
-                        placeholder="Plat Nomor (opsional)"
-                        value={kendaraanForm.platNomor}
-                        onChange={e => setKendaraanForm(prev => ({ ...prev, platNomor: e.target.value }))}
-                    />
-                    <label>
-                        <input
-                            type="checkbox"
-                            checked={kendaraanForm.aktif}
-                            onChange={e => setKendaraanForm(prev => ({ ...prev, aktif: e.target.checked }))}
-                        />
-                        {' '}Aktif
-                    </label>
-                    <button type="submit">
-                        {editingKendaraan ? 'Simpan Perubahan' : 'Tambah Kendaraan'}
-                    </button>
-                    {editingKendaraan && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setEditingKendaraan(null);
-                                setKendaraanForm({ namaKendaraan: '', platNomor: '', aktif: true });
-                            }}
-                        >
-                            Batal
+                <form onSubmit={editingKendaraan ? updateKendaraan : addKendaraan} style={{
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '24px',
+                    backgroundColor: 'var(--bg)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    marginBottom: '24px'
+                }}>
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>
+                        {editingKendaraan ? 'Edit Kendaraan' : 'Tambah Kendaraan Baru'}
+                    </h4>
+
+                    <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                        <div style={{ flex: '1 1 200px' }}>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Nama Kendaraan
+                            </label>
+                            <input
+                                placeholder="Nama Kendaraan"
+                                value={kendaraanForm.namaKendaraan}
+                                onChange={e => setKendaraanForm(prev => ({ ...prev, namaKendaraan: e.target.value }))}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+                        <div style={{ flex: '1 1 200px' }}>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Plat Nomor (opsional)
+                            </label>
+                            <input
+                                placeholder="Plat Nomor (opsional)"
+                                value={kendaraanForm.platNomor}
+                                onChange={e => setKendaraanForm(prev => ({ ...prev, platNomor: e.target.value }))}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            color: 'var(--text)'
+                        }}>
+                            <input
+                                type="checkbox"
+                                checked={kendaraanForm.aktif}
+                                onChange={e => setKendaraanForm(prev => ({ ...prev, aktif: e.target.checked }))}
+                                style={{ cursor: 'pointer' }}
+                            />
+                            Kendaraan Aktif
+                        </label>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px' }}>
+                        <button type="submit" style={{
+                            padding: '10px 20px',
+                            backgroundColor: 'var(--btn-primary-bg)',
+                            color: 'var(--btn-primary-text)',
+                            border: 'none',
+                            borderRadius: 'var(--radius-sm)',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '14px'
+                        }}>
+                            {editingKendaraan ? 'Simpan Perubahan' : 'Tambah Kendaraan'}
                         </button>
-                    )}
+                        {editingKendaraan && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setEditingKendaraan(null);
+                                    setKendaraanForm({ namaKendaraan: '', platNomor: '', aktif: true });
+                                }}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: 'var(--btn-cancel-bg)',
+                                    border: '1px solid var(--btn-cancel-border)',
+                                    color: 'var(--btn-cancel-text)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    fontSize: '14px'
+                                }}
+                            >
+                                Batal
+                            </button>
+                        )}
+                    </div>
                 </form>
 
                 {/* Daftar semua kendaraan — tanpa filter aktif */}
-                <table border="1" cellPadding="4" style={{ marginTop: '8px' }}>
+                <table border="1" cellPadding="4" style={{ marginTop: '8px', borderCollapse: 'collapse', width: '100%', borderColor: 'var(--border)', color: 'var(--text)' }}>
                     <thead>
                         <tr>
                             <th>Nama</th>
@@ -609,69 +804,267 @@ export const MenuHarianPage = () => {
             {/* ================================================ */}
             {/* SECTION 3 — MASTER MENU MINGGUAN (REFERENSI)     */}
             {/* ================================================ */}
-            <section style={{ border: '1px solid #ccc', padding: '10px', marginBottom: '15px' }}>
-                <h3>Master Menu Mingguan (Referensi)</h3>
+            <section style={{
+                border: '1px solid var(--border)',
+                padding: '24px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px'
+            }}>
+                <h3 style={{ margin: '0 0 20px 0', color: 'var(--text)' }}>Master Menu Mingguan (Referensi)</h3>
 
                 {/* Form Tambah Master Menu */}
-                <form onSubmit={addMasterMenu}>
-                    <select
-                        value={masterMenuForm.jalur}
-                        onChange={e => setMasterMenuForm(prev => ({ ...prev, jalur: e.target.value }))}
-                        required
-                    >
-                        <option value="SISWA">SISWA</option>
-                        <option value="TIGA_B">TIGA_B</option>
-                    </select>
+                <form onSubmit={addMasterMenu} style={{
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '24px',
+                    backgroundColor: 'var(--bg)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '16px',
+                    marginBottom: '24px'
+                }}>
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>
+                        Tambah Master Menu
+                    </h4>
 
-                    <select
-                        value={masterMenuForm.hari}
-                        onChange={e => setMasterMenuForm(prev => ({ ...prev, hari: e.target.value }))}
-                        required
-                    >
-                        <option value="SENIN">SENIN</option>
-                        <option value="SELASA">SELASA</option>
-                        <option value="RABU">RABU</option>
-                        <option value="KAMIS">KAMIS</option>
-                        <option value="JUMAT">JUMAT</option>
-                        <option value="SABTU">SABTU</option>
-                    </select>
+                    <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                        <div style={{ flex: '1 1 120px' }}>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Jalur
+                            </label>
+                            <select
+                                value={masterMenuForm.jalur}
+                                onChange={e => setMasterMenuForm(prev => ({ ...prev, jalur: e.target.value }))}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            >
+                                <option value="SISWA">SISWA</option>
+                                <option value="TIGA_B">TIGA_B</option>
+                            </select>
+                        </div>
 
-                    <input
-                        placeholder="Menu Karbohidrat"
-                        value={masterMenuForm.menuKarbohidrat}
-                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuKarbohidrat: e.target.value }))}
-                        required
-                    />
-                    <input
-                        placeholder="Menu Lauk Hewani"
-                        value={masterMenuForm.menuLaukHewani}
-                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuLaukHewani: e.target.value }))}
-                        required
-                    />
-                    <input
-                        placeholder="Menu Lauk Nabati"
-                        value={masterMenuForm.menuLaukNabati}
-                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuLaukNabati: e.target.value }))}
-                        required
-                    />
-                    <input
-                        placeholder="Menu Sayur"
-                        value={masterMenuForm.menuSayur}
-                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuSayur: e.target.value }))}
-                        required
-                    />
-                    <input
-                        placeholder="Menu Buah"
-                        value={masterMenuForm.menuBuah}
-                        onChange={e => setMasterMenuForm(prev => ({ ...prev, menuBuah: e.target.value }))}
-                        required
-                    />
+                        <div style={{ flex: '1 1 120px' }}>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Hari
+                            </label>
+                            <select
+                                value={masterMenuForm.hari}
+                                onChange={e => setMasterMenuForm(prev => ({ ...prev, hari: e.target.value }))}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            >
+                                <option value="SENIN">SENIN</option>
+                                <option value="SELASA">SELASA</option>
+                                <option value="RABU">RABU</option>
+                                <option value="KAMIS">KAMIS</option>
+                                <option value="JUMAT">JUMAT</option>
+                                <option value="SABTU">SABTU</option>
+                            </select>
+                        </div>
+                    </div>
 
-                    <button type="submit">Tambah Master Menu</button>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px' }}>
+                        <div>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Menu Karbohidrat
+                            </label>
+                            <input
+                                placeholder="Menu Karbohidrat"
+                                value={masterMenuForm.menuKarbohidrat}
+                                onChange={e => setMasterMenuForm(prev => ({ ...prev, menuKarbohidrat: e.target.value }))}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Menu Lauk Hewani
+                            </label>
+                            <input
+                                placeholder="Menu Lauk Hewani"
+                                value={masterMenuForm.menuLaukHewani}
+                                onChange={e => setMasterMenuForm(prev => ({ ...prev, menuLaukHewani: e.target.value }))}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Menu Lauk Nabati
+                            </label>
+                            <input
+                                placeholder="Menu Lauk Nabati"
+                                value={masterMenuForm.menuLaukNabati}
+                                onChange={e => setMasterMenuForm(prev => ({ ...prev, menuLaukNabati: e.target.value }))}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Menu Sayur
+                            </label>
+                            <input
+                                placeholder="Menu Sayur"
+                                value={masterMenuForm.menuSayur}
+                                onChange={e => setMasterMenuForm(prev => ({ ...prev, menuSayur: e.target.value }))}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: 11,
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Menu Buah
+                            </label>
+                            <input
+                                placeholder="Menu Buah"
+                                value={masterMenuForm.menuBuah}
+                                onChange={e => setMasterMenuForm(prev => ({ ...prev, menuBuah: e.target.value }))}
+                                required
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--input-border)',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    fontSize: '14px',
+                                    boxSizing: 'border-box'
+                                }}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ marginTop: '10px' }}>
+                        <button type="submit" style={{
+                            padding: '10px 20px',
+                            backgroundColor: 'var(--btn-primary-bg)',
+                            color: 'var(--btn-primary-text)',
+                            border: 'none',
+                            borderRadius: 'var(--radius-sm)',
+                            cursor: 'pointer',
+                            fontWeight: 600,
+                            fontSize: '14px'
+                        }}>
+                            Tambah Master Menu
+                        </button>
+                    </div>
                 </form>
 
                 {/* Tabel Read-only Daftar Master Menu */}
-                <table border="1" cellPadding="4" style={{ marginTop: '8px', width: '100%' }}>
+                <table border="1" cellPadding="4" style={{ marginTop: '8px', borderCollapse: 'collapse', width: '100%', borderColor: 'var(--border)', color: 'var(--text)' }}>
                     <thead>
                         <tr>
                             <th>Jalur</th>
