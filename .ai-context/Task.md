@@ -13,6 +13,7 @@ BUG:
 
 - bagian side nav ada scrolling kesamping. analisis itu bisa kenapa. kemungkinan itu terjadi karena ruang size button melewati batas content dan scrolling. solusi mungkin bisa tambahkan ruang content sehingga scrolling kiri kanan tidak muncul
 
+Redesign layout laporan dokumen
 Redesign Component V1:
 
 - scope = dropdown component (only)
