@@ -241,3 +241,21 @@ textarea:not([data-slot="input"]):not([class*="heroui"]):hover {
   outline: none;
   transition: background-color 100ms ease, color 100ms ease;
 }
+
+/* Styling card dashboard*/
+.ui-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+
+  box-shadow: var(--shadow);
+
+  transition:
+    transform var(--transition-normal),
+    box-shadow var(--transition-normal);
+}
+
+.ui-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
