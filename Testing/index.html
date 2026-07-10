@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<title>Test Dropdown</title>
+
+<!-- ganti path ini sesuai lokasi file kamu di folder testing -->
+<link rel="stylesheet" href="./styles/tokens.css" />
+<link rel="stylesheet" href="./index.css" />
+
+<style>
+  body { padding: 40px; display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
+  #theme-toggle { padding: 6px 12px; cursor: pointer; }
+</style>
+</head>
+<body>
+<button id="theme-toggle" type="button">Toggle Dark Mode</button>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script>
+  document.getElementById('theme-toggle').onclick = () => {
+    const html = document.documentElement;
+    html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  };
+</script>
+
+<script type="text/babel" data-type="module">
+const { useState, useRef, useEffect, useId } = React;
+
+// ==== PASTE Dropdown.jsx KAMU DI SINI (tanpa baris `export default`, ganti jadi `function Dropdown(...)`) ====
+function Dropdown({ options, value, onChange, placeholder = "Pilih...", style }) {
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+  const containerRef = useRef(null);
+  const id = useId();
+  const selected = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    function onClickOutside(e) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, []);
+
+  function openList() {
+    setOpen(true);
+    setActiveIndex(Math.max(0, options.findIndex((o) => o.value === value)));
+  }
+  function selectOption(opt) { onChange(opt.value); setOpen(false); }
+  function onKeyDown(e) {
+    if (!open && ["Enter", " ", "ArrowDown"].includes(e.key)) { e.preventDefault(); openList(); return; }
+    if (!open) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActiveIndex((i) => Math.min(i + 1, options.length - 1)); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActiveIndex((i) => Math.max(i - 1, 0)); }
+    else if (e.key === "Enter") { e.preventDefault(); if (activeIndex >= 0) selectOption(options[activeIndex]); }
+    else if (e.key === "Escape") setOpen(false);
+  }
+
+  return (
+    <div className="custom-select-container" ref={containerRef} style={style}>
+      <button type="button" id={id} className={`custom-select-trigger${open ? " active" : ""}`}
+        aria-haspopup="listbox" aria-expanded={open}
+        onClick={() => (open ? setOpen(false) : openList())} onKeyDown={onKeyDown}>
+        <span>{selected ? selected.label : placeholder}</span>
+        <span aria-hidden style={{ marginLeft: 8, opacity: 0.6 }}>▾</span>
+      </button>
+      {open && (
+        <ul className="custom-select-dropdown" role="listbox" aria-labelledby={id}>
+          {options.map((opt, i) => (
+            <li key={opt.value} role="option" aria-selected={opt.value === value} tabIndex={-1}
+              className={`custom-select-option${opt.value === value ? " selected" : ""}${i === activeIndex ? " hovered" : ""}`}
+              onMouseDown={(e) => e.preventDefault()} onMouseEnter={() => setActiveIndex(i)}
+              onClick={() => selectOption(opt)}>
+              {opt.label}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+// ==== END Dropdown.jsx ====
+
+function App() {
+  const [periode, setPeriode] = useState("periode-contoh-8-17-jan-2026");
+  return (
+    <Dropdown
+      style={{ width: 300 }}
+      options={[
+        { value: "periode-contoh-8-17-jan-2026", label: "2026-01-08 - 2026-01-17" },
+        { value: "periode-2", label: "2026-01-18 - 2026-01-27" },
+        { value: "periode-3", label: "2026-01-28 - 2026-02-06" },
+      ]}
+      value={periode}
+      onChange={setPeriode}
+    />
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
