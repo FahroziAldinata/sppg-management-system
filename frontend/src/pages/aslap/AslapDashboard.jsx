@@ -110,34 +110,69 @@ export const AslapDashboard = () => {
         </p>
       </div>
 
-      {/* Period Selection Info */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', backgroundColor: 'var(--bg-elevated)', marginBottom: '25px' }}>
-        <h3 style={{ margin: '0 0 10px 0', fontSize: '16px' }}>Detail Periode &amp; Setup Lembaga</h3>
-        <div style={{ display: 'flex', gap: '15px', alignItems: 'center', marginBottom: '15px' }}>
-          <label style={{ fontWeight: 'bold' }}>Pilih Periode: </label>
+      {/* Period Selector */}
+      <div style={{
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius-md)',
+          padding: '24px',
+          backgroundColor: 'var(--bg-elevated)',
+          boxShadow: 'var(--shadow)',
+          marginBottom: '30px',
+          width: '26%',
+          minWidth: '320px'
+      }}>
+          <label style={{
+              textTransform: 'uppercase',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.07em',
+              color: 'var(--text-muted)',
+              display: 'block',
+              marginBottom: '6px'
+          }}>
+              Pilih Periode Aktif
+          </label>
           <select 
-            value={selectedPeriod?.id || ''}
-            onChange={(e) => handlePeriodChange(e.target.value)}
-            style={{ padding: '5px' }}
+              value={selectedPeriod?.id || ''}
+              onChange={(e) => handlePeriodChange(e.target.value)}
+              style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid var(--input-border)',
+                  backgroundColor: 'var(--bg)',
+                  color: 'var(--text)',
+                  fontSize: '14px',
+                  boxSizing: 'border-box'
+              }}
           >
-            {periods.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.tanggalMulai} - {p.tanggalSelesai}
-              </option>
-            ))}
+              {periods.map(p => (
+                  <option key={p.id} value={p.id}>
+                      {p.tanggalMulai} - {p.tanggalSelesai}
+                  </option>
+              ))}
           </select>
-        </div>
-
-        {selectedPeriod?.setupLembaga && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px', borderTop: '1px solid var(--border)', paddingTop: '10px' }}>
-            <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
-            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
-            <div>Kepala SPPG: <strong>{selectedPeriod.setupLembaga.namaKepalaSPPG}</strong></div>
-            <div>Tahun Anggaran: <strong>{selectedPeriod.setupLembaga.tahunAnggaran}</strong></div>
-            <div style={{ gridColumn: 'span 2' }}>Alamat: {selectedPeriod.setupLembaga.alamat}</div>
-          </div>
-        )}
       </div>
+
+      {selectedPeriod?.setupLembaga && (
+        <div style={{
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            padding: '24px',
+            backgroundColor: 'var(--bg-elevated)',
+            boxShadow: 'var(--shadow)',
+            marginBottom: '25px'
+        }}>
+            <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: 'var(--text)' }}>Detail Lembaga Periode Aktif</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
+                <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
+                <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
+                <div>Kepala SPPG: <strong>{selectedPeriod.setupLembaga.namaKepalaSPPG}</strong></div>
+                <div>Tahun Anggaran: <strong>{selectedPeriod.setupLembaga.tahunAnggaran}</strong></div>
+                <div style={{ gridColumn: 'span 2' }}>Alamat: {selectedPeriod.setupLembaga.alamat}</div>
+            </div>
+        </div>
+      )}
 
       {/* Ringkasan Status Sistem */}
       <DashboardSummaryCards dashSummary={dashSummary} loadingSummary={loadingSummary} />

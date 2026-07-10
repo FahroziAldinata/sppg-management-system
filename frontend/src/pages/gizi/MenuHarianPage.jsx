@@ -78,7 +78,7 @@ export const MenuHarianPage = () => {
                 return [];
             })
             .then(d => setMasterMenuList(d))
-            .catch(() => {});
+            .catch(() => { });
     }, [periodeId]);
 
     const load = async (pid) => {
@@ -458,7 +458,7 @@ export const MenuHarianPage = () => {
     const addMasterMenu = async (e) => {
         e.preventDefault();
         setError('');
-        
+
         if (!periodeId) {
             setError('Periode tidak valid. Silakan pilih periode terlebih dahulu.');
             return;
@@ -543,7 +543,7 @@ export const MenuHarianPage = () => {
                 backgroundColor: 'var(--bg-elevated)',
                 boxShadow: 'var(--shadow)',
                 marginBottom: '30px',
-                width: '40%',
+                width: '26%',
                 minWidth: '320px'
             }}>
                 <label style={{

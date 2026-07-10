@@ -120,7 +120,16 @@ export const KepalaDashboard = () => {
           <select
             value={selectedPeriod?.id || ''}
             onChange={(e) => handlePeriodChange(e.target.value)}
-            style={{ padding: '5px' }}
+            style={{
+              width: '20%',
+              padding: '10px 12px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--input-border)',
+              backgroundColor: 'var(--bg)',
+              color: 'var(--text)',
+              fontSize: '14px',
+              boxSizing: 'border-box'
+            }}
           >
             {periods.map(p => (
               <option key={p.id} value={p.id}>

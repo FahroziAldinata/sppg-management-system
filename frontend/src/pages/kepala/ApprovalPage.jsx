@@ -138,7 +138,7 @@ export const ApprovalPage = () => {
                 backgroundColor: 'var(--bg-elevated)',
                 boxShadow: 'var(--shadow)',
                 marginBottom: '30px',
-                width: '40%',
+                width: '26%',
                 minWidth: '320px'
             }}>
                 <label style={{
