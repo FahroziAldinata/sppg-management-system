@@ -132,8 +132,8 @@ export const DokumenResmiPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Dokumen Resmi (Generator &amp; Publikasi)</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Dokumen Resmi (Generator &amp; Publikasi)</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -160,7 +160,16 @@ export const DokumenResmiPage = () => {
             )}
 
             {/* Pilihan Periode */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '26%',
+                minWidth: '320px'
+            }}>
                 <label style={{
                     textTransform: 'uppercase',
                     fontSize: '11px',

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderStatus, renderTruncate } from '../../components/Table';
+import { DatePicker } from '../../components/DatePicker';
 
 export const MutasiStokPage = () => {
     const { request } = useApi();
@@ -37,12 +38,12 @@ export const MutasiStokPage = () => {
         request('/akuntan/supplier')
             .then(r => r.json())
             .then(d => setSupplierList(d))
-            .catch(() => {});
+            .catch(() => { });
 
         request('/mitra/bahan-pokok')
             .then(r => r.json())
             .then(d => setBahanPokokList(d))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     const loadMutasiStok = async (pid) => {
@@ -147,8 +148,8 @@ export const MutasiStokPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Pencatatan Mutasi Stok Gudang (Masuk / Keluar)</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pencatatan Mutasi Stok Gudang (Masuk / Keluar)</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -175,7 +176,16 @@ export const MutasiStokPage = () => {
             )}
 
             {/* Pilihan Periode */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '30%',
+                minWidth: '320px'
+            }}>
                 <label style={{
                     textTransform: 'uppercase',
                     fontSize: '11px',
@@ -222,7 +232,7 @@ export const MutasiStokPage = () => {
                 gap: '16px'
             }}>
                 <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Buat Mutasi Stok</h3>
-                
+
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -271,21 +281,10 @@ export const MutasiStokPage = () => {
                         }}>
                             Tanggal
                         </label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={mutasiForm.tanggal}
-                            onChange={e => setMutasiForm(prev => ({ ...prev, tanggal: e.target.value }))}
+                            onChange={val => setMutasiForm(prev => ({ ...prev, tanggal: val }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
                         />
                     </div>
                 </div>

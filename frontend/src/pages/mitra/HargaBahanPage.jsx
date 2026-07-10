@@ -136,17 +136,46 @@ export const HargaBahanPage = () => {
 
   return (
     <div>
-      <h2>Pengelolaan Daftar Harga Bahan Periode</h2>
+      <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pengelolaan Daftar Harga Bahan Periode</h2>
       
       {error && <div style={{ color: 'red', margin: '10px 0', padding: '8px', border: '1px solid red' }}>Error: {error}</div>}
       {success && <div style={{ color: 'green', margin: '10px 0', padding: '8px', border: '1px solid green' }}>{success}</div>}
 
-      <div style={{ marginBottom: '15px' }}>
-        <label htmlFor="period-select" style={{ fontWeight: '500' }}>Pilih Periode: </label>
+      <div style={{
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '24px',
+        backgroundColor: 'var(--bg-elevated)',
+        boxShadow: 'var(--shadow)',
+        marginBottom: '30px',
+        width: '40%',
+        minWidth: '320px'
+      }}>
+        <label htmlFor="period-select" style={{
+          textTransform: 'uppercase',
+          fontSize: '11px',
+          fontWeight: 700,
+          letterSpacing: '0.07em',
+          color: 'var(--text-muted)',
+          display: 'block',
+          marginBottom: '6px'
+        }}>
+          Pilih Periode
+        </label>
         <select
           id="period-select"
           value={selectedPeriodId}
           onChange={(e) => { setSelectedPeriodId(e.target.value); resetForm(); }}
+          style={{
+            width: '300px',
+            padding: '10px 12px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--input-border)',
+            backgroundColor: 'var(--bg)',
+            color: 'var(--text)',
+            fontSize: '14px',
+            boxSizing: 'border-box'
+          }}
         >
           {periods.map(p => (
             <option key={p.id} value={p.id}>

@@ -1,6 +1,7 @@
 // frontend/src/pages/gizi/MenuHarianList.jsx
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { DatePicker } from '../../components/DatePicker';
 
 export const MenuHarianPage = () => {
     const { request } = useApi();
@@ -520,8 +521,8 @@ export const MenuHarianPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Menu Harian</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Menu Harian</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -535,7 +536,16 @@ export const MenuHarianPage = () => {
                 </div>
             )}
 
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '40%',
+                minWidth: '320px'
+            }}>
                 <label style={{
                     textTransform: 'uppercase',
                     fontSize: '11px',
@@ -593,21 +603,10 @@ export const MenuHarianPage = () => {
                     }}>
                         Pilih Tanggal Menu Harian
                     </label>
-                    <input
-                        type="date"
+                    <DatePicker
                         value={tanggal}
-                        onChange={e => setTanggal(e.target.value)}
+                        onChange={setTanggal}
                         required
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
                     />
                 </div>
                 <button type="submit" style={{

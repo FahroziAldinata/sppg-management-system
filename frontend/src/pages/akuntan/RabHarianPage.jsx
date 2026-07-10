@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderStatus } from '../../components/Table';
+import { DatePicker } from '../../components/DatePicker';
 
 export const RabHarianPage = () => {
     const { request } = useApi();
@@ -87,8 +88,8 @@ export const RabHarianPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Manajemen Anggaran Belanja (RAB Harian)</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Manajemen Anggaran Belanja (RAB Harian)</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -115,7 +116,16 @@ export const RabHarianPage = () => {
             )}
 
             {/* Pilihan Periode */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '26%',
+                minWidth: '320px'
+            }}>
                 <label style={{
                     textTransform: 'uppercase',
                     fontSize: '11px',
@@ -175,21 +185,10 @@ export const RabHarianPage = () => {
                     }}>
                         Tanggal RAB
                     </label>
-                    <input
-                        type="date"
+                    <DatePicker
                         value={tanggalInput}
-                        onChange={e => setTanggalInput(e.target.value)}
+                        onChange={setTanggalInput}
                         required
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
                     />
                 </div>
                 <button type="submit" style={{

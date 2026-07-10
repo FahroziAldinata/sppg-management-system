@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate } from '../../components/Table';
+import { DatePicker } from '../../components/DatePicker';
 
 export const AnggaranHarianPage = () => {
     const { request } = useApi();
@@ -35,7 +36,7 @@ export const AnggaranHarianPage = () => {
         request('/aslap/kategori')
             .then(r => r.json())
             .then(d => setCategories(d))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     const loadAnggaran = async (pid) => {
@@ -149,8 +150,8 @@ export const AnggaranHarianPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Pengajuan Anggaran Harian Resmi</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pengajuan Anggaran Harian Resmi</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -177,7 +178,16 @@ export const AnggaranHarianPage = () => {
             )}
 
             {/* Filter Periode */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '26%',
+                minWidth: '320px'
+            }}>
                 <label style={{
                     textTransform: 'uppercase',
                     fontSize: '11px',
@@ -224,7 +234,7 @@ export const AnggaranHarianPage = () => {
                 gap: '16px'
             }}>
                 <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Buat Anggaran Harian</h3>
-                
+
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -238,20 +248,9 @@ export const AnggaranHarianPage = () => {
                         }}>
                             Tanggal
                         </label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={anggaranForm.tanggal}
-                            onChange={e => setAnggaranForm(prev => ({ ...prev, tanggal: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            onChange={val => setAnggaranForm(prev => ({ ...prev, tanggal: val }))}
                             required
                         />
                     </div>
@@ -396,7 +395,7 @@ export const AnggaranHarianPage = () => {
                         backgroundColor: 'var(--bg)'
                     }}>
                         <h4 style={{ marginTop: '0', marginBottom: '16px', color: 'var(--text)', fontSize: '14px' }}>Rincian Bahan Makanan per Kategori Penerima</h4>
-                        
+
                         {/* Sub-form Rincian */}
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
                             <select

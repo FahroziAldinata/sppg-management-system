@@ -62,14 +62,49 @@ export const LaporanPerBulanPage = () => {
 
     return (
         <div>
-            <h2>Laporan Kas Bulanan</h2>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Laporan Kas Bulanan</h2>
             {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
 
             {/* Filter Section */}
-            <div style={{ display: 'flex', gap: '15px', marginBottom: '20px', alignItems: 'center' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '40%',
+                minWidth: '320px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '15px'
+            }}>
                 <div>
-                    <label style={{ marginRight: '5px' }}>Periode: </label>
-                    <select value={periodeId} onChange={e => setPeriodeId(e.target.value)}>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Periode
+                    </label>
+                    <select
+                        value={periodeId}
+                        onChange={e => setPeriodeId(e.target.value)}
+                        style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            borderRadius: 'var(--radius-sm)',
+                            border: '1px solid var(--input-border)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            fontSize: '14px',
+                            boxSizing: 'border-box'
+                        }}
+                    >
                         {periods.map(p => (
                             <option key={p.id} value={p.id}>
                                 {p.tanggalMulai} - {p.tanggalSelesai}
@@ -88,7 +123,8 @@ export const LaporanPerBulanPage = () => {
                         borderRadius: 'var(--radius-sm)',
                         cursor: 'pointer',
                         fontWeight: '600',
-                        fontSize: '14px'
+                        fontSize: '14px',
+                        alignSelf: 'flex-start'
                     }}
                 >
                     Tampilkan Laporan

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderCurrency, renderTruncate } from '../../components/Table';
+import { DatePicker } from '../../components/DatePicker';
 
 export const ValidasiStokPage = () => {
     const { request } = useApi();
@@ -40,7 +41,7 @@ export const ValidasiStokPage = () => {
         request('/mitra/bahan-pokok')
             .then(r => r.json())
             .then(d => setBahanPokokList(d))
-            .catch(() => {});
+            .catch(() => { });
 
         loadValidasiStok();
     }, []);
@@ -79,7 +80,7 @@ export const ValidasiStokPage = () => {
                 }).toString();
 
                 const r = await request(`/akuntan/validasi-stok/preview?${query}`);
-                
+
                 if (!active) return;
 
                 if (r.ok) {
@@ -294,8 +295,8 @@ export const ValidasiStokPage = () => {
     }
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Validasi &amp; Rekonsiliasi Stok Fisik</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Validasi &amp; Rekonsiliasi Stok Fisik</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -328,7 +329,8 @@ export const ValidasiStokPage = () => {
                 borderRadius: 'var(--radius-md)',
                 backgroundColor: 'var(--bg-elevated)',
                 boxShadow: 'var(--shadow)',
-                marginBottom: '30px'
+                marginBottom: '30px',
+                width: '65%'
             }}>
                 <h4 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Cetak Lembar Checklist Fisik Gudang</h4>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '0', marginBottom: '20px' }}>
@@ -380,20 +382,10 @@ export const ValidasiStokPage = () => {
                         }}>
                             Tanggal Target Pengecekan
                         </label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={printDate}
-                            onChange={e => setPrintDate(e.target.value)}
-                            style={{
-                                width: '200px',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            onChange={setPrintDate}
+                            style={{ width: '200px' }}
                         />
                     </div>
                     <button
@@ -430,7 +422,7 @@ export const ValidasiStokPage = () => {
                 gap: '16px'
             }}>
                 <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Input Rekonsiliasi Hasil Pengecekan Fisik</h3>
-                
+
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -479,21 +471,10 @@ export const ValidasiStokPage = () => {
                         }}>
                             Tanggal Validasi
                         </label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={validasiForm.tanggal}
-                            onChange={e => setValidasiForm(prev => ({ ...prev, tanggal: e.target.value }))}
+                            onChange={val => setValidasiForm(prev => ({ ...prev, tanggal: val }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
                         />
                     </div>
                 </div>

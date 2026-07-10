@@ -3,6 +3,7 @@ import { useApi } from '../../../hooks/useApi';
 import { RangeCalendar } from "@heroui/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
+import { DatePicker } from '../../../components/DatePicker';
 
 export const PeriodeSetupPage = () => {
     const { request } = useApi();
@@ -188,8 +189,8 @@ export const PeriodeSetupPage = () => {
 
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Buka Periode & Setup Lembaga Baru</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Buka Periode & Setup Lembaga Baru</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '-10px', marginBottom: '20px' }}>
                 Halaman ini digunakan untuk memulai periode operasional dan keuangan baru. Data lembaga di-autofill otomatis dari periode sebelumnya untuk menghemat waktu Anda.
             </p>
@@ -240,7 +241,10 @@ export const PeriodeSetupPage = () => {
                         padding: '20px',
                         margin: 0,
                         backgroundColor: 'var(--bg)',
-                        color: 'var(--text)'
+                        color: 'var(--text)',
+                        width: '50%',
+                        minWidth: '340px',
+                        boxSizing: 'border-box'
                     }}>
                         <legend style={{
                             fontWeight: '700',
@@ -253,12 +257,12 @@ export const PeriodeSetupPage = () => {
                             1. Rentang Periode &amp; Pagu Dana
                         </legend>
                         <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'start' }}>
-                            <div style={{ flex: '1 1 0%', minWidth: '300px' }}>
+                            <div style={{ flex: '0 0 auto', minWidth: '280px' }}>
                                 <RangeCalendar
                                     aria-label="Rentang Periode"
                                     value={selectedRange}
                                     onChange={handleRangeChange}
-                                    style={{ width: '100%' }}
+                                    style={{ width: '160%' }}
                                 >
                                     <RangeCalendar.Header>
                                         <RangeCalendar.NavButton slot="previous" />
@@ -282,13 +286,13 @@ export const PeriodeSetupPage = () => {
                                         </RangeCalendar.GridBody>
                                     </RangeCalendar.Grid>
                                 </RangeCalendar>
-                                <div className="text-sm font-medium mt-2 space-y-1" style={{ color: 'var(--text-muted)' }}>
+                                <div className="text-sm font-medium mt-6 space-y-1" style={{ color: 'var(--text-muted)' }}>
                                     <div>Tanggal Mulai: {tanggalMulai || "-"}</div>
                                     <div>Tanggal Selesai: {tanggalSelesai || "-"}</div>
                                 </div>
                             </div>
 
-                            <div style={{ flex: '1 1 0%', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{ flex: '1', minWidth: '240px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
                                 <div>
                                     <label style={{
                                         textTransform: 'uppercase',
@@ -308,11 +312,11 @@ export const PeriodeSetupPage = () => {
                                         value={anggaranAlokasi}
                                         onChange={e => setAnggaranAlokasi(e.target.value)}
                                         style={{
-                                            width: '100%',
+                                            width: '90%',
                                             padding: '10px 12px',
                                             borderRadius: 'var(--radius-sm)',
                                             border: '1px solid var(--input-border)',
-                                            backgroundColor: 'var(--bg-elevated)',
+                                            backgroundColor: 'var(--bg)',
                                             color: 'var(--text)',
                                             fontSize: '14px',
                                             boxSizing: 'border-box'
@@ -339,7 +343,7 @@ export const PeriodeSetupPage = () => {
                                         value={totalDanaDiterima}
                                         onChange={e => setTotalDanaDiterima(e.target.value)}
                                         style={{
-                                            width: '100%',
+                                            width: '90%',
                                             padding: '10px 12px',
                                             borderRadius: 'var(--radius-sm)',
                                             border: '1px solid var(--input-border)',
@@ -670,20 +674,9 @@ export const PeriodeSetupPage = () => {
                                 }}>
                                     Tanggal Tanda Tangan Laporan *
                                 </label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={tanggalPelaporan}
-                                    onChange={e => setTanggalPelaporan(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    onChange={setTanggalPelaporan}
                                     required
                                 />
                             </div>
@@ -699,20 +692,9 @@ export const PeriodeSetupPage = () => {
                                 }}>
                                     Awal Periode Berikutnya *
                                 </label>
-                                <input
-                                    type="date"
+                                <DatePicker
                                     value={awalPeriodeBerikutnya}
-                                    onChange={e => setAwalPeriodeBerikutnya(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    onChange={setAwalPeriodeBerikutnya}
                                     required
                                 />
                             </div>

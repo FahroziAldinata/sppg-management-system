@@ -31,7 +31,7 @@ export const SaldoAwalBarangPage = () => {
         request('/mitra/bahan-pokok')
             .then(r => r.json())
             .then(d => setBahanPokokList(d))
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     const loadSaldoAwalList = async (pid) => {
@@ -122,8 +122,8 @@ export const SaldoAwalBarangPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Input Saldo Awal Barang (Persediaan Awal)</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Input Saldo Awal Barang (Persediaan Awal)</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -150,7 +150,16 @@ export const SaldoAwalBarangPage = () => {
             )}
 
             {/* Pilihan Periode */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '30%',
+                minWidth: '320px'
+            }}>
                 <label style={{
                     textTransform: 'uppercase',
                     fontSize: '11px',

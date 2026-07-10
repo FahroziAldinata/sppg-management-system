@@ -1,40 +1,82 @@
-import { CalendarIcon } from 'lucide-react';
-import React from 'react';
-import {
-    DatePicker as AriaDatePicker
-} from 'react-aria-components/DatePicker';
+import React, { useState, useEffect, useRef } from 'react';
 import { Calendar } from './Calendar';
-import { DateInput } from './DateField';
-import { Description, FieldError, FieldGroup, Label } from './Field';
-import { Popover } from './Popover';
-import { composeTailwindRenderProps } from './utils';
-import { FieldButton } from './FieldButton';
+import { parseDate } from '@internationalized/date';
 
 export function DatePicker({
-    label,
-    description,
-    errorMessage,
-    ...props
+    value = '',
+    onChange,
+    placeholder = 'Pilih Tanggal...',
+    required = false,
+    style = {},
+    className = '',
+    disabled = false
 }) {
+    const [showCalendar, setShowCalendar] = useState(false);
+    const calendarRef = useRef(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+                setShowCalendar(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const handleDateChange = (val) => {
+        if (onChange) {
+            onChange(val ? val.toString() : '');
+        }
+        setShowCalendar(false);
+    };
+
+    const inputStyle = {
+        width: '100%',
+        padding: '10px 12px',
+        borderRadius: 'var(--radius-sm)',
+        border: '1px solid var(--input-border)',
+        backgroundColor: disabled ? 'var(--bg-elevated)' : 'var(--bg)',
+        color: 'var(--text)',
+        fontSize: '14px',
+        boxSizing: 'border-box',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        ...style
+    };
+
     return (
-        <AriaDatePicker
-            {...props}
-            className={composeTailwindRenderProps(
-                props.className,
-                'group flex flex-col gap-1 w-full font-sans'
-            )}>
-            {label && <Label>{label}</Label>}
-            <FieldGroup className="min-w-[208px] w-full cursor-text disabled:cursor-default">
-                <DateInput className="border-0 rounded-none bg-transparent flex-1 min-w-[150px] pl-10 text-sm h-full py-0" />
-                <FieldButton className="w-6 mr-1 outline-offset-0">
-                    <CalendarIcon aria-hidden className="w-4 h-4" />
-                </FieldButton>
-            </FieldGroup>
-            {description && <Description>{description}</Description>}
-            <FieldError>{errorMessage}</FieldError>
-            <Popover className="p-2">
-                <Calendar />
-            </Popover>
-        </AriaDatePicker>
+        <div ref={calendarRef} className={className} style={{ position: 'relative', width: '100%' }}>
+            <input
+                type="text"
+                placeholder={placeholder}
+                value={value}
+                onClick={() => !disabled && setShowCalendar(true)}
+                readOnly
+                required={required}
+                disabled={disabled}
+                style={inputStyle}
+            />
+            {showCalendar && !disabled && (
+                <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: 0,
+                    zIndex: 1000,
+                    marginTop: '5px',
+                    backgroundColor: 'var(--bg-elevated)',
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '16px',
+                    boxShadow: 'var(--shadow)'
+                }}>
+                    <Calendar
+                        value={value ? parseDate(value) : null}
+                        onChange={handleDateChange}
+                    />
+                </div>
+            )}
+        </div>
     );
 }

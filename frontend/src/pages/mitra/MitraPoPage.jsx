@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderTruncate } from '../../components/Table';
+import { DatePicker } from '../../components/DatePicker';
 
 export const MitraPoPage = () => {
     const { request } = useApi();
@@ -297,14 +298,46 @@ export const MitraPoPage = () => {
 
     return (
         <div>
-            <h2>Penyusunan Nota Pesanan (PO Bahan Makanan)</h2>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Penyusunan Nota Pesanan (PO Bahan Makanan)</h2>
             {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
             {success && <div style={{ color: 'green', marginBottom: '10px', padding: '8px', border: '1px solid green' }}>{success}</div>}
 
             {/* Filter Periode */}
-            <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontWeight: '500', marginRight: '5px' }}>Pilih Periode: </label>
-                <select value={selectedPeriodId} onChange={e => setSelectedPeriodId(e.target.value)}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '40%',
+                minWidth: '320px'
+            }}>
+                <label style={{
+                    textTransform: 'uppercase',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.07em',
+                    color: 'var(--text-muted)',
+                    display: 'block',
+                    marginBottom: '6px'
+                }}>
+                    Pilih Periode
+                </label>
+                <select
+                    value={selectedPeriodId}
+                    onChange={e => setSelectedPeriodId(e.target.value)}
+                    style={{
+                        width: '300px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                    }}
+                >
                     {periods.map(p => (
                         <option key={p.id} value={p.id}>
                             {p.tanggalMulai} - {p.tanggalSelesai}
@@ -342,21 +375,10 @@ export const MitraPoPage = () => {
                         }}>
                             Tanggal Pengiriman
                         </label>
-                        <input
-                            type="date"
+                        <DatePicker
                             value={poDate}
-                            onChange={e => setPoDate(e.target.value)}
+                            onChange={setPoDate}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
                         />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>

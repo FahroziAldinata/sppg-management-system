@@ -175,7 +175,7 @@ export const KepalaDashboard = () => {
       </div>
 
       {/* Workflow Progress & Notifikasi */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '25px' }}>
+      <div style={{ marginTop: '25px' }}>
         <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
           <h3 style={{ margin: '0 0 16px 0', fontSize: '15px' }}>Progress Tahapan Operasional</h3>
           <WorkflowStepper workflowProgress={dashSummary?.workflowProgress} loading={loadingSummary} />

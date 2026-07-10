@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderCode, renderTruncate, renderCurrency, renderStatus } from '../../components/Table';
-import { ComboBox, ComboBoxItem } from '../../components/ComboBox';
-import { parseDate } from '@internationalized/date';
-
 import { DatePicker } from '../../components/DatePicker';
+
 
 
 export const JurnalTransaksiPage = () => {
@@ -155,8 +153,8 @@ export const JurnalTransaksiPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Pencatatan Jurnal Transaksi Ledger</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pencatatan Jurnal Transaksi Ledger</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -183,20 +181,47 @@ export const JurnalTransaksiPage = () => {
             )}
 
             {/* Filter Periode */}
-            <div style={{ marginBottom: '20px' }}>
-                <ComboBox
-                    label="Pilih Periode Aktif"
-                    selectedKey={periodeId}
-                    onSelectionChange={key => setPeriodeId(key || '')}
-                    className="w-[300px]"
-                    placeholder="Pilih periode..."
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '26%',
+                minWidth: '320px'
+            }}>
+                <label style={{
+                    textTransform: 'uppercase',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.07em',
+                    color: 'var(--text-muted)',
+                    display: 'block',
+                    marginBottom: '6px'
+                }}>
+                    Pilih Periode Aktif
+                </label>
+                <select
+                    value={periodeId}
+                    onChange={e => setPeriodeId(e.target.value)}
+                    style={{
+                        width: '300px',
+                        padding: '10px 12px',
+                        borderRadius: 'var(--radius-sm)',
+                        border: '1px solid var(--input-border)',
+                        backgroundColor: 'var(--bg)',
+                        color: 'var(--text)',
+                        fontSize: '14px',
+                        boxSizing: 'border-box'
+                    }}
                 >
                     {periods.map(p => (
-                        <ComboBoxItem key={p.id} id={p.id}>
+                        <option key={p.id} value={p.id}>
                             {p.tanggalMulai} - {p.tanggalSelesai}
-                        </ComboBoxItem>
+                        </option>
                     ))}
-                </ComboBox>
+                </select>
             </div>
 
             {/* Form Jurnal */}
@@ -215,11 +240,21 @@ export const JurnalTransaksiPage = () => {
 
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                     <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Tanggal
+                        </label>
                         <DatePicker
-                            label="Tanggal"
-                            value={jurnalForm.tanggal ? parseDate(jurnalForm.tanggal) : null}
-                            onChange={date => setJurnalForm(prev => ({ ...prev, tanggal: date ? date.toString() : '' }))}
-                            isRequired
+                            value={jurnalForm.tanggal}
+                            onChange={val => setJurnalForm(prev => ({ ...prev, tanggal: val }))}
+                            required
                         />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
@@ -321,34 +356,74 @@ export const JurnalTransaksiPage = () => {
 
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                     <div style={{ flex: '1 1 200px' }}>
-                        <ComboBox
-                            label="Akun Kas"
-                            selectedKey={jurnalForm.akunKasId}
-                            onSelectionChange={key => setJurnalForm(prev => ({ ...prev, akunKasId: key || '' }))}
-                            isRequired
-                            placeholder="Pilih Akun Kas..."
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Akun Kas
+                        </label>
+                        <select
+                            value={jurnalForm.akunKasId}
+                            onChange={e => setJurnalForm(prev => ({ ...prev, akunKasId: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
                         >
+                            <option value="">-- Pilih Akun Kas --</option>
                             {akunList.filter(a => a.tipe === 'KAS').map(a => (
-                                <ComboBoxItem key={a.id} id={a.id}>
+                                <option key={a.id} value={a.id}>
                                     [{a.kode}] {a.nama} ({a.tipe})
-                                </ComboBoxItem>
+                                </option>
                             ))}
-                        </ComboBox>
+                        </select>
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
-                        <ComboBox
-                            label="Akun Dana / Biaya"
-                            selectedKey={jurnalForm.akunDanaBiayaId}
-                            onSelectionChange={key => setJurnalForm(prev => ({ ...prev, akunDanaBiayaId: key || '' }))}
-                            isRequired
-                            placeholder="Pilih Akun Dana / Biaya..."
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Akun Dana / Biaya
+                        </label>
+                        <select
+                            value={jurnalForm.akunDanaBiayaId}
+                            onChange={e => setJurnalForm(prev => ({ ...prev, akunDanaBiayaId: e.target.value }))}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
                         >
+                            <option value="">-- Pilih Akun Dana / Biaya --</option>
                             {akunList.filter(a => a.tipe !== 'KAS').map(a => (
-                                <ComboBoxItem key={a.id} id={a.id}>
+                                <option key={a.id} value={a.id}>
                                     [{a.kode}] {a.nama} ({a.tipe})
-                                </ComboBoxItem>
+                                </option>
                             ))}
-                        </ComboBox>
+                        </select>
                     </div>
                 </div>
 

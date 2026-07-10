@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table } from '../../components/Table';
+import { DatePicker } from '../../components/DatePicker';
 
 export const NominatifUpahPage = () => {
     const { request } = useApi();
@@ -140,8 +141,8 @@ export const NominatifUpahPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Daftar Nominatif Upah Relawan</h2>
+        <div>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Daftar Nominatif Upah Relawan</h2>
             {error && (
                 <div style={{
                     color: 'var(--color-danger)',
@@ -168,7 +169,16 @@ export const NominatifUpahPage = () => {
             )}
 
             {/* Pilihan Periode */}
-            <div style={{ marginBottom: '20px' }}>
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '26%',
+                minWidth: '320px'
+            }}>
                 <label style={{
                     textTransform: 'uppercase',
                     fontSize: '11px',
@@ -394,19 +404,10 @@ export const NominatifUpahPage = () => {
                             }}>
                                 Tanggal
                             </label>
-                            <input
-                                type="date"
+                            <DatePicker
                                 value={tempUpahDetail.tanggal}
-                                onChange={e => setTempUpahDetail(prev => ({ ...prev, tanggal: e.target.value }))}
-                                style={{
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
+                                onChange={val => setTempUpahDetail(prev => ({ ...prev, tanggal: val }))}
+                                required
                             />
                         </div>
                         <div>

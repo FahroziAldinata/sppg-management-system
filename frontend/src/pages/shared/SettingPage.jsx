@@ -71,8 +71,8 @@ export const SettingPage = () => {
 
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-            <h2 style={{ color: 'var(--text)' }}>Pengaturan Profil &amp; Akun</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '0' }}>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pengaturan Profil &amp; Akun</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '0', marginBottom: '20px' }}>
                 Perbarui nama tampilan, username, atau kata sandi Anda di sini.
             </p>
 

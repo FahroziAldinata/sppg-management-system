@@ -4,26 +4,26 @@ import { Table } from '../../components/Table';
 
 export const PenerimaManfaatPage = () => {
   const { request } = useApi();
-  
+
   // Master data
   const [periods, setPeriods] = useState([]);
   const [categories, setCategories] = useState([]);
   const [schools, setSchools] = useState([]);
   const [posyandus, setPosyandus] = useState([]);
-  
+
   // Selection / List
   const [selectedPeriodId, setSelectedPeriodId] = useState('');
   const [items, setItems] = useState([]);
-  
+
   // Form State
   const [editingId, setEditingId] = useState(null);
   const [formHariAktif, setFormHariAktif] = useState([]);
   const [formDetail, setFormDetail] = useState([]);
-  
+
   // Message states
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  
+
   const daysList = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
 
   // Load all master data on mount
@@ -36,17 +36,17 @@ export const PenerimaManfaatPage = () => {
           request('/aslap/sekolah'),
           request('/aslap/posyandu')
         ]);
-        
+
         const dataP = await resP.json();
         const dataK = await resK.json();
         const dataS = await resS.json();
         const dataY = await resY.json();
-        
+
         setPeriods(dataP);
         setCategories(dataK);
         setSchools(dataS);
         setPosyandus(dataY);
-        
+
         if (dataP.length > 0) {
           setSelectedPeriodId(dataP[0].id);
         }
@@ -98,7 +98,7 @@ export const PenerimaManfaatPage = () => {
   const handleEditClick = (row) => {
     setEditingId(row.id);
     setFormHariAktif(row.hariAktif);
-    
+
     // Map existing detail entries to form detail state
     const mappedDetail = row.detail.map(d => ({
       kategoriId: d.kategoriId,
@@ -149,7 +149,7 @@ export const PenerimaManfaatPage = () => {
   const handleDetailChange = (index, field, value) => {
     const updated = [...formDetail];
     updated[index][field] = value;
-    
+
     // Reset other targets if kategoriId changes
     if (field === 'kategoriId') {
       updated[index].sekolahId = '';
@@ -207,12 +207,12 @@ export const PenerimaManfaatPage = () => {
       return detailItem;
     });
 
-    const payload = editingId 
+    const payload = editingId
       ? { hariAktif: formHariAktif, detail: cleanedDetail }
       : { periodeId: selectedPeriodId, hariAktif: formHariAktif, detail: cleanedDetail };
 
     try {
-      const url = editingId 
+      const url = editingId
         ? `/aslap/penerima-manfaat/${editingId}`
         : '/aslap/penerima-manfaat';
       const method = editingId ? 'PUT' : 'POST';
@@ -241,72 +241,83 @@ export const PenerimaManfaatPage = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-      <h2 style={{ color: 'var(--text)' }}>Pengelolaan Penerima Manfaat (Sekolah &amp; Posyandu)</h2>
-      
-      {/* Messages */}
-      {error && (
-        <div style={{
-          color: 'var(--color-danger)',
-          margin: '10px 0',
-          padding: '8px',
-          border: '1px solid var(--color-danger)',
-          borderRadius: 'var(--radius-sm)',
-          backgroundColor: 'rgba(239, 68, 68, 0.05)'
-        }}>
-          Error: {error}
-        </div>
-      )}
-      {success && (
-        <div style={{
-          color: 'var(--color-success)',
-          margin: '10px 0',
-          padding: '8px',
-          border: '1px solid var(--color-success)',
-          borderRadius: 'var(--radius-sm)',
-          backgroundColor: 'rgba(16, 185, 129, 0.05)'
-        }}>
-          {success}
-        </div>
-      )}
+    <div>
+      <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pengelolaan Penerima Manfaat (Sekolah &amp; Posyandu)</h2>
 
-      {/* Period Selection */}
-      <div style={{ marginBottom: '20px' }}>
-        <label htmlFor="period-select" style={{
-          textTransform: 'uppercase',
-          fontSize: '11px',
-          fontWeight: 700,
-          letterSpacing: '0.07em',
-          color: 'var(--text-muted)',
-          display: 'block',
-          marginBottom: '6px'
-        }}>
-          Pilih Periode Aktif
-        </label>
-        <select 
-          id="period-select"
-          value={selectedPeriodId}
-          onChange={(e) => {
-            setSelectedPeriodId(e.target.value);
-            resetForm();
-          }}
-          style={{
-            width: '300px',
-            padding: '10px 12px',
+      <div style={{
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '24px',
+        backgroundColor: 'var(--bg-elevated)',
+        boxShadow: 'var(--shadow)',
+        marginBottom: '30px',
+        width: '40%',
+        minWidth: '320px'
+      }}>
+        {/* Messages */}
+        {error && (
+          <div style={{
+            color: 'var(--color-danger)',
+            marginBottom: '15px',
+            padding: '8px',
+            border: '1px solid var(--color-danger)',
             borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--input-border)',
-            backgroundColor: 'var(--bg)',
-            color: 'var(--text)',
-            fontSize: '14px',
-            boxSizing: 'border-box'
-          }}
-        >
-          {periods.map(p => (
-            <option key={p.id} value={p.id}>
-              {p.tanggalMulai} - {p.tanggalSelesai}
-            </option>
-          ))}
-        </select>
+            backgroundColor: 'rgba(239, 68, 68, 0.05)'
+          }}>
+            Error: {error}
+          </div>
+        )}
+        {success && (
+          <div style={{
+            color: 'var(--color-success)',
+            marginBottom: '15px',
+            padding: '8px',
+            border: '1px solid var(--color-success)',
+            borderRadius: 'var(--radius-sm)',
+            backgroundColor: 'rgba(16, 185, 129, 0.05)'
+          }}>
+            {success}
+          </div>
+        )}
+
+        {/* Period Selection */}
+        <div>
+          <label htmlFor="period-select" style={{
+            textTransform: 'uppercase',
+            fontSize: '11px',
+            fontWeight: 700,
+            letterSpacing: '0.07em',
+            color: 'var(--text-muted)',
+            display: 'block',
+            marginBottom: '6px'
+          }}>
+            Pilih Periode Aktif
+          </label>
+          <select
+            id="period-select"
+            value={selectedPeriodId}
+            onChange={(e) => {
+              setSelectedPeriodId(e.target.value);
+              resetForm();
+            }}
+            style={{
+              width: '300px',
+              padding: '10px 12px',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--input-border)',
+              backgroundColor: 'var(--bg)',
+              color: 'var(--text)',
+              fontSize: '14px',
+              boxSizing: 'border-box'
+            }}
+          >
+            {periods.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.tanggalMulai} - {p.tanggalSelesai}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Create / Edit Form */}
@@ -379,8 +390,8 @@ export const PenerimaManfaatPage = () => {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h5 style={{ margin: '0', fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Item #{index + 1}</h5>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => removeDetailRow(index)}
                     style={{ color: 'var(--color-danger)', cursor: 'pointer', border: 'none', background: 'none', fontWeight: 600, fontSize: '13px' }}
                     disabled={formDetail.length === 1}
@@ -388,7 +399,7 @@ export const PenerimaManfaatPage = () => {
                     Hapus
                   </button>
                 </div>
-                
+
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                   <div style={{ flex: '1 1 200px' }}>
                     <label style={{
@@ -634,7 +645,7 @@ export const PenerimaManfaatPage = () => {
               </div>
             );
           })}
-          
+
           <button type="button" onClick={addDetailRow} style={{
             padding: '8px 16px',
             backgroundColor: 'var(--btn-cancel-bg)',

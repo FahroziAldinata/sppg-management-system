@@ -59,11 +59,8 @@ body {
   }
 }
 
-/* Custom transitions for icons & interactive elements */
 a,
-button,
-input,
-textarea {
+button {
   transition: all var(--transition-fast);
 }
 
@@ -94,7 +91,6 @@ select:not([data-slot="input"]):not([class*="heroui"]),
 textarea:not([data-slot="input"]):not([class*="heroui"]) {
   border: 1px solid var(--input-border);
   border-radius: var(--radius-sm);
-  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
 input:not([data-slot="input"]):not([class*="heroui"]):hover,
@@ -111,7 +107,9 @@ textarea:not([data-slot="input"]):not([class*="heroui"]):focus {
   box-shadow: 0 0 0 3px var(--input-focus-shadow);
 }
 
-select {
+input,
+select,
+textarea {
   transition: none !important;
   animation: none !important;
 }
@@ -186,4 +184,37 @@ select {
 .custom-select-option.selected {
   background-color: var(--input-focus-border);
   color: #ffffff;
+}
+
+/* ==========================================
+   BUTTON INTERACTION
+========================================== */
+
+button:not([class*="heroui"]) {
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+button:not([class*="heroui"]):hover {
+  filter: brightness(1.05);
+  box-shadow: var(--shadow-hover);
+}
+
+button:not([class*="heroui"]):active {
+  transform: scale(0.98);
+}
+
+button:not([class*="heroui"]):focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+input:not([data-slot="input"]):not([class*="heroui"]):hover,
+select:not([data-slot="input"]):not([class*="heroui"]):hover,
+textarea:not([data-slot="input"]):not([class*="heroui"]):hover {
+  border-color: var(--input-hover-border);
+  box-shadow: var(--shadow-hover);
 }
