@@ -2,6 +2,7 @@ import React from 'react';
 import { Skeleton } from './Skeleton';
 import { StatusBadge } from './StatusBadge';
 import { NotifikasiList } from './NotifikasiList';
+import { Card } from './Card';
 
 const formatDateIndo = (dateStr) => {
   if (!dateStr) return '—';
@@ -29,11 +30,7 @@ export const DashboardSummaryCards = ({ dashSummary, loadingSummary }) => {
   };
 
   const cardStyle = {
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius-md)',
     padding: '20px',
-    backgroundColor: 'var(--bg-elevated)',
-    boxShadow: 'var(--shadow)',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
@@ -59,7 +56,7 @@ export const DashboardSummaryCards = ({ dashSummary, loadingSummary }) => {
       marginBottom: '30px'
     }}>
       {/* 1. Periode Aktif */}
-      <div style={cardStyle}>
+      <Card style={{ ...cardStyle, justifyContent: 'flex-start' }}>
         <div>
           <h4 style={headerStyle}>Periode Aktif</h4>
           {loadingSummary ? (
@@ -87,10 +84,10 @@ export const DashboardSummaryCards = ({ dashSummary, loadingSummary }) => {
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* 2. Status Periode */}
-      <div style={cardStyle}>
+      <Card style={cardStyle}>
         <div>
           <h4 style={headerStyle}>Status Periode</h4>
           {loadingSummary ? (
@@ -110,10 +107,10 @@ export const DashboardSummaryCards = ({ dashSummary, loadingSummary }) => {
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '12px' }}>
           Tahap operasional sistem
         </div>
-      </div>
+      </Card>
 
       {/* 3. Total Penerima Manfaat */}
-      <div style={cardStyle}>
+      <Card style={cardStyle}>
         <div>
           <h4 style={headerStyle}>Penerima Manfaat</h4>
           {loadingSummary ? (
@@ -134,10 +131,10 @@ export const DashboardSummaryCards = ({ dashSummary, loadingSummary }) => {
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* 4. Total Estimasi Biaya */}
-      <div style={cardStyle}>
+      <Card style={cardStyle}>
         <div>
           <h4 style={headerStyle}>Estimasi Biaya</h4>
           {loadingSummary ? (
@@ -156,15 +153,15 @@ export const DashboardSummaryCards = ({ dashSummary, loadingSummary }) => {
             </div>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* 5. Peringatan Aktif */}
-      <div style={{ ...cardStyle, justifyContent: 'flex-start' }}>
+      <Card style={{ ...cardStyle, justifyContent: 'flex-start' }}>
         <h4 style={headerStyle}>Peringatan Aktif</h4>
         <div style={{ marginTop: '6px', overflowY: 'auto', flex: 1, minHeight: 0 }}>
           <NotifikasiList notifikasi={dashSummary?.notifikasiPenting} loading={loadingSummary} />
         </div>
-      </div>
-    </div>
+      </Card>
+    </div >
   );
 };

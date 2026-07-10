@@ -4,6 +4,7 @@ import { useApi } from '../../hooks/useApi';
 import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 import Dropdown from '../../components/Dropdown';
+import { Card } from '../../components/Card';
 
 export const MitraDashboard = () => {
   const { request } = useApi();
@@ -23,12 +24,12 @@ export const MitraDashboard = () => {
           request('/aslap/periode'),
           request('/mitra/bahan-pokok')
         ]);
-        
+
         const dataP = await resP.json();
         const dataB = await resB.json();
 
         setPeriods(dataP);
-        
+
         let activeP = null;
         if (dataP.length > 0) {
           activeP = dataP[0];
@@ -90,7 +91,7 @@ export const MitraDashboard = () => {
   const handlePeriodChange = async (pid) => {
     const period = periods.find(p => p.id === pid);
     setSelectedPeriod(period);
-    
+
     try {
       // Refresh statistics for selected period
       const [resH, resPo] = await Promise.all([
@@ -141,77 +142,77 @@ export const MitraDashboard = () => {
 
       {/* Period Selector */}
       <div style={{
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '24px',
+        backgroundColor: 'var(--bg-elevated)',
+        boxShadow: 'var(--shadow)',
+        marginBottom: '30px',
+        width: '26%',
+        minWidth: '320px'
+      }}>
+        <label style={{
+          textTransform: 'uppercase',
+          fontSize: '11px',
+          fontWeight: 700,
+          letterSpacing: '0.07em',
+          color: 'var(--text-muted)',
+          display: 'block',
+          marginBottom: '6px'
+        }}>
+          Pilih Periode Aktif
+        </label>
+        <Dropdown
+          style={{ width: '100%' }}
+          value={selectedPeriod?.id || ''}
+          onChange={handlePeriodChange}
+          options={periods.map(p => ({
+            value: p.id,
+            label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+          }))}
+        />
+      </div>
+
+      {selectedPeriod?.setupLembaga && (
+        <Card style={{
           border: '1px solid var(--border)',
           borderRadius: 'var(--radius-md)',
           padding: '24px',
           backgroundColor: 'var(--bg-elevated)',
           boxShadow: 'var(--shadow)',
-          marginBottom: '30px',
-          width: '26%',
-          minWidth: '320px'
-      }}>
-          <label style={{
-              textTransform: 'uppercase',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.07em',
-              color: 'var(--text-muted)',
-              display: 'block',
-              marginBottom: '6px'
-          }}>
-              Pilih Periode Aktif
-          </label>
-          <Dropdown
-              style={{ width: '100%' }}
-              value={selectedPeriod?.id || ''}
-              onChange={handlePeriodChange}
-              options={periods.map(p => ({
-                  value: p.id,
-                  label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
-              }))}
-          />
-      </div>
-
-      {selectedPeriod?.setupLembaga && (
-        <div style={{
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-md)',
-            padding: '24px',
-            backgroundColor: 'var(--bg-elevated)',
-            boxShadow: 'var(--shadow)',
-            marginBottom: '25px'
+          marginBottom: '25px'
         }}>
-            <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: 'var(--text)' }}>Detail Lembaga Periode Aktif</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
-                <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
-                <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
-                <div>Ketua Yayasan Mitra: <strong>{selectedPeriod.setupLembaga.ketuaYayasan}</strong></div>
-                <div>Nomor Rekening VA: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
-            </div>
-        </div>
+          <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: 'var(--text)' }}>Detail Lembaga Periode Aktif</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '13px' }}>
+            <div>Nama SPPG: <strong>{selectedPeriod.setupLembaga.namaLembaga}</strong></div>
+            <div>ID SPPG: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
+            <div>Ketua Yayasan Mitra: <strong>{selectedPeriod.setupLembaga.ketuaYayasan}</strong></div>
+            <div>Nomor Rekening VA: <strong>{selectedPeriod.setupLembaga.nomorRekeningVA}</strong></div>
+          </div>
+        </Card>
       )}
 
       {/* Ringkasan Status Sistem */}
       <DashboardSummaryCards dashSummary={dashSummary} loadingSummary={loadingSummary} />
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Bahan Pokok Master</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.totalBahan}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total jenis bahan makanan</div>
-        </div>
+        </Card>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #007bff', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Harga Terdaftar</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.inputHarga} / {stats.totalBahan}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Bahan yang sudah diinput harganya</div>
-        </div>
+        </Card>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Nota Pesanan (PO)</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.poCount} PO</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total nilai: <strong>Rp{stats.poValue.toLocaleString('id-ID')}</strong></div>
-        </div>
+        </Card>
       </div>
 
       {/* Quick Actions Panel */}

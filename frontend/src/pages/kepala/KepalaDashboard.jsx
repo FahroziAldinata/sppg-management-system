@@ -5,7 +5,7 @@ import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { NotifikasiList } from '../../components/NotifikasiList';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 import Dropdown from '../../components/Dropdown';
-
+import { Card } from '../../components/Card';
 
 export const KepalaDashboard = () => {
   const { request } = useApi();
@@ -114,29 +114,29 @@ export const KepalaDashboard = () => {
       </div>
 
       {/* Period Selection Info */}
-      <div style={{
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)',
-          padding: '24px',
-          backgroundColor: 'var(--bg-elevated)',
-          boxShadow: 'var(--shadow)',
-          marginBottom: '25px',
-          width: '26%',
-          minWidth: '320px'
+      <Card style={{
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '24px',
+        backgroundColor: 'var(--bg-elevated)',
+        boxShadow: 'var(--shadow)',
+        marginBottom: '25px',
+        width: '100%',
+        minWidth: '320px'
       }}>
         <label style={{
-            textTransform: 'uppercase',
-            fontSize: '11px',
-            fontWeight: 700,
-            letterSpacing: '0.07em',
-            color: 'var(--text-muted)',
-            display: 'block',
-            marginBottom: '6px'
+          textTransform: 'uppercase',
+          fontSize: '11px',
+          fontWeight: 700,
+          letterSpacing: '0.07em',
+          color: 'var(--text-muted)',
+          display: 'block',
+          marginBottom: '6px'
         }}>
-            Pilih Periode Aktif
+          Pilih Periode Aktif
         </label>
         <Dropdown
-          style={{ width: '100%' }}
+          style={{ width: '25%' }}
           value={selectedPeriod?.id || ''}
           onChange={handlePeriodChange}
           options={periods.map(p => ({
@@ -153,30 +153,30 @@ export const KepalaDashboard = () => {
             <div>Tahun Anggaran: <strong>{selectedPeriod.setupLembaga.tahunAnggaran}</strong></div>
           </div>
         )}
-      </div>
+      </Card>
       <DashboardSummaryCards dashSummary={dashSummary} loadingSummary={loadingSummary} />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Persetujuan Menunggu (Pending)</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0', color: stats.pendingApprovals > 0 ? '#dc3545' : 'var(--text)' }}>
             {stats.pendingApprovals} Dokumen
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Menu Harian &amp; RAB perlu ditinjau</div>
-        </div>
+        </Card>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Realisasi Keuangan</div>
           <div style={{ fontSize: '20px', fontWeight: 'bold', margin: '5px 0' }}>
             Rp{stats.budgetUsed.toLocaleString('id-ID')} / Rp{stats.budgetTotal.toLocaleString('id-ID')}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Realisasi pagu anggaran belanja</div>
-        </div>
+        </Card>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #fd7e14', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Dokumen Resmi Diterbitkan</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.publishedDocs} Dokumen</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>LPA, SPTJ, &amp; BAPSD terbit</div>
-        </div>
+        </Card>
       </div>
 
       {/* Quick Actions Panel */}

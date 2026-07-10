@@ -42,7 +42,7 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Generalisasi Komponen & Migrasi DatePicker** — Komponen `DatePicker.jsx` dirombak agar merender input teks native-styled (tinggi 42px, border-radius, background, warna) dengan popover kalender melayang dari `Calendar.jsx`, serta berhasil dimigrasikan ke seluruh input tanggal (`type="date"`) di 11 halaman sistem lintas role Akuntan, Mitra, Ahli Gizi, dan Kepala SPPG.
 - [x] **Penyelarasan Layout Stepper Dashboard & Container Lebar** — Memindahkan `WorkflowStepper` dari grid split 2-kolom ke kontainer block full-width pada Dashboard Akuntan dan Kepala, serta menyelaraskan lebar kontainer utama (root) sistem di seluruh form/halaman setup tanpa batasan `maxWidth` statis.
 - [x] **Porsi Rentang Periode & Pagu Dana 50%** — Penyelarasan porsi visual komponen kalender (60%) dan input field (40%) di form Setup Periode (`PeriodeSetupPage.jsx`) dengan porsi lebar outer card disesuaikan menjadi 50%.
-
+- [x] **Migrasi Card & Button Reusable + Sinkronisasi Judul Tab** — Migrasi styling manual ke komponen `Card`/`FieldButton` di `MenuHarianPage.jsx` (Ahli Gizi), `DashboardSummaryCards.jsx` (shared 5 role), dan `AslapDashboard.jsx` (card standalone Detail Lembaga). Root cause bug hover-lift (inline style override `.ui-card--lift`) diperbaiki dengan strip `border`/`borderRadius`/`backgroundColor`/`boxShadow` dari style inline. Ditambahkan fitur sinkronisasi judul tab browser (`document.title`) mengikuti halaman aktif via mapping `PAGE_TITLES` di `Layout.jsx`.
 ## Sedang jalan / berikutnya
 
 - Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).

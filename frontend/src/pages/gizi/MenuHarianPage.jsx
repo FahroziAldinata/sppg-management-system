@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
+import { Table, renderStatus, renderDate } from '../../components/Table';
+import { FieldButton } from '../../components/FieldButton';
+import { Pencil, Trash2, Plus } from 'lucide-react';
 
 export const MenuHarianPage = () => {
     const { request } = useApi();
@@ -43,6 +46,40 @@ export const MenuHarianPage = () => {
 
     const KOMPONEN_OPTIONS = ["KARBOHIDRAT", "LAUK_HEWANI", "LAUK_NABATI", "SAYUR", "BUAH"];
     const BAHAN_FIELDS = ['bahanPokokId', 'beratBersihGr', 'beratURT', 'energiKkal', 'proteinGr', 'lemakGr', 'karbohidratGr', 'seratGr', 'bddPersen', 'hargaSatuan', 'beratSatuanGr'];
+
+    const kendaraanColumns = [
+        { key: 'namaKendaraan', header: 'Nama' },
+        { key: 'platNomor', header: 'Plat Nomor', render: (val) => val || '—' },
+        {
+            key: 'aktif',
+            header: 'Aktif',
+            render: (val) => renderStatus(val ? 'AKTIF' : 'PENDING', val ? 'Ya' : 'Tidak')
+        },
+        {
+            key: 'aksi',
+            header: 'Aksi',
+            render: (_, row) => (
+                <div style={{ display: 'flex', gap: 4 }}>
+                    <FieldButton onPress={() => handleEditKendaraan(row)}>
+                        <Pencil size={14} />
+                    </FieldButton>
+                    <FieldButton onPress={() => handleHapusKendaraan(row.id)}>
+                        <Trash2 size={14} className="text-red-600" />
+                    </FieldButton>
+                </div>
+            )
+        }
+    ];
+
+    const masterMenuColumns = [
+        { key: 'jalur', header: 'Jalur' },
+        { key: 'hari', header: 'Hari' },
+        { key: 'menuKarbohidrat', header: 'Karbohidrat' },
+        { key: 'menuLaukHewani', header: 'Lauk Hewani' },
+        { key: 'menuLaukNabati', header: 'Lauk Nabati' },
+        { key: 'menuSayur', header: 'Sayur' },
+        { key: 'menuBuah', header: 'Buah' }
+    ];
 
     useEffect(() => {
         request('/aslap/periode').then(r => r.json()).then(d => {
@@ -521,6 +558,196 @@ export const MenuHarianPage = () => {
         }
     };
 
+    const renderBlokKolom = (m) => (
+        <ul>
+            {m.blok.map(b => (
+                <li key={b.id}>
+                    {b.kelompokUmurMenu.nama}
+                    <FieldButton onPress={() => deleteBlok(b.id)}>
+                        <Trash2 size={14} className="text-red-600" />
+                    </FieldButton>
+                    <ul>
+                        {(menuItemsByBlok[b.id] || []).map(item => (
+                            <li key={item.id}>
+                                {item.namaMenu} ({item.komponen || '-'})
+                                <ul>
+                                    {(bahanByMenuItem[item.id] || []).map(bahan => {
+                                        const namaBahan = bahan.bahanPokok?.nama || bahanPokokList.find(bp => bp.id === bahan.bahanPokokId)?.nama || bahan.bahanPokokId;
+                                        return (
+                                            <li key={bahan.id}>
+                                                {namaBahan} — bersih {bahan.beratBersihGr}g, kotor {bahan.beratKotorGr}g, total Rp{bahan.totalHargaBahan}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                                <div>
+                                    <Dropdown
+                                        style={{ width: '100%', marginBottom: '6px' }}
+                                        value={bahanForm[item.id]?.bahanPokokId ?? bahanPokokList[0]?.id ?? ''}
+                                        onChange={val => setBahanField(item.id, 'bahanPokokId', val)}
+                                        options={bahanPokokList.length === 0
+                                            ? [{ value: '', label: '-- Bahan Pokok kosong, cek fetch --' }]
+                                            : bahanPokokList.map(bp => ({ value: bp.id, label: `${bp.nama} (${bp.satuan})` }))
+                                        }
+                                    />
+                                    <input className="form-field" placeholder="Berat Bersih (g)" type="number" value={bahanForm[item.id]?.beratBersihGr || ''} onChange={e => setBahanField(item.id, 'beratBersihGr', e.target.value)} />
+                                    <input className="form-field" placeholder="Berat URT (opsional)" value={bahanForm[item.id]?.beratURT || ''} onChange={e => setBahanField(item.id, 'beratURT', e.target.value)} />
+                                    <input className="form-field" placeholder="BDD % (1-100)" type="number" value={bahanForm[item.id]?.bddPersen || ''} onChange={e => setBahanField(item.id, 'bddPersen', e.target.value)} />
+                                    <input className="form-field" placeholder="Harga Satuan" type="number" value={bahanForm[item.id]?.hargaSatuan || ''} onChange={e => setBahanField(item.id, 'hargaSatuan', e.target.value)} />
+                                    <input className="form-field" placeholder="Berat Satuan (g)" type="number" value={bahanForm[item.id]?.beratSatuanGr || ''} onChange={e => setBahanField(item.id, 'beratSatuanGr', e.target.value)} />
+                                    <input className="form-field" placeholder="Energi (kkal)" type="number" value={bahanForm[item.id]?.energiKkal || ''} onChange={e => setBahanField(item.id, 'energiKkal', e.target.value)} />
+                                    <input className="form-field" placeholder="Protein (g)" type="number" value={bahanForm[item.id]?.proteinGr || ''} onChange={e => setBahanField(item.id, 'proteinGr', e.target.value)} />
+                                    <input className="form-field" placeholder="Lemak (g)" type="number" value={bahanForm[item.id]?.lemakGr || ''} onChange={e => setBahanField(item.id, 'lemakGr', e.target.value)} />
+                                    <input className="form-field" placeholder="Karbohidrat (g)" type="number" value={bahanForm[item.id]?.karbohidratGr || ''} onChange={e => setBahanField(item.id, 'karbohidratGr', e.target.value)} />
+                                    <input className="form-field" placeholder="Serat (g)" type="number" value={bahanForm[item.id]?.seratGr || ''} onChange={e => setBahanField(item.id, 'seratGr', e.target.value)} />
+                                    <button onClick={() => addBahan(item.id)}>Tambah Bahan</button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                    <input
+                        className="form-field"
+                        placeholder="Nama menu"
+                        value={namaMenuInput[b.id] || ''}
+                        onChange={e => setNamaMenuInput(prev => ({ ...prev, [b.id]: e.target.value }))}
+                    />
+                    <Dropdown
+                        style={{ width: '100%', marginTop: '6px', marginBottom: '6px' }}
+                        value={komponenInput[b.id] || ''}
+                        onChange={val => setKomponenInput(prev => ({ ...prev, [b.id]: val }))}
+                        options={[
+                            { value: '', label: '-- Komponen (opsional) --' },
+                            ...KOMPONEN_OPTIONS.map(k => ({ value: k, label: k })),
+                        ]}
+                    />
+                    <button onClick={() => addMenuItem(b.id)}>Tambah Menu Item</button>
+                    <div style={{ border: '1px dashed gray', margin: '5px 0', padding: '5px' }}>
+                        <strong>Uji Organoleptik</strong>
+                        {organoleptikByBlok[b.id] ? (
+                            <div>
+                                Rasa: {organoleptikByBlok[b.id].rasa}, Aroma: {organoleptikByBlok[b.id].aroma}, Tekstur: {organoleptikByBlok[b.id].tekstur}, Suhu: {organoleptikByBlok[b.id].suhuSaji}
+                                <br />
+                                Ompreng: {organoleptikByBlok[b.id].jumlahOmpreng}, Musnah: {new Date(organoleptikByBlok[b.id].tanggalMusnah).toLocaleDateString('id-ID')} (chiller 3 hari)
+                            </div>
+                        ) : (
+                            <div>
+                                <input className="form-field" placeholder="Rasa" value={organoleptikForm[b.id]?.rasa || ''} onChange={e => setOrganoleptikField(b.id, 'rasa', e.target.value)} />
+                                <input className="form-field" placeholder="Aroma" value={organoleptikForm[b.id]?.aroma || ''} onChange={e => setOrganoleptikField(b.id, 'aroma', e.target.value)} />
+                                <input className="form-field" placeholder="Tekstur" value={organoleptikForm[b.id]?.tekstur || ''} onChange={e => setOrganoleptikField(b.id, 'tekstur', e.target.value)} />
+                                <input className="form-field" placeholder="Suhu Saji" value={organoleptikForm[b.id]?.suhuSaji || ''} onChange={e => setOrganoleptikField(b.id, 'suhuSaji', e.target.value)} />
+                                <input className="form-field" placeholder="Jumlah Ompreng (default 1)" type="number" value={organoleptikForm[b.id]?.jumlahOmpreng || ''} onChange={e => setOrganoleptikField(b.id, 'jumlahOmpreng', e.target.value)} />
+                                <input className="form-field" placeholder="Catatan (opsional)" value={organoleptikForm[b.id]?.catatan || ''} onChange={e => setOrganoleptikField(b.id, 'catatan', e.target.value)} />
+                                <button onClick={() => addOrganoleptik(b.id)}>Simpan Uji Organoleptik</button>
+                            </div>
+                        )}
+                    </div>
+                    <div style={{ border: '1px dashed gray', margin: '5px 0', padding: '5px' }}>
+                        <strong>Catatan Alergi</strong>
+                        <ul>
+                            {(alergiByBlok[b.id] || []).map(item => (
+                                <li key={item.id}>
+                                    {item.jenisAlergi} — {item.jumlahSiswa} siswa
+                                    {item.bahanPengganti ? ` (pengganti: ${item.bahanPengganti})` : ''}
+                                    <FieldButton onPress={() => deleteAlergi(b.id, item.id)}>
+                                        <Trash2 size={14} className="text-red-600" />
+                                    </FieldButton>
+                                </li>
+                            ))}
+                        </ul>
+                        <input className="form-field" placeholder="Jenis Alergi" value={alergiForm[b.id]?.jenisAlergi || ''} onChange={e => setAlergiField(b.id, 'jenisAlergi', e.target.value)} />
+                        <input className="form-field" placeholder="Jumlah Siswa" type="number" value={alergiForm[b.id]?.jumlahSiswa || ''} onChange={e => setAlergiField(b.id, 'jumlahSiswa', e.target.value)} />
+                        <input className="form-field" placeholder="Bahan Pengganti (opsional)" value={alergiForm[b.id]?.bahanPengganti || ''} onChange={e => setAlergiField(b.id, 'bahanPengganti', e.target.value)} />
+                        <button onClick={() => addAlergi(b.id)}>Tambah Alergi</button>
+                    </div>
+                </li>
+            ))}
+        </ul>
+    );
+
+    const renderPengirimanKolom = (m) => {
+        const usedPorsi = (pengirimanByMenu[m.id] || []).map(p => p.jenisPorsi);
+        const availableOptions = ['KECIL', 'BESAR'].filter(opt => !usedPorsi.includes(opt));
+        const form = pengirimanForm[m.id] || {};
+        const aktifKendaraan = kendaraanList.filter(k => k.aktif === true);
+
+        return (
+            <>
+                <ul>
+                    {(pengirimanByMenu[m.id] || []).map(p => (
+                        <li key={p.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            {p.jenisPorsi} — {p.kendaraan?.namaKendaraan || '—'}
+                            <FieldButton onPress={() => deletePengiriman(p.id, m.id)}>
+                                <Trash2 size={14} className="text-red-600" />
+                            </FieldButton>
+                        </li>
+                    ))}
+                </ul>
+                {availableOptions.length > 0 && (
+                    <div>
+                        <Dropdown
+                            style={{ width: '100%', marginBottom: '6px', marginTop: '6px' }}
+                            value={form.jenisPorsi || ''}
+                            onChange={val => setPengirimanForm(prev => ({
+                                ...prev,
+                                [m.id]: { ...(prev[m.id] || {}), jenisPorsi: val }
+                            }))}
+                            options={[
+                                { value: '', label: '-- Pilih Jenis Porsi --' },
+                                ...availableOptions.map(opt => ({ value: opt, label: opt })),
+                            ]}
+                        />
+                        <Dropdown
+                            style={{ width: '100%', marginBottom: '6px' }}
+                            value={form.kendaraanId || ''}
+                            onChange={val => setPengirimanForm(prev => ({
+                                ...prev,
+                                [m.id]: { ...(prev[m.id] || {}), kendaraanId: val }
+                            }))}
+                            options={[
+                                { value: '', label: '-- Pilih Kendaraan --' },
+                                ...aktifKendaraan.map(k => ({ value: k.id, label: k.namaKendaraan })),
+                            ]}
+                        />
+                        <input
+                            className="form-field"
+                            placeholder="Catatan (opsional)"
+                            value={form.catatan || ''}
+                            onChange={e => setPengirimanForm(prev => ({
+                                ...prev,
+                                [m.id]: { ...(prev[m.id] || {}), catatan: e.target.value }
+                            }))}
+                        />
+                        <FieldButton onPress={() => addPengiriman(m.id)} style={{ marginTop: '12px' }} title="Tambah Pengiriman">
+                            Tambah
+                        </FieldButton>
+                    </div>
+                )}
+            </>
+        );
+    };
+
+    const renderAksiKolom = (m) => (
+        <>
+            <Dropdown
+                style={{ width: '100%', marginBottom: '6px' }}
+                value={selectedKelompokUmurId}
+                onChange={setSelectedKelompokUmurId}
+                options={kelompokUmur.map(k => ({ value: k.id, label: k.nama }))}
+            />
+            <FieldButton onPress={() => addPengiriman(m.id)} style={{ marginTop: '12px' }}>
+                Tambah
+            </FieldButton>
+        </>
+    );
+
+    const itemsColumns = [
+        { key: 'tanggal', header: 'Tanggal', render: (val) => renderDate(val?.split?.('T')[0] ?? val) },
+        { key: 'status', header: 'Status', render: (val) => renderStatus(val) },
+        { key: 'blok', header: 'Jumlah Blok', render: (_, row) => renderBlokKolom(row) },
+        { key: 'pengiriman', header: 'Pengiriman', render: (_, row) => renderPengirimanKolom(row) },
+        { key: 'aksi', header: 'Aksi', render: (_, row) => renderAksiKolom(row) },
+    ];
+
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Menu Harian</h2>
@@ -632,7 +859,7 @@ export const MenuHarianPage = () => {
                     border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-md)',
                     padding: '24px',
-                    backgroundColor: 'var(--bg)',
+                    backgroundColor: 'var(--bg-elevated)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '16px',
@@ -741,35 +968,11 @@ export const MenuHarianPage = () => {
                 </form>
 
                 {/* Daftar semua kendaraan — tanpa filter aktif */}
-                <table border="1" cellPadding="4" style={{ marginTop: '8px', borderCollapse: 'collapse', width: '100%', borderColor: 'var(--border)', color: 'var(--text)' }}>
-                    <thead>
-                        <tr>
-                            <th>Nama</th>
-                            <th>Plat Nomor</th>
-                            <th>Aktif</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {kendaraanList.map(k => (
-                            <tr key={k.id}>
-                                <td>{k.namaKendaraan}</td>
-                                <td>{k.platNomor || '—'}</td>
-                                <td>{k.aktif ? 'Ya' : 'Tidak'}</td>
-                                <td>
-                                    <button onClick={() => startEditKendaraan(k)}>Edit</button>
-                                    {' '}
-                                    <button onClick={() => deleteKendaraan(k.id)}>Hapus</button>
-                                </td>
-                            </tr>
-                        ))}
-                        {kendaraanList.length === 0 && (
-                            <tr>
-                                <td colSpan={4}>Belum ada kendaraan terdaftar.</td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <Table
+                    columns={kendaraanColumns}
+                    data={kendaraanList}
+                    emptyText="Belum ada kendaraan terdaftar."
+                />
             </section>
 
             {/* ================================================ */}
@@ -790,7 +993,7 @@ export const MenuHarianPage = () => {
                     border: '1px solid var(--border)',
                     borderRadius: 'var(--radius-md)',
                     padding: '24px',
-                    backgroundColor: 'var(--bg)',
+                    backgroundColor: 'var(--bg-elevated)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '16px',
@@ -972,238 +1175,27 @@ export const MenuHarianPage = () => {
                 </form>
 
                 {/* Tabel Read-only Daftar Master Menu */}
-                <table border="1" cellPadding="4" style={{ marginTop: '8px', borderCollapse: 'collapse', width: '100%', borderColor: 'var(--border)', color: 'var(--text)' }}>
-                    <thead>
-                        <tr>
-                            <th>Jalur</th>
-                            <th>Hari</th>
-                            <th>Karbohidrat</th>
-                            <th>Lauk Hewani</th>
-                            <th>Lauk Nabati</th>
-                            <th>Sayur</th>
-                            <th>Buah</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {masterMenuList.map(m => (
-                            <tr key={m.id}>
-                                <td>{m.jalur}</td>
-                                <td>{m.hari}</td>
-                                <td>{m.menuKarbohidrat}</td>
-                                <td>{m.menuLaukHewani}</td>
-                                <td>{m.menuLaukNabati}</td>
-                                <td>{m.menuSayur}</td>
-                                <td>{m.menuBuah}</td>
-                            </tr>
-                        ))}
-                        {masterMenuList.length === 0 && (
-                            <tr>
-                                <td colSpan={7} style={{ textAlign: 'center' }}>
-                                    Belum ada data master menu untuk periode ini.
-                                </td>
-                            </tr>
-                        )}
-                    </tbody>
-                </table>
+                <Table
+                    columns={masterMenuColumns}
+                    data={masterMenuList}
+                    emptyText="Belum ada data master menu untuk periode ini."
+                />
             </section>
 
             {/* ============================================== */}
             {/* SECTION 2 — TABEL MENU HARIAN                 */}
             {/* ============================================== */}
-            <table border="1" cellPadding="5">
-                <thead>
-                    <tr>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        <th>Jumlah Blok</th>
-                        <th>Pengiriman</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {items.map(m => (
-                        <tr key={m.id}>
-                            <td>{m.tanggal.split('T')[0]}</td>
-                            <td>{m.status}</td>
-                            <td>
-                                <ul>
-                                    {m.blok.map(b => (
-                                        <li key={b.id}>
-                                            {b.kelompokUmurMenu.nama}
-                                            <button onClick={() => deleteBlok(b.id)}>Hapus</button>
-                                            <ul>
-                                                {(menuItemsByBlok[b.id] || []).map(item => (
-                                                    <li key={item.id}>
-                                                        {item.namaMenu} ({item.komponen || '-'})
-                                                        <ul>
-                                                            {(bahanByMenuItem[item.id] || []).map(bahan => {
-                                                                const namaBahan = bahan.bahanPokok?.nama || bahanPokokList.find(bp => bp.id === bahan.bahanPokokId)?.nama || bahan.bahanPokokId;
-                                                                return (
-                                                                    <li key={bahan.id}>
-                                                                        {namaBahan} — bersih {bahan.beratBersihGr}g, kotor {bahan.beratKotorGr}g, total Rp{bahan.totalHargaBahan}
-                                                                    </li>
-                                                                );
-                                                            })}
-                                                        </ul>
-                                                        <div>
-                                                            <Dropdown
-                                                                style={{ width: '100%', marginBottom: '6px' }}
-                                                                value={bahanForm[item.id]?.bahanPokokId ?? bahanPokokList[0]?.id ?? ''}
-                                                                onChange={val => setBahanField(item.id, 'bahanPokokId', val)}
-                                                                options={bahanPokokList.length === 0
-                                                                    ? [{ value: '', label: '-- Bahan Pokok kosong, cek fetch --' }]
-                                                                    : bahanPokokList.map(bp => ({ value: bp.id, label: `${bp.nama} (${bp.satuan})` }))
-                                                                }
-                                                            />
-                                                            <input className="form-field" placeholder="Berat Bersih (g)" type="number" value={bahanForm[item.id]?.beratBersihGr || ''} onChange={e => setBahanField(item.id, 'beratBersihGr', e.target.value)} />
-                                                            <input className="form-field" placeholder="Berat URT (opsional)" value={bahanForm[item.id]?.beratURT || ''} onChange={e => setBahanField(item.id, 'beratURT', e.target.value)} />
-                                                            <input className="form-field" placeholder="BDD % (1-100)" type="number" value={bahanForm[item.id]?.bddPersen || ''} onChange={e => setBahanField(item.id, 'bddPersen', e.target.value)} />
-                                                            <input className="form-field" placeholder="Harga Satuan" type="number" value={bahanForm[item.id]?.hargaSatuan || ''} onChange={e => setBahanField(item.id, 'hargaSatuan', e.target.value)} />
-                                                            <input className="form-field" placeholder="Berat Satuan (g)" type="number" value={bahanForm[item.id]?.beratSatuanGr || ''} onChange={e => setBahanField(item.id, 'beratSatuanGr', e.target.value)} />
-                                                            <input className="form-field" placeholder="Energi (kkal)" type="number" value={bahanForm[item.id]?.energiKkal || ''} onChange={e => setBahanField(item.id, 'energiKkal', e.target.value)} />
-                                                            <input className="form-field" placeholder="Protein (g)" type="number" value={bahanForm[item.id]?.proteinGr || ''} onChange={e => setBahanField(item.id, 'proteinGr', e.target.value)} />
-                                                            <input className="form-field" placeholder="Lemak (g)" type="number" value={bahanForm[item.id]?.lemakGr || ''} onChange={e => setBahanField(item.id, 'lemakGr', e.target.value)} />
-                                                            <input className="form-field" placeholder="Karbohidrat (g)" type="number" value={bahanForm[item.id]?.karbohidratGr || ''} onChange={e => setBahanField(item.id, 'karbohidratGr', e.target.value)} />
-                                                            <input className="form-field" placeholder="Serat (g)" type="number" value={bahanForm[item.id]?.seratGr || ''} onChange={e => setBahanField(item.id, 'seratGr', e.target.value)} />
-                                                            <button onClick={() => addBahan(item.id)}>Tambah Bahan</button>
-                                                        </div>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                            <input
-                                                className="form-field"
-                                                placeholder="Nama menu"
-                                                value={namaMenuInput[b.id] || ''}
-                                                onChange={e => setNamaMenuInput(prev => ({ ...prev, [b.id]: e.target.value }))}
-                                            />
-                                            <Dropdown
-                                                style={{ width: '100%', marginTop: '6px', marginBottom: '6px' }}
-                                                value={komponenInput[b.id] || ''}
-                                                onChange={val => setKomponenInput(prev => ({ ...prev, [b.id]: val }))}
-                                                options={[
-                                                    { value: '', label: '-- Komponen (opsional) --' },
-                                                    ...KOMPONEN_OPTIONS.map(k => ({ value: k, label: k })),
-                                                ]}
-                                            />
-                                            <button onClick={() => addMenuItem(b.id)}>Tambah Menu Item</button>
-                                            <div style={{ border: '1px dashed gray', margin: '5px 0', padding: '5px' }}>
-                                                <strong>Uji Organoleptik</strong>
-                                                {organoleptikByBlok[b.id] ? (
-                                                    <div>
-                                                        Rasa: {organoleptikByBlok[b.id].rasa}, Aroma: {organoleptikByBlok[b.id].aroma}, Tekstur: {organoleptikByBlok[b.id].tekstur}, Suhu: {organoleptikByBlok[b.id].suhuSaji}
-                                                        <br />
-                                                        Ompreng: {organoleptikByBlok[b.id].jumlahOmpreng}, Musnah: {new Date(organoleptikByBlok[b.id].tanggalMusnah).toLocaleDateString('id-ID')} (chiller 3 hari)
-                                                    </div>
-                                                ) : (
-                                                    <div>
-                                                        <input className="form-field" placeholder="Rasa" value={organoleptikForm[b.id]?.rasa || ''} onChange={e => setOrganoleptikField(b.id, 'rasa', e.target.value)} />
-                                                        <input className="form-field" placeholder="Aroma" value={organoleptikForm[b.id]?.aroma || ''} onChange={e => setOrganoleptikField(b.id, 'aroma', e.target.value)} />
-                                                        <input className="form-field" placeholder="Tekstur" value={organoleptikForm[b.id]?.tekstur || ''} onChange={e => setOrganoleptikField(b.id, 'tekstur', e.target.value)} />
-                                                        <input className="form-field" placeholder="Suhu Saji" value={organoleptikForm[b.id]?.suhuSaji || ''} onChange={e => setOrganoleptikField(b.id, 'suhuSaji', e.target.value)} />
-                                                        <input className="form-field" placeholder="Jumlah Ompreng (default 1)" type="number" value={organoleptikForm[b.id]?.jumlahOmpreng || ''} onChange={e => setOrganoleptikField(b.id, 'jumlahOmpreng', e.target.value)} />
-                                                        <input className="form-field" placeholder="Catatan (opsional)" value={organoleptikForm[b.id]?.catatan || ''} onChange={e => setOrganoleptikField(b.id, 'catatan', e.target.value)} />
-                                                        <button onClick={() => addOrganoleptik(b.id)}>Simpan Uji Organoleptik</button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div style={{ border: '1px dashed gray', margin: '5px 0', padding: '5px' }}>
-                                                <strong>Catatan Alergi</strong>
-                                                <ul>
-                                                    {(alergiByBlok[b.id] || []).map(item => (
-                                                        <li key={item.id}>
-                                                            {item.jenisAlergi} — {item.jumlahSiswa} siswa
-                                                            {item.bahanPengganti ? ` (pengganti: ${item.bahanPengganti})` : ''}
-                                                            <button onClick={() => deleteAlergi(b.id, item.id)}>Hapus</button>
-                                                        </li>
-                                                    ))}
-                                                </ul>
-                                                <input className="form-field" placeholder="Jenis Alergi" value={alergiForm[b.id]?.jenisAlergi || ''} onChange={e => setAlergiField(b.id, 'jenisAlergi', e.target.value)} />
-                                                <input className="form-field" placeholder="Jumlah Siswa" type="number" value={alergiForm[b.id]?.jumlahSiswa || ''} onChange={e => setAlergiField(b.id, 'jumlahSiswa', e.target.value)} />
-                                                <input className="form-field" placeholder="Bahan Pengganti (opsional)" value={alergiForm[b.id]?.bahanPengganti || ''} onChange={e => setAlergiField(b.id, 'bahanPengganti', e.target.value)} />
-                                                <button onClick={() => addAlergi(b.id)}>Tambah Alergi</button>
-                                            </div>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </td>
-
-                            {/* ===== KOLOM PENGIRIMAN (new) ===== */}
-                            <td>
-                                {/* List pengiriman existing */}
-                                <ul>
-                                    {(pengirimanByMenu[m.id] || []).map(p => (
-                                        <li key={p.id}>
-                                            {p.jenisPorsi} — {p.kendaraan?.namaKendaraan || '—'}
-                                            {' '}
-                                            <button onClick={() => deletePengiriman(p.id, m.id)}>Hapus</button>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                {/* Form tambah baru — hanya render kalau masih ada slot porsi */}
-                                {(() => {
-                                    const usedPorsi = (pengirimanByMenu[m.id] || []).map(p => p.jenisPorsi);
-                                    const availableOptions = ['KECIL', 'BESAR'].filter(opt => !usedPorsi.includes(opt));
-                                    if (availableOptions.length === 0) return null;
-
-                                    const form = pengirimanForm[m.id] || {};
-                                    const aktifKendaraan = kendaraanList.filter(k => k.aktif === true);
-
-                                    return (
-                                        <div>
-                                            <Dropdown
-                                                style={{ width: '100%', marginBottom: '6px' }}
-                                                value={form.jenisPorsi || ''}
-                                                onChange={val => setPengirimanForm(prev => ({
-                                                    ...prev,
-                                                    [m.id]: { ...(prev[m.id] || {}), jenisPorsi: val }
-                                                }))}
-                                                options={[
-                                                    { value: '', label: '-- Pilih Jenis Porsi --' },
-                                                    ...availableOptions.map(opt => ({ value: opt, label: opt })),
-                                                ]}
-                                            />
-                                            <Dropdown
-                                                style={{ width: '100%', marginBottom: '6px' }}
-                                                value={form.kendaraanId || ''}
-                                                onChange={val => setPengirimanForm(prev => ({
-                                                    ...prev,
-                                                    [m.id]: { ...(prev[m.id] || {}), kendaraanId: val }
-                                                }))}
-                                                options={[
-                                                    { value: '', label: '-- Pilih Kendaraan --' },
-                                                    ...aktifKendaraan.map(k => ({ value: k.id, label: k.namaKendaraan })),
-                                                ]}
-                                            />
-                                            <input
-                                                className="form-field"
-                                                placeholder="Catatan (opsional)"
-                                                value={form.catatan || ''}
-                                                onChange={e => setPengirimanForm(prev => ({
-                                                    ...prev,
-                                                    [m.id]: { ...(prev[m.id] || {}), catatan: e.target.value }
-                                                }))}
-                                            />
-                                            <button onClick={() => addPengiriman(m.id)}>Tambah</button>
-                                        </div>
-                                    );
-                                })()}
-                            </td>
-
-                            {/* ===== KOLOM AKSI ===== */}
-                            <td>
-                                <Dropdown
-                                    style={{ width: '100%', marginBottom: '6px' }}
-                                    value={selectedKelompokUmurId}
-                                    onChange={setSelectedKelompokUmurId}
-                                    options={kelompokUmur.map(k => ({ value: k.id, label: k.nama }))}
-                                />
-                                <button onClick={() => addBlok(m.id)}>Tambah Blok</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+            <section style={{
+                border: '1px solid var(--border)',
+                padding: '24px',
+                borderRadius: 'var(--radius-md)',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px'
+            }}>
+                <h3 style={{ margin: '0 0 20px 0', color: 'var(--text)' }}>Master Menu Harian</h3>
+                <Table columns={itemsColumns} data={items} />
+            </section>
         </div>
     );
 };

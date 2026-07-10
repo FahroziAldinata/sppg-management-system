@@ -368,7 +368,7 @@ export const PenerimaManfaatPage = () => {
                 borderRadius: 'var(--radius-sm)',
                 padding: '16px',
                 marginBottom: '16px',
-                backgroundColor: 'var(--bg)',
+                backgroundColor: 'var(--bg-elevated)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px'

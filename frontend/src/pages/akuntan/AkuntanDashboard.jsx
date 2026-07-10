@@ -4,6 +4,7 @@ import { useApi } from '../../hooks/useApi';
 import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 import Dropdown from '../../components/Dropdown';
+import { Card } from '../../components/Card';
 
 export const AkuntanDashboard = () => {
   const { request } = useApi();
@@ -127,58 +128,58 @@ export const AkuntanDashboard = () => {
 
       {/* Period Selector */}
       <div style={{
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-md)',
-          padding: '24px',
-          backgroundColor: 'var(--bg-elevated)',
-          boxShadow: 'var(--shadow)',
-          marginBottom: '30px',
-          width: '26%',
-          minWidth: '320px'
+        border: '1px solid var(--border)',
+        borderRadius: 'var(--radius-md)',
+        padding: '24px',
+        backgroundColor: 'var(--bg-elevated)',
+        boxShadow: 'var(--shadow)',
+        marginBottom: '30px',
+        width: '26%',
+        minWidth: '320px'
       }}>
-          <label style={{
-              textTransform: 'uppercase',
-              fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.07em',
-              color: 'var(--text-muted)',
-              display: 'block',
-              marginBottom: '6px'
-          }}>
-              Pilih Periode Aktif
-          </label>
-          <Dropdown
-              style={{ width: '100%' }}
-              value={selectedPeriodId}
-              onChange={handlePeriodChange}
-              options={periods.map(p => ({
-                  value: p.id,
-                  label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
-              }))}
-          />
+        <label style={{
+          textTransform: 'uppercase',
+          fontSize: '11px',
+          fontWeight: 700,
+          letterSpacing: '0.07em',
+          color: 'var(--text-muted)',
+          display: 'block',
+          marginBottom: '6px'
+        }}>
+          Pilih Periode Aktif
+        </label>
+        <Dropdown
+          style={{ width: '100%' }}
+          value={selectedPeriodId}
+          onChange={handlePeriodChange}
+          options={periods.map(p => ({
+            value: p.id,
+            label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+          }))}
+        />
       </div>
       <DashboardSummaryCards dashSummary={dashSummary} loadingSummary={loadingSummary} />
       {/* Financial Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #28a745', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Saldo Kas Berjalan (BKU)</div>
           <div style={{ fontSize: '24px', fontWeight: 'bold', margin: '5px 0' }}>
             Rp{Number(stats.totalKas).toLocaleString('id-ID')}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total saldo s.d transaksi terakhir</div>
-        </div>
+        </Card>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #17a2b8', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #17a2b8', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>RAB Harian Diajukan</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.rabCount} Dokumen</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Total rencana anggaran harian</div>
-        </div>
+        </Card>
 
-        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '15px', borderLeft: '5px solid #6f42c1', backgroundColor: 'var(--bg-elevated)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 'bold' }}>Jurnal Transaksi</div>
           <div style={{ fontSize: '28px', fontWeight: 'bold', margin: '5px 0' }}>{stats.journalCount} Baris</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Pencatatan kas masuk/keluar ledger</div>
-        </div>
+        </Card>
       </div>
 
 
