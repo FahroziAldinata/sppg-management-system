@@ -240,7 +240,7 @@ export const PeriodeSetupPage = () => {
                         borderRadius: 'var(--radius-sm)',
                         padding: '20px',
                         margin: 0,
-                        backgroundColor: 'var(--bg)',
+                        backgroundColor: 'var(--bg-elevated)',
                         color: 'var(--text)',
                         width: '50%',
                         minWidth: '340px',
@@ -311,16 +311,8 @@ export const PeriodeSetupPage = () => {
                                         placeholder="Masukkan Pagu Dana"
                                         value={anggaranAlokasi}
                                         onChange={e => setAnggaranAlokasi(e.target.value)}
-                                        style={{
-                                            width: '90%',
-                                            padding: '10px 12px',
-                                            borderRadius: 'var(--radius-sm)',
-                                            border: '1px solid var(--input-border)',
-                                            backgroundColor: 'var(--bg)',
-                                            color: 'var(--text)',
-                                            fontSize: '14px',
-                                            boxSizing: 'border-box'
-                                        }}
+                                        className="form-field"
+                                        style={{ width: '90%' }}
                                         required
                                     />
                                 </div>
@@ -342,16 +334,8 @@ export const PeriodeSetupPage = () => {
                                         placeholder="Diisi jika dana sudah cair ke VA"
                                         value={totalDanaDiterima}
                                         onChange={e => setTotalDanaDiterima(e.target.value)}
-                                        style={{
-                                            width: '90%',
-                                            padding: '10px 12px',
-                                            borderRadius: 'var(--radius-sm)',
-                                            border: '1px solid var(--input-border)',
-                                            backgroundColor: 'var(--bg-elevated)',
-                                            color: 'var(--text)',
-                                            fontSize: '14px',
-                                            boxSizing: 'border-box'
-                                        }}
+                                        className="form-field"
+                                        style={{ width: '90%' }}
                                     />
                                 </div>
                             </div>
@@ -364,7 +348,7 @@ export const PeriodeSetupPage = () => {
                         borderRadius: 'var(--radius-sm)',
                         padding: '20px',
                         margin: 0,
-                        backgroundColor: 'var(--bg)',
+                        backgroundColor: 'var(--bg-elevated)',
                         color: 'var(--text)'
                     }}>
                         <legend style={{
@@ -394,16 +378,7 @@ export const PeriodeSetupPage = () => {
                                     type="text"
                                     value={namaLembaga}
                                     onChange={e => setNamaLembaga(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>
@@ -423,16 +398,7 @@ export const PeriodeSetupPage = () => {
                                     type="text"
                                     value={nomorRekeningVA}
                                     onChange={e => setNomorRekeningVA(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>
@@ -452,16 +418,7 @@ export const PeriodeSetupPage = () => {
                                     type="text"
                                     value={alamat}
                                     onChange={e => setAlamat(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>
@@ -481,16 +438,7 @@ export const PeriodeSetupPage = () => {
                                     type="text"
                                     value={namaKepalaSPPG}
                                     onChange={e => setNamaKepalaSPPG(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>
@@ -510,16 +458,7 @@ export const PeriodeSetupPage = () => {
                                     type="text"
                                     value={namaAkuntanSPPG}
                                     onChange={e => setNamaAkuntanSPPG(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>
@@ -539,16 +478,7 @@ export const PeriodeSetupPage = () => {
                                     type="text"
                                     value={namaYayasan}
                                     onChange={e => setNamaYayasan(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>
@@ -568,16 +498,7 @@ export const PeriodeSetupPage = () => {
                                     type="text"
                                     value={ketuaYayasan}
                                     onChange={e => setKetuaYayasan(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>
@@ -590,7 +511,7 @@ export const PeriodeSetupPage = () => {
                         borderRadius: 'var(--radius-sm)',
                         padding: '20px',
                         margin: 0,
-                        backgroundColor: 'var(--bg)',
+                        backgroundColor: 'var(--bg-elevated)',
                         color: 'var(--text)'
                     }}>
                         <legend style={{
@@ -620,16 +541,7 @@ export const PeriodeSetupPage = () => {
                                     type="number"
                                     value={tahunAnggaran}
                                     onChange={e => setTahunAnggaran(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>
@@ -649,16 +561,7 @@ export const PeriodeSetupPage = () => {
                                     type="text"
                                     value={tempatPelaporan}
                                     onChange={e => setTempatPelaporan(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                     required
                                 />
                             </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderCurrency, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
+import Dropdown from '../../components/Dropdown';
 
 export const ValidasiStokPage = () => {
     const { request } = useApi();
@@ -349,26 +350,12 @@ export const ValidasiStokPage = () => {
                         }}>
                             Periode
                         </label>
-                        <select
+                        <Dropdown
+                            style={{ width: '220px' }}
                             value={periodeId}
-                            onChange={e => setPeriodeId(e.target.value)}
-                            style={{
-                                width: '220px',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                        >
-                            {periods.map(p => (
-                                <option key={p.id} value={p.id}>
-                                    {p.tanggalMulai} - {p.tanggalSelesai}
-                                </option>
-                            ))}
-                        </select>
+                            onChange={val => setPeriodeId(val)}
+                            options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai} - ${p.tanggalSelesai}` }))}
+                        />
                     </div>
                     <div>
                         <label style={{
@@ -436,28 +423,11 @@ export const ValidasiStokPage = () => {
                         }}>
                             Bahan Pokok
                         </label>
-                        <select
+                        <Dropdown
                             value={validasiForm.bahanPokokId}
-                            onChange={e => setValidasiForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                        >
-                            <option value="">-- Pilih Bahan Pokok --</option>
-                            {bahanPokokList.map(b => (
-                                <option key={b.id} value={b.id}>
-                                    {b.nama} ({b.satuan})
-                                </option>
-                            ))}
-                        </select>
+                            onChange={val => setValidasiForm(prev => ({ ...prev, bahanPokokId: val }))}
+                            options={[{ value: '', label: '-- Pilih Bahan Pokok --' }, ...bahanPokokList.map(b => ({ value: b.id, label: `${b.nama} (${b.satuan})` }))]}
+                        />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -522,16 +492,7 @@ export const ValidasiStokPage = () => {
                             value={validasiForm.qtyDibeli}
                             onChange={e => setValidasiForm(prev => ({ ...prev, qtyDibeli: e.target.value }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
@@ -553,16 +514,7 @@ export const ValidasiStokPage = () => {
                             value={validasiForm.qtyTerpakai}
                             onChange={e => setValidasiForm(prev => ({ ...prev, qtyTerpakai: e.target.value }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                 </div>
@@ -584,16 +536,7 @@ export const ValidasiStokPage = () => {
                         placeholder="Catatan / Selisih / Stok Hilang"
                         value={validasiForm.catatan}
                         onChange={e => setValidasiForm(prev => ({ ...prev, catatan: e.target.value }))}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
+                        className="form-field"
                     />
                 </div>
 

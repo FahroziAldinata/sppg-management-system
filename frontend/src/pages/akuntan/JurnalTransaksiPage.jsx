@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderCode, renderTruncate, renderCurrency, renderStatus } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
-
+import Dropdown from "../../components/Dropdown";
 
 
 export const JurnalTransaksiPage = () => {
@@ -202,26 +202,15 @@ export const JurnalTransaksiPage = () => {
                 }}>
                     Pilih Periode Aktif
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai} - {p.tanggalSelesai}
-                        </option>
-                    ))}
-                </select>
+                    onChange={setPeriodeId}
+                    options={periods.map(p => ({
+                        value: p.id,
+                        label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+                    }))}
+                />
             </div>
 
             {/* Form Jurnal */}
@@ -271,19 +260,10 @@ export const JurnalTransaksiPage = () => {
                         </label>
                         <input
                             type="text"
+                            className="form-field"
                             placeholder="Contoh: Pembelian Beras 50kg"
                             value={jurnalForm.uraian}
                             onChange={e => setJurnalForm(prev => ({ ...prev, uraian: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
                             required
                         />
                     </div>
@@ -302,25 +282,16 @@ export const JurnalTransaksiPage = () => {
                         }}>
                             Jenis Transaksi
                         </label>
-                        <select
+                        <Dropdown
+                            style={{ width: '100%' }}
                             value={jurnalForm.jenis}
-                            onChange={e => setJurnalForm(prev => ({ ...prev, jenis: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                            required
-                        >
-                            <option value="">-- Pilih Jenis --</option>
-                            <option value="MASUK">MASUK (Penerimaan Kas)</option>
-                            <option value="KELUAR">KELUAR (Pengeluaran Kas)</option>
-                        </select>
+                            onChange={val => setJurnalForm(prev => ({ ...prev, jenis: val }))}
+                            options={[
+                                { value: '', label: '-- Pilih Jenis --' },
+                                { value: 'MASUK', label: 'MASUK (Penerimaan Kas)' },
+                                { value: 'KELUAR', label: 'KELUAR (Pengeluaran Kas)' },
+                            ]}
+                        />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -336,19 +307,10 @@ export const JurnalTransaksiPage = () => {
                         </label>
                         <input
                             type="number"
+                            className="form-field"
                             placeholder="Nominal (Rp)"
                             value={jurnalForm.nominal}
                             onChange={e => setJurnalForm(prev => ({ ...prev, nominal: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
                             required
                         />
                     </div>
@@ -367,28 +329,18 @@ export const JurnalTransaksiPage = () => {
                         }}>
                             Akun Kas
                         </label>
-                        <select
+                        <Dropdown
+                            style={{ width: '100%' }}
                             value={jurnalForm.akunKasId}
-                            onChange={e => setJurnalForm(prev => ({ ...prev, akunKasId: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                            required
-                        >
-                            <option value="">-- Pilih Akun Kas --</option>
-                            {akunList.filter(a => a.tipe === 'KAS').map(a => (
-                                <option key={a.id} value={a.id}>
-                                    [{a.kode}] {a.nama} ({a.tipe})
-                                </option>
-                            ))}
-                        </select>
+                            onChange={val => setJurnalForm(prev => ({ ...prev, akunKasId: val }))}
+                            options={[
+                                { value: '', label: '-- Pilih Akun Kas --' },
+                                ...akunList.filter(a => a.tipe === 'KAS').map(a => ({
+                                    value: a.id,
+                                    label: `[${a.kode}] ${a.nama} (${a.tipe})`
+                                }))
+                            ]}
+                        />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -402,28 +354,18 @@ export const JurnalTransaksiPage = () => {
                         }}>
                             Akun Dana / Biaya
                         </label>
-                        <select
+                        <Dropdown
+                            style={{ width: '100%' }}
                             value={jurnalForm.akunDanaBiayaId}
-                            onChange={e => setJurnalForm(prev => ({ ...prev, akunDanaBiayaId: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                            required
-                        >
-                            <option value="">-- Pilih Akun Dana / Biaya --</option>
-                            {akunList.filter(a => a.tipe !== 'KAS').map(a => (
-                                <option key={a.id} value={a.id}>
-                                    [{a.kode}] {a.nama} ({a.tipe})
-                                </option>
-                            ))}
-                        </select>
+                            onChange={val => setJurnalForm(prev => ({ ...prev, akunDanaBiayaId: val }))}
+                            options={[
+                                { value: '', label: '-- Pilih Akun Dana / Biaya --' },
+                                ...akunList.filter(a => a.tipe !== 'KAS').map(a => ({
+                                    value: a.id,
+                                    label: `[${a.kode}] ${a.nama} (${a.tipe})`
+                                }))
+                            ]}
+                        />
                     </div>
                 </div>
 

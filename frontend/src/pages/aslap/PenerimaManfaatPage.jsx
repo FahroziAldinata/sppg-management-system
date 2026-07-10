@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table } from '../../components/Table';
+import Dropdown from '../../components/Dropdown';
 
 export const PenerimaManfaatPage = () => {
   const { request } = useApi();
@@ -99,7 +100,6 @@ export const PenerimaManfaatPage = () => {
     setEditingId(row.id);
     setFormHariAktif(row.hariAktif);
 
-    // Map existing detail entries to form detail state
     const mappedDetail = row.detail.map(d => ({
       kategoriId: d.kategoriId,
       sekolahId: d.sekolahId || '',
@@ -124,7 +124,6 @@ export const PenerimaManfaatPage = () => {
       });
       if (res.ok) {
         setSuccess('Data berhasil dihapus.');
-        // Refresh list
         const listRes = await request(`/aslap/penerima-manfaat?periodeId=${selectedPeriodId}`);
         const data = await listRes.json();
         setItems(data);
@@ -150,7 +149,6 @@ export const PenerimaManfaatPage = () => {
     const updated = [...formDetail];
     updated[index][field] = value;
 
-    // Reset other targets if kategoriId changes
     if (field === 'kategoriId') {
       updated[index].sekolahId = '';
       updated[index].sekolahNama = '';
@@ -182,7 +180,6 @@ export const PenerimaManfaatPage = () => {
     setError('');
     setSuccess('');
 
-    // Replicate payload structure exactly expected by backend
     const cleanedDetail = formDetail.map(d => {
       const cat = categoryMap[d.kategoriId];
       const detailItem = {
@@ -227,7 +224,6 @@ export const PenerimaManfaatPage = () => {
       if (res.ok) {
         setSuccess(editingId ? 'Data berhasil diperbarui.' : 'Data berhasil ditambahkan.');
         resetForm();
-        // Refresh list
         const listRes = await request(`/aslap/penerima-manfaat?periodeId=${selectedPeriodId}`);
         const listData = await listRes.json();
         setItems(listData);
@@ -244,6 +240,33 @@ export const PenerimaManfaatPage = () => {
     <div>
       <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pengelolaan Penerima Manfaat (Sekolah &amp; Posyandu)</h2>
 
+      {/* Messages */}
+      {error && (
+        <div style={{
+          color: 'var(--color-danger)',
+          marginBottom: '20px',
+          padding: '8px',
+          border: '1px solid var(--color-danger)',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: 'rgba(239, 68, 68, 0.05)'
+        }}>
+          {error}
+        </div>
+      )}
+      {success && (
+        <div style={{
+          color: 'var(--color-success)',
+          marginBottom: '20px',
+          padding: '8px',
+          border: '1px solid var(--color-success)',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: 'rgba(16, 185, 129, 0.05)'
+        }}>
+          {success}
+        </div>
+      )}
+
+      {/* Period Selection */}
       <div style={{
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-md)',
@@ -254,70 +277,29 @@ export const PenerimaManfaatPage = () => {
         width: '26%',
         minWidth: '320px'
       }}>
-        {/* Messages */}
-        {error && (
-          <div style={{
-            color: 'var(--color-danger)',
-            marginBottom: '15px',
-            padding: '8px',
-            border: '1px solid var(--color-danger)',
-            borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'rgba(239, 68, 68, 0.05)'
-          }}>
-            Error: {error}
-          </div>
-        )}
-        {success && (
-          <div style={{
-            color: 'var(--color-success)',
-            marginBottom: '15px',
-            padding: '8px',
-            border: '1px solid var(--color-success)',
-            borderRadius: 'var(--radius-sm)',
-            backgroundColor: 'rgba(16, 185, 129, 0.05)'
-          }}>
-            {success}
-          </div>
-        )}
-
-        {/* Period Selection */}
-        <div>
-          <label htmlFor="period-select" style={{
-            textTransform: 'uppercase',
-            fontSize: '11px',
-            fontWeight: 700,
-            letterSpacing: '0.07em',
-            color: 'var(--text-muted)',
-            display: 'block',
-            marginBottom: '6px'
-          }}>
-            Pilih Periode Aktif
-          </label>
-          <select
-            id="period-select"
-            value={selectedPeriodId}
-            onChange={(e) => {
-              setSelectedPeriodId(e.target.value);
-              resetForm();
-            }}
-            style={{
-              width: '300px',
-              padding: '10px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--input-border)',
-              backgroundColor: 'var(--bg)',
-              color: 'var(--text)',
-              fontSize: '14px',
-              boxSizing: 'border-box'
-            }}
-          >
-            {periods.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.tanggalMulai} - {p.tanggalSelesai}
-              </option>
-            ))}
-          </select>
-        </div>
+        <label style={{
+          textTransform: 'uppercase',
+          fontSize: '11px',
+          fontWeight: 700,
+          letterSpacing: '0.07em',
+          color: 'var(--text-muted)',
+          display: 'block',
+          marginBottom: '6px'
+        }}>
+          Pilih Periode Aktif
+        </label>
+        <Dropdown
+          style={{ width: '100%' }}
+          value={selectedPeriodId}
+          onChange={(val) => {
+            setSelectedPeriodId(val);
+            resetForm();
+          }}
+          options={periods.map(p => ({
+            value: p.id,
+            label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+          }))}
+        />
       </div>
 
       {/* Create / Edit Form */}
@@ -333,6 +315,7 @@ export const PenerimaManfaatPage = () => {
           {editingId ? 'Edit Data Penerima' : 'Tambah Data Baru'}
         </h3>
 
+        {/* Hari Aktif */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{
             textTransform: 'uppercase',
@@ -360,6 +343,7 @@ export const PenerimaManfaatPage = () => {
           </div>
         </div>
 
+        {/* Detail Rows */}
         <div style={{ marginBottom: '20px' }}>
           <label style={{
             textTransform: 'uppercase',
@@ -372,10 +356,11 @@ export const PenerimaManfaatPage = () => {
           }}>
             Rincian Detail Penerima Manfaat
           </label>
+
           {formDetail.map((det, index) => {
             const selectedCat = categoryMap[det.kategoriId];
-            const isSiswa = selectedCat ? selectedCat.jenisSasaran === 'PESERTA_DIDIK' : false;
-            const isNonSiswa = selectedCat ? selectedCat.jenisSasaran === 'NON_PESERTA_DIDIK' : false;
+            const isSiswa = selectedCat?.jenisSasaran === 'PESERTA_DIDIK';
+            const isNonSiswa = selectedCat?.jenisSasaran === 'NON_PESERTA_DIDIK';
 
             return (
               <div key={index} style={{
@@ -401,6 +386,7 @@ export const PenerimaManfaatPage = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                  {/* Kategori */}
                   <div style={{ flex: '1 1 200px' }}>
                     <label style={{
                       textTransform: 'uppercase',
@@ -413,28 +399,18 @@ export const PenerimaManfaatPage = () => {
                     }}>
                       Kategori Klien
                     </label>
-                    <select
+                    <Dropdown
+                      style={{ width: '100%' }}
                       value={det.kategoriId}
-                      onChange={(e) => handleDetailChange(index, 'kategoriId', e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg-elevated)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                      }}
-                    >
-                      {categories.map(c => (
-                        <option key={c.id} value={c.id}>
-                          {c.nama} ({c.jenisSasaran})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => handleDetailChange(index, 'kategoriId', val)}
+                      options={categories.map(c => ({
+                        value: c.id,
+                        label: `${c.nama} (${c.jenisSasaran})`
+                      }))}
+                    />
                   </div>
 
+                  {/* Sekolah (Peserta Didik) */}
                   {isSiswa && (
                     <div style={{ flex: '2 1 300px', display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
                       <div style={{ flex: 1 }}>
@@ -449,28 +425,18 @@ export const PenerimaManfaatPage = () => {
                         }}>
                           Sekolah Terdaftar
                         </label>
-                        <select
+                        <Dropdown
+                          style={{ width: '100%' }}
                           value={det.sekolahId}
-                          onChange={(e) => {
-                            handleDetailChange(index, 'sekolahId', e.target.value);
+                          onChange={(val) => {
+                            handleDetailChange(index, 'sekolahId', val);
                             handleDetailChange(index, 'sekolahNama', '');
                           }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg-elevated)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                          }}
-                        >
-                          <option value="">-- Pilih --</option>
-                          {schools.map(s => (
-                            <option key={s.id} value={s.id}>{s.nama}</option>
-                          ))}
-                        </select>
+                          options={[
+                            { value: '', label: '-- Pilih --' },
+                            ...schools.map(s => ({ value: s.id, label: s.nama }))
+                          ]}
+                        />
                       </div>
                       <span style={{ margin: '10px 0', fontWeight: 'bold', color: 'var(--text-muted)' }}>ATAU</span>
                       <div style={{ flex: 1 }}>
@@ -487,27 +453,19 @@ export const PenerimaManfaatPage = () => {
                         </label>
                         <input
                           type="text"
+                          className="form-field"
                           placeholder="Nama Sekolah Baru"
                           value={det.sekolahNama}
                           onChange={(e) => {
                             handleDetailChange(index, 'sekolahNama', e.target.value);
                             handleDetailChange(index, 'sekolahId', '');
                           }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg-elevated)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                          }}
                         />
                       </div>
                     </div>
                   )}
 
+                  {/* Posyandu (Non Peserta Didik) */}
                   {isNonSiswa && (
                     <div style={{ flex: '2 1 300px', display: 'flex', gap: '10px', alignItems: 'flex-end' }}>
                       <div style={{ flex: 1 }}>
@@ -522,28 +480,18 @@ export const PenerimaManfaatPage = () => {
                         }}>
                           Posyandu Terdaftar
                         </label>
-                        <select
+                        <Dropdown
+                          style={{ width: '100%' }}
                           value={det.posyanduId}
-                          onChange={(e) => {
-                            handleDetailChange(index, 'posyanduId', e.target.value);
+                          onChange={(val) => {
+                            handleDetailChange(index, 'posyanduId', val);
                             handleDetailChange(index, 'posyanduNama', '');
                           }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg-elevated)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                          }}
-                        >
-                          <option value="">-- Pilih --</option>
-                          {posyandus.map(y => (
-                            <option key={y.id} value={y.id}>{y.nama}</option>
-                          ))}
-                        </select>
+                          options={[
+                            { value: '', label: '-- Pilih --' },
+                            ...posyandus.map(y => ({ value: y.id, label: y.nama }))
+                          ]}
+                        />
                       </div>
                       <span style={{ margin: '10px 0', fontWeight: 'bold', color: 'var(--text-muted)' }}>ATAU</span>
                       <div style={{ flex: 1 }}>
@@ -560,21 +508,12 @@ export const PenerimaManfaatPage = () => {
                         </label>
                         <input
                           type="text"
+                          className="form-field"
                           placeholder="Nama Posyandu Baru"
                           value={det.posyanduNama}
                           onChange={(e) => {
                             handleDetailChange(index, 'posyanduNama', e.target.value);
                             handleDetailChange(index, 'posyanduId', '');
-                          }}
-                          style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg-elevated)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
                           }}
                         />
                       </div>
@@ -582,6 +521,7 @@ export const PenerimaManfaatPage = () => {
                   )}
                 </div>
 
+                {/* Jumlah L/P */}
                 <div style={{ display: 'flex', gap: '15px' }}>
                   <div>
                     <label style={{
@@ -598,18 +538,10 @@ export const PenerimaManfaatPage = () => {
                     <input
                       type="number"
                       min="0"
+                      className="form-field"
+                      style={{ width: '120px' }}
                       value={det.lakiLaki}
                       onChange={(e) => handleDetailChange(index, 'lakiLaki', e.target.value)}
-                      style={{
-                        width: '120px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg-elevated)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                      }}
                     />
                   </div>
                   <div>
@@ -627,18 +559,10 @@ export const PenerimaManfaatPage = () => {
                     <input
                       type="number"
                       min="0"
+                      className="form-field"
+                      style={{ width: '120px' }}
                       value={det.perempuan}
                       onChange={(e) => handleDetailChange(index, 'perempuan', e.target.value)}
-                      style={{
-                        width: '120px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg-elevated)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                      }}
                     />
                   </div>
                 </div>
@@ -690,7 +614,7 @@ export const PenerimaManfaatPage = () => {
         </div>
       </form>
 
-      {/* List / Table of existing records */}
+      {/* List / Table */}
       <Table
         columns={[
           {

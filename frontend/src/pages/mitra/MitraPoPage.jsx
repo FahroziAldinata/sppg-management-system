@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
+import Dropdown from '../../components/Dropdown';
 
 export const MitraPoPage = () => {
     const { request } = useApi();
@@ -123,7 +124,6 @@ export const MitraPoPage = () => {
         if (!supplierId) return setError('Supplier wajib dipilih.');
         if (poItems.length === 0) return setError('Tidak ada item PO yang tersedia untuk tanggal ini.');
 
-        // Build items payload
         const itemsPayload = poItems.map(item => ({
             bahanPokokId: item.bahanPokokId,
             qtyTotal: parseFloat(item.qtyTotal) || 0,
@@ -185,7 +185,7 @@ export const MitraPoPage = () => {
                     </button>
                 </div>
 
-                {/* PO Header matching BGN style */}
+                {/* PO Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }}>
                     <div>
                         <div style={{ fontWeight: 'bold', fontSize: '15px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
@@ -198,7 +198,6 @@ export const MitraPoPage = () => {
                     NOTA PESANAN BAHAN MAKANAN
                 </div>
 
-                {/* Metadata Info */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '15px', fontSize: '13px', marginBottom: '20px' }}>
                     <div>
                         <table style={{ width: '100%' }}>
@@ -234,7 +233,6 @@ export const MitraPoPage = () => {
                     </div>
                 </div>
 
-                {/* Table PO */}
                 <table border="1" cellPadding="5" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '25px' }}>
                     <thead>
                         <tr style={{ backgroundColor: '#eaeaea' }}>
@@ -250,7 +248,6 @@ export const MitraPoPage = () => {
                     </thead>
                     <tbody>
                         {printPoData.items.map((item, idx) => {
-                            // Find matching estimated item to get Siswa / B3 breakdown if available
                             const matchItem = poItems.find(p => p.bahanPokokId === item.bahanPokokId);
                             const qtySiswa = matchItem ? matchItem.qtySiswa : 0;
                             const qtyB3 = matchItem ? matchItem.qtyB3 : 0;
@@ -275,7 +272,6 @@ export const MitraPoPage = () => {
                     </tbody>
                 </table>
 
-                {/* Signatures */}
                 <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
                     <div style={{ textAlign: 'center', width: '250px' }}>
                         <div>Penerima Pesanan,</div>
@@ -299,8 +295,31 @@ export const MitraPoPage = () => {
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Penyusunan Nota Pesanan (PO Bahan Makanan)</h2>
-            {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
-            {success && <div style={{ color: 'green', marginBottom: '10px', padding: '8px', border: '1px solid green' }}>{success}</div>}
+
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
+            {success && (
+                <div style={{
+                    color: 'var(--color-success)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-success)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
+                }}>
+                    {success}
+                </div>
+            )}
 
             {/* Filter Periode */}
             <div style={{
@@ -310,7 +329,7 @@ export const MitraPoPage = () => {
                 backgroundColor: 'var(--bg-elevated)',
                 boxShadow: 'var(--shadow)',
                 marginBottom: '30px',
-                width: '40%',
+                width: '26%',
                 minWidth: '320px'
             }}>
                 <label style={{
@@ -324,26 +343,15 @@ export const MitraPoPage = () => {
                 }}>
                     Pilih Periode
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={selectedPeriodId}
-                    onChange={e => setSelectedPeriodId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai} - {p.tanggalSelesai}
-                        </option>
-                    ))}
-                </select>
+                    onChange={setSelectedPeriodId}
+                    options={periods.map(p => ({
+                        value: p.id,
+                        label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+                    }))}
+                />
             </div>
 
             {/* Input Form PO */}
@@ -361,7 +369,7 @@ export const MitraPoPage = () => {
                 <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text)' }}>
                     Buat Nota Pesanan (PO) Baru
                 </h3>
-                
+
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -393,37 +401,25 @@ export const MitraPoPage = () => {
                         }}>
                             Pilih Supplier / CV
                         </label>
-                        <select 
-                            value={supplierId} 
-                            onChange={e => setSupplierId(e.target.value)} 
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                        >
-                            {suppliers.map(s => (
-                                <option key={s.id} value={s.id}>{s.nama}</option>
-                            ))}
-                        </select>
+                        <Dropdown
+                            style={{ width: '100%' }}
+                            value={supplierId}
+                            onChange={setSupplierId}
+                            options={suppliers.map(s => ({
+                                value: s.id,
+                                label: s.nama
+                            }))}
+                        />
                     </div>
                 </div>
 
                 {/* Info Menu Harian */}
-                {/* ponytail: unify shade pastel to bg-elevated */}
                 {poDate && (
                     <div style={{ border: '1px dashed var(--border)', padding: '10px', backgroundColor: 'var(--bg)', fontSize: '14px', borderRadius: 'var(--radius-sm)', color: 'var(--text)' }}>
                         <strong>Rencana Menu Hari Ini:</strong> {menuDescription}
                     </div>
                 )}
 
-                {/* Loading state kebutuhan */}
                 {loading && <p style={{ color: 'var(--text-muted)' }}>Menghitung kebutuhan bahan makanan...</p>}
 
                 {/* Table Items Kebutuhan */}
@@ -463,19 +459,10 @@ export const MitraPoPage = () => {
                                         <input
                                             type="number"
                                             step="0.001"
+                                            className="form-field"
+                                            style={{ textAlign: 'right' }}
                                             value={v}
                                             onChange={e => handleItemChange(idx, 'qtyTotal', e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                textAlign: 'right',
-                                                padding: '6px 8px',
-                                                borderRadius: 'var(--radius-sm)',
-                                                border: '1px solid var(--input-border)',
-                                                backgroundColor: 'var(--bg)',
-                                                color: 'var(--text)',
-                                                fontSize: '14px',
-                                                boxSizing: 'border-box'
-                                            }}
                                             required
                                         />
                                     )
@@ -489,19 +476,10 @@ export const MitraPoPage = () => {
                                         <input
                                             type="number"
                                             step="0.01"
+                                            className="form-field"
+                                            style={{ textAlign: 'right' }}
                                             value={v}
                                             onChange={e => handleItemChange(idx, 'hargaSatuan', e.target.value)}
-                                            style={{
-                                                width: '100%',
-                                                textAlign: 'right',
-                                                padding: '6px 8px',
-                                                borderRadius: 'var(--radius-sm)',
-                                                border: '1px solid var(--input-border)',
-                                                backgroundColor: 'var(--bg)',
-                                                color: 'var(--text)',
-                                                fontSize: '14px',
-                                                boxSizing: 'border-box'
-                                            }}
                                             required
                                         />
                                     )
@@ -522,7 +500,6 @@ export const MitraPoPage = () => {
                     </div>
                 )}
 
-                {/* ponytail: unify shade pastel to bg-elevated */}
                 {poDate && poItems.length === 0 && !loading && (
                     <div style={{ color: 'var(--color-warning)', padding: '10px', border: '1px solid rgba(245, 158, 11, 0.2)', backgroundColor: 'rgba(245, 158, 11, 0.05)', borderRadius: 'var(--radius-sm)' }}>
                         Tidak ada rencana menu harian aktif / disetujui untuk tanggal terpilih.
@@ -543,19 +520,10 @@ export const MitraPoPage = () => {
                     </label>
                     <input
                         type="text"
+                        className="form-field"
                         placeholder="Contoh: Pengiriman pagi s.d jam 06.00"
                         value={catatan}
                         onChange={e => setCatatan(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
                     />
                 </div>
 
@@ -581,8 +549,8 @@ export const MitraPoPage = () => {
             </form>
 
             {/* Riwayat PO List */}
-            <h3>Riwayat Nota Pesanan (PO) Terdaftar</h3>
-            {listLoading && <p>Memuat daftar riwayat PO...</p>}
+            <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Riwayat Nota Pesanan (PO) Terdaftar</h3>
+            {listLoading && <p style={{ color: 'var(--text-muted)' }}>Memuat daftar riwayat PO...</p>}
             <Table
                 columns={[
                     { key: 'tanggal', header: 'Tanggal Pengiriman', render: (v) => renderDate(v) },

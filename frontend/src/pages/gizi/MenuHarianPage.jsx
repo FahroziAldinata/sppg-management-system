@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { DatePicker } from '../../components/DatePicker';
+import Dropdown from '../../components/Dropdown';
 
 export const MenuHarianPage = () => {
     const { request } = useApi();
@@ -557,26 +558,15 @@ export const MenuHarianPage = () => {
                 }}>
                     Pilih Periode Aktif
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai.split('T')[0]} - {p.tanggalSelesai.split('T')[0]}
-                        </option>
-                    ))}
-                </select>
+                    onChange={setPeriodeId}
+                    options={periods.map(p => ({
+                        value: p.id,
+                        label: `${p.tanggalMulai.split('T')[0]} - ${p.tanggalSelesai.split('T')[0]}`
+                    }))}
+                />
             </div>
 
             <form onSubmit={create} style={{
@@ -666,20 +656,11 @@ export const MenuHarianPage = () => {
                                 Nama Kendaraan
                             </label>
                             <input
+                                className="form-field"
                                 placeholder="Nama Kendaraan"
                                 value={kendaraanForm.namaKendaraan}
                                 onChange={e => setKendaraanForm(prev => ({ ...prev, namaKendaraan: e.target.value }))}
                                 required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
                             />
                         </div>
                         <div style={{ flex: '1 1 200px' }}>
@@ -695,19 +676,10 @@ export const MenuHarianPage = () => {
                                 Plat Nomor (opsional)
                             </label>
                             <input
+                                className="form-field"
                                 placeholder="Plat Nomor (opsional)"
                                 value={kendaraanForm.platNomor}
                                 onChange={e => setKendaraanForm(prev => ({ ...prev, platNomor: e.target.value }))}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
                             />
                         </div>
                     </div>
@@ -841,24 +813,15 @@ export const MenuHarianPage = () => {
                             }}>
                                 Jalur
                             </label>
-                            <select
+                            <Dropdown
+                                style={{ width: '100%' }}
                                 value={masterMenuForm.jalur}
-                                onChange={e => setMasterMenuForm(prev => ({ ...prev, jalur: e.target.value }))}
-                                required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
-                            >
-                                <option value="SISWA">SISWA</option>
-                                <option value="TIGA_B">TIGA_B</option>
-                            </select>
+                                onChange={val => setMasterMenuForm(prev => ({ ...prev, jalur: val }))}
+                                options={[
+                                    { value: 'SISWA', label: 'SISWA' },
+                                    { value: 'TIGA_B', label: 'TIGA_B' },
+                                ]}
+                            />
                         </div>
 
                         <div style={{ flex: '1 1 120px' }}>
@@ -873,28 +836,19 @@ export const MenuHarianPage = () => {
                             }}>
                                 Hari
                             </label>
-                            <select
+                            <Dropdown
+                                style={{ width: '100%' }}
                                 value={masterMenuForm.hari}
-                                onChange={e => setMasterMenuForm(prev => ({ ...prev, hari: e.target.value }))}
-                                required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
-                            >
-                                <option value="SENIN">SENIN</option>
-                                <option value="SELASA">SELASA</option>
-                                <option value="RABU">RABU</option>
-                                <option value="KAMIS">KAMIS</option>
-                                <option value="JUMAT">JUMAT</option>
-                                <option value="SABTU">SABTU</option>
-                            </select>
+                                onChange={val => setMasterMenuForm(prev => ({ ...prev, hari: val }))}
+                                options={[
+                                    { value: 'SENIN', label: 'SENIN' },
+                                    { value: 'SELASA', label: 'SELASA' },
+                                    { value: 'RABU', label: 'RABU' },
+                                    { value: 'KAMIS', label: 'KAMIS' },
+                                    { value: 'JUMAT', label: 'JUMAT' },
+                                    { value: 'SABTU', label: 'SABTU' },
+                                ]}
+                            />
                         </div>
                     </div>
 
@@ -912,20 +866,11 @@ export const MenuHarianPage = () => {
                                 Menu Karbohidrat
                             </label>
                             <input
+                                className="form-field"
                                 placeholder="Menu Karbohidrat"
                                 value={masterMenuForm.menuKarbohidrat}
                                 onChange={e => setMasterMenuForm(prev => ({ ...prev, menuKarbohidrat: e.target.value }))}
                                 required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
                             />
                         </div>
                         <div>
@@ -941,20 +886,11 @@ export const MenuHarianPage = () => {
                                 Menu Lauk Hewani
                             </label>
                             <input
+                                className="form-field"
                                 placeholder="Menu Lauk Hewani"
                                 value={masterMenuForm.menuLaukHewani}
                                 onChange={e => setMasterMenuForm(prev => ({ ...prev, menuLaukHewani: e.target.value }))}
                                 required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
                             />
                         </div>
                         <div>
@@ -970,20 +906,11 @@ export const MenuHarianPage = () => {
                                 Menu Lauk Nabati
                             </label>
                             <input
+                                className="form-field"
                                 placeholder="Menu Lauk Nabati"
                                 value={masterMenuForm.menuLaukNabati}
                                 onChange={e => setMasterMenuForm(prev => ({ ...prev, menuLaukNabati: e.target.value }))}
                                 required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
                             />
                         </div>
                         <div>
@@ -999,20 +926,11 @@ export const MenuHarianPage = () => {
                                 Menu Sayur
                             </label>
                             <input
+                                className="form-field"
                                 placeholder="Menu Sayur"
                                 value={masterMenuForm.menuSayur}
                                 onChange={e => setMasterMenuForm(prev => ({ ...prev, menuSayur: e.target.value }))}
                                 required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
                             />
                         </div>
                         <div>
@@ -1028,20 +946,11 @@ export const MenuHarianPage = () => {
                                 Menu Buah
                             </label>
                             <input
+                                className="form-field"
                                 placeholder="Menu Buah"
                                 value={masterMenuForm.menuBuah}
                                 onChange={e => setMasterMenuForm(prev => ({ ...prev, menuBuah: e.target.value }))}
                                 required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
                             />
                         </div>
                     </div>
@@ -1137,37 +1046,45 @@ export const MenuHarianPage = () => {
                                                             })}
                                                         </ul>
                                                         <div>
-                                                            <select value={bahanForm[item.id]?.bahanPokokId ?? bahanPokokList[0]?.id ?? ''} onChange={e => setBahanField(item.id, 'bahanPokokId', e.target.value)}>
-                                                                {bahanPokokList.length === 0 && <option value="">-- Bahan Pokok kosong, cek fetch --</option>}
-                                                                {bahanPokokList.map(bp => <option key={bp.id} value={bp.id}>{bp.nama} ({bp.satuan})</option>)}
-                                                            </select>
-                                                            <input placeholder="Berat Bersih (g)" type="number" value={bahanForm[item.id]?.beratBersihGr || ''} onChange={e => setBahanField(item.id, 'beratBersihGr', e.target.value)} />
-                                                            <input placeholder="Berat URT (opsional)" value={bahanForm[item.id]?.beratURT || ''} onChange={e => setBahanField(item.id, 'beratURT', e.target.value)} />
-                                                            <input placeholder="BDD % (1-100)" type="number" value={bahanForm[item.id]?.bddPersen || ''} onChange={e => setBahanField(item.id, 'bddPersen', e.target.value)} />
-                                                            <input placeholder="Harga Satuan" type="number" value={bahanForm[item.id]?.hargaSatuan || ''} onChange={e => setBahanField(item.id, 'hargaSatuan', e.target.value)} />
-                                                            <input placeholder="Berat Satuan (g)" type="number" value={bahanForm[item.id]?.beratSatuanGr || ''} onChange={e => setBahanField(item.id, 'beratSatuanGr', e.target.value)} />
-                                                            <input placeholder="Energi (kkal)" type="number" value={bahanForm[item.id]?.energiKkal || ''} onChange={e => setBahanField(item.id, 'energiKkal', e.target.value)} />
-                                                            <input placeholder="Protein (g)" type="number" value={bahanForm[item.id]?.proteinGr || ''} onChange={e => setBahanField(item.id, 'proteinGr', e.target.value)} />
-                                                            <input placeholder="Lemak (g)" type="number" value={bahanForm[item.id]?.lemakGr || ''} onChange={e => setBahanField(item.id, 'lemakGr', e.target.value)} />
-                                                            <input placeholder="Karbohidrat (g)" type="number" value={bahanForm[item.id]?.karbohidratGr || ''} onChange={e => setBahanField(item.id, 'karbohidratGr', e.target.value)} />
-                                                            <input placeholder="Serat (g)" type="number" value={bahanForm[item.id]?.seratGr || ''} onChange={e => setBahanField(item.id, 'seratGr', e.target.value)} />
+                                                            <Dropdown
+                                                                style={{ width: '100%', marginBottom: '6px' }}
+                                                                value={bahanForm[item.id]?.bahanPokokId ?? bahanPokokList[0]?.id ?? ''}
+                                                                onChange={val => setBahanField(item.id, 'bahanPokokId', val)}
+                                                                options={bahanPokokList.length === 0
+                                                                    ? [{ value: '', label: '-- Bahan Pokok kosong, cek fetch --' }]
+                                                                    : bahanPokokList.map(bp => ({ value: bp.id, label: `${bp.nama} (${bp.satuan})` }))
+                                                                }
+                                                            />
+                                                            <input className="form-field" placeholder="Berat Bersih (g)" type="number" value={bahanForm[item.id]?.beratBersihGr || ''} onChange={e => setBahanField(item.id, 'beratBersihGr', e.target.value)} />
+                                                            <input className="form-field" placeholder="Berat URT (opsional)" value={bahanForm[item.id]?.beratURT || ''} onChange={e => setBahanField(item.id, 'beratURT', e.target.value)} />
+                                                            <input className="form-field" placeholder="BDD % (1-100)" type="number" value={bahanForm[item.id]?.bddPersen || ''} onChange={e => setBahanField(item.id, 'bddPersen', e.target.value)} />
+                                                            <input className="form-field" placeholder="Harga Satuan" type="number" value={bahanForm[item.id]?.hargaSatuan || ''} onChange={e => setBahanField(item.id, 'hargaSatuan', e.target.value)} />
+                                                            <input className="form-field" placeholder="Berat Satuan (g)" type="number" value={bahanForm[item.id]?.beratSatuanGr || ''} onChange={e => setBahanField(item.id, 'beratSatuanGr', e.target.value)} />
+                                                            <input className="form-field" placeholder="Energi (kkal)" type="number" value={bahanForm[item.id]?.energiKkal || ''} onChange={e => setBahanField(item.id, 'energiKkal', e.target.value)} />
+                                                            <input className="form-field" placeholder="Protein (g)" type="number" value={bahanForm[item.id]?.proteinGr || ''} onChange={e => setBahanField(item.id, 'proteinGr', e.target.value)} />
+                                                            <input className="form-field" placeholder="Lemak (g)" type="number" value={bahanForm[item.id]?.lemakGr || ''} onChange={e => setBahanField(item.id, 'lemakGr', e.target.value)} />
+                                                            <input className="form-field" placeholder="Karbohidrat (g)" type="number" value={bahanForm[item.id]?.karbohidratGr || ''} onChange={e => setBahanField(item.id, 'karbohidratGr', e.target.value)} />
+                                                            <input className="form-field" placeholder="Serat (g)" type="number" value={bahanForm[item.id]?.seratGr || ''} onChange={e => setBahanField(item.id, 'seratGr', e.target.value)} />
                                                             <button onClick={() => addBahan(item.id)}>Tambah Bahan</button>
                                                         </div>
                                                     </li>
                                                 ))}
                                             </ul>
                                             <input
+                                                className="form-field"
                                                 placeholder="Nama menu"
                                                 value={namaMenuInput[b.id] || ''}
                                                 onChange={e => setNamaMenuInput(prev => ({ ...prev, [b.id]: e.target.value }))}
                                             />
-                                            <select
+                                            <Dropdown
+                                                style={{ width: '100%', marginTop: '6px', marginBottom: '6px' }}
                                                 value={komponenInput[b.id] || ''}
-                                                onChange={e => setKomponenInput(prev => ({ ...prev, [b.id]: e.target.value }))}
-                                            >
-                                                <option value="">-- Komponen (opsional) --</option>
-                                                {KOMPONEN_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
-                                            </select>
+                                                onChange={val => setKomponenInput(prev => ({ ...prev, [b.id]: val }))}
+                                                options={[
+                                                    { value: '', label: '-- Komponen (opsional) --' },
+                                                    ...KOMPONEN_OPTIONS.map(k => ({ value: k, label: k })),
+                                                ]}
+                                            />
                                             <button onClick={() => addMenuItem(b.id)}>Tambah Menu Item</button>
                                             <div style={{ border: '1px dashed gray', margin: '5px 0', padding: '5px' }}>
                                                 <strong>Uji Organoleptik</strong>
@@ -1179,12 +1096,12 @@ export const MenuHarianPage = () => {
                                                     </div>
                                                 ) : (
                                                     <div>
-                                                        <input placeholder="Rasa" value={organoleptikForm[b.id]?.rasa || ''} onChange={e => setOrganoleptikField(b.id, 'rasa', e.target.value)} />
-                                                        <input placeholder="Aroma" value={organoleptikForm[b.id]?.aroma || ''} onChange={e => setOrganoleptikField(b.id, 'aroma', e.target.value)} />
-                                                        <input placeholder="Tekstur" value={organoleptikForm[b.id]?.tekstur || ''} onChange={e => setOrganoleptikField(b.id, 'tekstur', e.target.value)} />
-                                                        <input placeholder="Suhu Saji" value={organoleptikForm[b.id]?.suhuSaji || ''} onChange={e => setOrganoleptikField(b.id, 'suhuSaji', e.target.value)} />
-                                                        <input placeholder="Jumlah Ompreng (default 1)" type="number" value={organoleptikForm[b.id]?.jumlahOmpreng || ''} onChange={e => setOrganoleptikField(b.id, 'jumlahOmpreng', e.target.value)} />
-                                                        <input placeholder="Catatan (opsional)" value={organoleptikForm[b.id]?.catatan || ''} onChange={e => setOrganoleptikField(b.id, 'catatan', e.target.value)} />
+                                                        <input className="form-field" placeholder="Rasa" value={organoleptikForm[b.id]?.rasa || ''} onChange={e => setOrganoleptikField(b.id, 'rasa', e.target.value)} />
+                                                        <input className="form-field" placeholder="Aroma" value={organoleptikForm[b.id]?.aroma || ''} onChange={e => setOrganoleptikField(b.id, 'aroma', e.target.value)} />
+                                                        <input className="form-field" placeholder="Tekstur" value={organoleptikForm[b.id]?.tekstur || ''} onChange={e => setOrganoleptikField(b.id, 'tekstur', e.target.value)} />
+                                                        <input className="form-field" placeholder="Suhu Saji" value={organoleptikForm[b.id]?.suhuSaji || ''} onChange={e => setOrganoleptikField(b.id, 'suhuSaji', e.target.value)} />
+                                                        <input className="form-field" placeholder="Jumlah Ompreng (default 1)" type="number" value={organoleptikForm[b.id]?.jumlahOmpreng || ''} onChange={e => setOrganoleptikField(b.id, 'jumlahOmpreng', e.target.value)} />
+                                                        <input className="form-field" placeholder="Catatan (opsional)" value={organoleptikForm[b.id]?.catatan || ''} onChange={e => setOrganoleptikField(b.id, 'catatan', e.target.value)} />
                                                         <button onClick={() => addOrganoleptik(b.id)}>Simpan Uji Organoleptik</button>
                                                     </div>
                                                 )}
@@ -1200,9 +1117,9 @@ export const MenuHarianPage = () => {
                                                         </li>
                                                     ))}
                                                 </ul>
-                                                <input placeholder="Jenis Alergi" value={alergiForm[b.id]?.jenisAlergi || ''} onChange={e => setAlergiField(b.id, 'jenisAlergi', e.target.value)} />
-                                                <input placeholder="Jumlah Siswa" type="number" value={alergiForm[b.id]?.jumlahSiswa || ''} onChange={e => setAlergiField(b.id, 'jumlahSiswa', e.target.value)} />
-                                                <input placeholder="Bahan Pengganti (opsional)" value={alergiForm[b.id]?.bahanPengganti || ''} onChange={e => setAlergiField(b.id, 'bahanPengganti', e.target.value)} />
+                                                <input className="form-field" placeholder="Jenis Alergi" value={alergiForm[b.id]?.jenisAlergi || ''} onChange={e => setAlergiField(b.id, 'jenisAlergi', e.target.value)} />
+                                                <input className="form-field" placeholder="Jumlah Siswa" type="number" value={alergiForm[b.id]?.jumlahSiswa || ''} onChange={e => setAlergiField(b.id, 'jumlahSiswa', e.target.value)} />
+                                                <input className="form-field" placeholder="Bahan Pengganti (opsional)" value={alergiForm[b.id]?.bahanPengganti || ''} onChange={e => setAlergiField(b.id, 'bahanPengganti', e.target.value)} />
                                                 <button onClick={() => addAlergi(b.id)}>Tambah Alergi</button>
                                             </div>
                                         </li>
@@ -1234,31 +1151,32 @@ export const MenuHarianPage = () => {
 
                                     return (
                                         <div>
-                                            <select
+                                            <Dropdown
+                                                style={{ width: '100%', marginBottom: '6px' }}
                                                 value={form.jenisPorsi || ''}
-                                                onChange={e => setPengirimanForm(prev => ({
+                                                onChange={val => setPengirimanForm(prev => ({
                                                     ...prev,
-                                                    [m.id]: { ...(prev[m.id] || {}), jenisPorsi: e.target.value }
+                                                    [m.id]: { ...(prev[m.id] || {}), jenisPorsi: val }
                                                 }))}
-                                            >
-                                                <option value="">-- Pilih Jenis Porsi --</option>
-                                                {availableOptions.map(opt => (
-                                                    <option key={opt} value={opt}>{opt}</option>
-                                                ))}
-                                            </select>
-                                            <select
+                                                options={[
+                                                    { value: '', label: '-- Pilih Jenis Porsi --' },
+                                                    ...availableOptions.map(opt => ({ value: opt, label: opt })),
+                                                ]}
+                                            />
+                                            <Dropdown
+                                                style={{ width: '100%', marginBottom: '6px' }}
                                                 value={form.kendaraanId || ''}
-                                                onChange={e => setPengirimanForm(prev => ({
+                                                onChange={val => setPengirimanForm(prev => ({
                                                     ...prev,
-                                                    [m.id]: { ...(prev[m.id] || {}), kendaraanId: e.target.value }
+                                                    [m.id]: { ...(prev[m.id] || {}), kendaraanId: val }
                                                 }))}
-                                            >
-                                                <option value="">-- Pilih Kendaraan --</option>
-                                                {aktifKendaraan.map(k => (
-                                                    <option key={k.id} value={k.id}>{k.namaKendaraan}</option>
-                                                ))}
-                                            </select>
+                                                options={[
+                                                    { value: '', label: '-- Pilih Kendaraan --' },
+                                                    ...aktifKendaraan.map(k => ({ value: k.id, label: k.namaKendaraan })),
+                                                ]}
+                                            />
                                             <input
+                                                className="form-field"
                                                 placeholder="Catatan (opsional)"
                                                 value={form.catatan || ''}
                                                 onChange={e => setPengirimanForm(prev => ({
@@ -1274,9 +1192,12 @@ export const MenuHarianPage = () => {
 
                             {/* ===== KOLOM AKSI ===== */}
                             <td>
-                                <select value={selectedKelompokUmurId} onChange={e => setSelectedKelompokUmurId(e.target.value)}>
-                                    {kelompokUmur.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
-                                </select>
+                                <Dropdown
+                                    style={{ width: '100%', marginBottom: '6px' }}
+                                    value={selectedKelompokUmurId}
+                                    onChange={setSelectedKelompokUmurId}
+                                    options={kelompokUmur.map(k => ({ value: k.id, label: k.nama }))}
+                                />
                                 <button onClick={() => addBlok(m.id)}>Tambah Blok</button>
                             </td>
                         </tr>

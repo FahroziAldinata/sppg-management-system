@@ -107,12 +107,7 @@ textarea:not([data-slot="input"]):not([class*="heroui"]):focus {
   box-shadow: 0 0 0 3px var(--input-focus-shadow);
 }
 
-input,
-select,
-textarea {
-  transition: none !important;
-  animation: none !important;
-}
+
 
 /* Custom Select Dropdown Styles */
 .custom-select-container {
@@ -120,7 +115,8 @@ textarea {
   width: 100%;
 }
 
-.custom-select-trigger {
+.custom-select-trigger,
+.form-field {
   width: 100%;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
@@ -128,24 +124,58 @@ textarea {
   background-color: var(--bg);
   color: var(--text);
   font-size: 14px;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.custom-select-trigger {
   text-align: left;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-sizing: border-box;
-  outline: none;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
 }
 
-.custom-select-trigger:hover {
+.form-field {
+  cursor: text;
+}
+
+.form-field-picker {
+  cursor: pointer;
+}
+
+.form-field:disabled {
+  background-color: var(--bg-elevated);
+  cursor: not-allowed;
+}
+
+.custom-select-trigger:hover,
+.form-field:hover:not(:disabled) {
   border-color: var(--input-hover-border);
+  background-color: var(--bg-elevated);
 }
 
 .custom-select-trigger:focus-visible,
-.custom-select-trigger.active {
+.custom-select-trigger.active,
+.form-field:not(.form-field-picker):focus,
+.form-field-picker.active {
   border-color: var(--input-focus-border);
   box-shadow: 0 0 0 3px var(--input-focus-shadow);
+  background-color: var(--bg-elevated);
+}
+
+.form-field-popover {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  margin-top: 4px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  box-shadow: var(--shadow);
 }
 
 .custom-select-dropdown {
@@ -167,23 +197,26 @@ textarea {
 
 .custom-select-option {
   padding: 8px 12px;
+  margin: 2px 6px;
+  border-radius: var(--radius-sm);
+  width: auto;
   font-size: 14px;
+  background-color: var(--bg);
   color: var(--text);
   cursor: pointer;
   outline: none;
   transition: background-color 100ms ease, color 100ms ease;
 }
 
-/* Hover & Focus styling - light/dark mode compliant options */
 .custom-select-option:hover,
-.custom-select-option:focus {
-  background-color: var(--input-hover-border);
-  color: #ffffff;
+.custom-select-option.hovered {
+  background-color: var(--color-primary-light);
+  color: var(--text);
 }
 
 .custom-select-option.selected {
-  background-color: var(--input-focus-border);
-  color: #ffffff;
+  background-color: var(--color-primary);
+  color: var(--bg-elevated);
 }
 
 /* ==========================================
@@ -198,12 +231,12 @@ button:not([class*="heroui"]) {
     transform var(--transition-fast);
 }
 
-button:not([class*="heroui"]):hover {
+button:not([class*="heroui"]):not(.custom-select-trigger):hover {
   filter: brightness(1.05);
   box-shadow: var(--shadow-hover);
 }
 
-button:not([class*="heroui"]):active {
+button:not([class*="heroui"]):not(.custom-select-trigger):active {
   transform: scale(0.98);
 }
 
@@ -212,9 +245,25 @@ button:not([class*="heroui"]):focus-visible {
   box-shadow: 0 0 0 3px var(--input-focus-shadow);
 }
 
-input:not([data-slot="input"]):not([class*="heroui"]):hover,
-select:not([data-slot="input"]):not([class*="heroui"]):hover,
-textarea:not([data-slot="input"]):not([class*="heroui"]):hover {
-  border-color: var(--input-hover-border);
-  box-shadow: var(--shadow-hover);
+input:not([data-slot="input"]):not([class*="heroui"]),
+select:not([data-slot="input"]):not([class*="heroui"]),
+textarea:not([data-slot="input"]):not([class*="heroui"]) {
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+
+/* Hover & Focus - biru muda dari token, bukan hardcode */
+.custom-select-option:hover,
+.custom-select-option:focus,
+.custom-select-option.hovered {
+  background-color: var(--color-primary-light);
+  /* #b5e0ea */
+  color: var(--text);
+}
+
+.custom-select-option.selected {
+  background-color: var(--color-primary);
+  color: white;
 }

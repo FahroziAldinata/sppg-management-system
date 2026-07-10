@@ -128,16 +128,7 @@ export const SettingPage = () => {
                             type="text"
                             value={nama}
                             onChange={e => setNama(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                             required
                         />
                     </div>
@@ -157,16 +148,7 @@ export const SettingPage = () => {
                             type="text"
                             value={username}
                             onChange={e => setUsername(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                             required
                         />
                     </div>
@@ -190,16 +172,7 @@ export const SettingPage = () => {
                             placeholder="Kosongkan jika tidak ingin mengubah"
                             value={password}
                             onChange={e => setPassword(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
@@ -219,16 +192,7 @@ export const SettingPage = () => {
                             placeholder="Ulangi kata sandi baru"
                             value={confirmPassword}
                             onChange={e => setConfirmPassword(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                 </div>

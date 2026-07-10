@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
+import Dropdown from '../../components/Dropdown';
 
 export const NominatifUpahPage = () => {
     const { request } = useApi();
@@ -190,26 +191,12 @@ export const NominatifUpahPage = () => {
                 }}>
                     Pilih Periode Aktif
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai} - {p.tanggalSelesai}
-                        </option>
-                    ))}
-                </select>
+                    onChange={val => setPeriodeId(val)}
+                    options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai} - ${p.tanggalSelesai}` }))}
+                />
             </div>
 
             {/* Form Nominatif */}
@@ -245,16 +232,7 @@ export const NominatifUpahPage = () => {
                             value={upahForm.jenisPekerjaan}
                             onChange={e => setUpahForm(prev => ({ ...prev, jenisPekerjaan: e.target.value }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
@@ -275,16 +253,7 @@ export const NominatifUpahPage = () => {
                             value={upahForm.namaRelawan}
                             onChange={e => setUpahForm(prev => ({ ...prev, namaRelawan: e.target.value }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                 </div>
@@ -307,16 +276,7 @@ export const NominatifUpahPage = () => {
                             placeholder="Dana Kesehatan (Rp)"
                             value={upahForm.danaKesehatan}
                             onChange={e => setUpahForm(prev => ({ ...prev, danaKesehatan: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
@@ -336,16 +296,7 @@ export const NominatifUpahPage = () => {
                             placeholder="Nominal TK (Rp)"
                             value={upahForm.tk}
                             onChange={e => setUpahForm(prev => ({ ...prev, tk: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
@@ -365,16 +316,7 @@ export const NominatifUpahPage = () => {
                             placeholder="Nominal PJ (Rp)"
                             value={upahForm.pj}
                             onChange={e => setUpahForm(prev => ({ ...prev, pj: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                 </div>
@@ -385,7 +327,7 @@ export const NominatifUpahPage = () => {
                     borderRadius: 'var(--radius-sm)',
                     padding: '16px',
                     marginTop: '10px',
-                    backgroundColor: 'var(--bg)',
+                    backgroundColor: 'var(--bg-elevated)',
                     color: 'var(--text)'
                 }}>
                     <h4 style={{ marginTop: '0', marginBottom: '16px', fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>
@@ -427,16 +369,8 @@ export const NominatifUpahPage = () => {
                                 placeholder="Nominal Harian (Rp)"
                                 value={tempUpahDetail.nominal}
                                 onChange={e => setTempUpahDetail(prev => ({ ...prev, nominal: e.target.value }))}
-                                style={{
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box',
-                                    width: '180px'
-                                }}
+                                className="form-field"
+                                style={{ width: '180px' }}
                             />
                         </div>
                         <button

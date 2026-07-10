@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderStatus } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
+import Dropdown from '../../components/Dropdown';
 
 export const RabHarianPage = () => {
     const { request } = useApi();
@@ -137,26 +138,12 @@ export const RabHarianPage = () => {
                 }}>
                     Pilih Periode Aktif
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai} - {p.tanggalSelesai}
-                        </option>
-                    ))}
-                </select>
+                    onChange={val => setPeriodeId(val)}
+                    options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai} - ${p.tanggalSelesai}` }))}
+                />
             </div>
 
             {/* Form Buat RAB Harian */}

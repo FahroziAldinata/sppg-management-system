@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table } from '../../components/Table';
+import Dropdown from '../../components/Dropdown';
 
 export const HargaBahanPage = () => {
   const { request } = useApi();
@@ -137,10 +138,33 @@ export const HargaBahanPage = () => {
   return (
     <div>
       <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pengelolaan Daftar Harga Bahan Periode</h2>
-      
-      {error && <div style={{ color: 'red', margin: '10px 0', padding: '8px', border: '1px solid red' }}>Error: {error}</div>}
-      {success && <div style={{ color: 'green', margin: '10px 0', padding: '8px', border: '1px solid green' }}>{success}</div>}
 
+      {error && (
+        <div style={{
+          color: 'var(--color-danger)',
+          marginBottom: '20px',
+          padding: '8px',
+          border: '1px solid var(--color-danger)',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: 'rgba(239, 68, 68, 0.05)'
+        }}>
+          {error}
+        </div>
+      )}
+      {success && (
+        <div style={{
+          color: 'var(--color-success)',
+          marginBottom: '20px',
+          padding: '8px',
+          border: '1px solid var(--color-success)',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: 'rgba(16, 185, 129, 0.05)'
+        }}>
+          {success}
+        </div>
+      )}
+
+      {/* Pilih Periode */}
       <div style={{
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-md)',
@@ -148,10 +172,10 @@ export const HargaBahanPage = () => {
         backgroundColor: 'var(--bg-elevated)',
         boxShadow: 'var(--shadow)',
         marginBottom: '30px',
-        width: '40%',
+        width: '26%',
         minWidth: '320px'
       }}>
-        <label htmlFor="period-select" style={{
+        <label style={{
           textTransform: 'uppercase',
           fontSize: '11px',
           fontWeight: 700,
@@ -162,31 +186,18 @@ export const HargaBahanPage = () => {
         }}>
           Pilih Periode
         </label>
-        <select
-          id="period-select"
+        <Dropdown
+          style={{ width: '100%' }}
           value={selectedPeriodId}
-          onChange={(e) => { setSelectedPeriodId(e.target.value); resetForm(); }}
-          style={{
-            width: '300px',
-            padding: '10px 12px',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--input-border)',
-            backgroundColor: 'var(--bg)',
-            color: 'var(--text)',
-            fontSize: '14px',
-            boxSizing: 'border-box'
-          }}
-        >
-          {periods.map(p => (
-            <option key={p.id} value={p.id}>
-              {p.tanggalMulai} - {p.tanggalSelesai}
-            </option>
-          ))}
-        </select>
+          onChange={(val) => { setSelectedPeriodId(val); resetForm(); }}
+          options={periods.map(p => ({
+            value: p.id,
+            label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+          }))}
+        />
       </div>
 
-      <hr />
-
+      {/* Form */}
       <form onSubmit={handleSubmit} style={{
         border: '1px solid var(--border)',
         borderRadius: 'var(--radius-md)',
@@ -201,7 +212,7 @@ export const HargaBahanPage = () => {
         <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--text)' }}>
           {editingId ? 'Edit Harga Bahan' : 'Tambah Harga Bahan Baru'}
         </h3>
-        
+
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
           <div style={{ flex: '1 1 200px' }}>
             <label style={{
@@ -215,26 +226,18 @@ export const HargaBahanPage = () => {
             }}>
               Bahan Pokok
             </label>
-            <select
+            <Dropdown
+              style={{ width: '100%' }}
               value={formBahanId}
-              onChange={(e) => setFormBahanId(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--input-border)',
-                backgroundColor: 'var(--bg)',
-                color: 'var(--text)',
-                fontSize: '14px',
-                boxSizing: 'border-box'
-              }}
-            >
-              <option value="">-- Pilih Bahan --</option>
-              {bahanList.map(b => (
-                <option key={b.id} value={b.id}>{b.nama} ({b.satuan})</option>
-              ))}
-            </select>
+              onChange={setFormBahanId}
+              options={[
+                { value: '', label: '-- Pilih Bahan --' },
+                ...bahanList.map(b => ({
+                  value: b.id,
+                  label: `${b.nama} (${b.satuan})`
+                }))
+              ]}
+            />
           </div>
 
           <div style={{ flex: '1 1 200px' }}>
@@ -253,19 +256,11 @@ export const HargaBahanPage = () => {
               type="number"
               min="0"
               step="0.01"
+              className="form-field"
+              placeholder="Contoh: 15000"
               value={formHarga}
               onChange={(e) => setFormHarga(e.target.value)}
               required
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--input-border)',
-                backgroundColor: 'var(--bg)',
-                color: 'var(--text)',
-                fontSize: '14px',
-                boxSizing: 'border-box'
-              }}
             />
           </div>
         </div>
@@ -318,8 +313,6 @@ export const HargaBahanPage = () => {
           )}
         </div>
       </form>
-
-      <hr style={{ margin: '20px 0' }} />
 
       <Table
         columns={[

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
+import Dropdown from '../../components/Dropdown';
 
 export const AnggaranHarianPage = () => {
     const { request } = useApi();
@@ -199,26 +200,12 @@ export const AnggaranHarianPage = () => {
                 }}>
                     Pilih Periode Aktif
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai} - {p.tanggalSelesai}
-                        </option>
-                    ))}
-                </select>
+                    onChange={val => setPeriodeId(val)}
+                    options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai} - ${p.tanggalSelesai}` }))}
+                />
             </div>
 
             {/* Form Anggaran */}
@@ -266,26 +253,17 @@ export const AnggaranHarianPage = () => {
                         }}>
                             Kategori Dana
                         </label>
-                        <select
+                        <Dropdown
+                            style={{ width: '100%' }}
                             value={anggaranForm.kategoriDana}
-                            onChange={e => setAnggaranForm(prev => ({ ...prev, kategoriDana: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                            required
-                        >
-                            <option value="">-- Pilih Kategori Dana --</option>
-                            <option value="BAHAN_MAKANAN">BAHAN_MAKANAN</option>
-                            <option value="OPERASIONAL">OPERASIONAL</option>
-                            <option value="INSENTIF_FASILITAS">INSENTIF_FASILITAS (SEWA)</option>
-                        </select>
+                            onChange={val => setAnggaranForm(prev => ({ ...prev, kategoriDana: val }))}
+                            options={[
+                                { value: '', label: '-- Pilih Kategori Dana --' },
+                                { value: 'BAHAN_MAKANAN', label: 'BAHAN_MAKANAN' },
+                                { value: 'OPERASIONAL', label: 'OPERASIONAL' },
+                                { value: 'INSENTIF_FASILITAS', label: 'INSENTIF_FASILITAS (SEWA)' }
+                            ]}
+                        />
                     </div>
                 </div>
 
@@ -307,16 +285,7 @@ export const AnggaranHarianPage = () => {
                             placeholder="Jumlah Paket"
                             value={anggaranForm.jumlahPaket}
                             onChange={e => setAnggaranForm(prev => ({ ...prev, jumlahPaket: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                             required
                         />
                     </div>
@@ -337,16 +306,7 @@ export const AnggaranHarianPage = () => {
                             placeholder="Keterangan"
                             value={anggaranForm.keterangan}
                             onChange={e => setAnggaranForm(prev => ({ ...prev, keterangan: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                 </div>
@@ -370,16 +330,7 @@ export const AnggaranHarianPage = () => {
                             placeholder="Harga Satuan (Rp)"
                             value={anggaranForm.hargaSatuan}
                             onChange={e => setAnggaranForm(prev => ({ ...prev, hargaSatuan: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                             required
                         />
                     </div>
@@ -398,56 +349,29 @@ export const AnggaranHarianPage = () => {
 
                         {/* Sub-form Rincian */}
                         <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap' }}>
-                            <select
+                            <Dropdown
                                 value={tempDetail.kategoriId}
-                                onChange={e => setTempDetail(prev => ({ ...prev, kategoriId: e.target.value }))}
-                                style={{
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px'
-                                }}
-                            >
-                                <option value="">-- Pilih Kategori --</option>
-                                {categories.map(cat => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.nama} ({cat.jenisPorsi})
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={val => setTempDetail(prev => ({ ...prev, kategoriId: val }))}
+                                options={[
+                                    { value: '', label: '-- Pilih Kategori --' },
+                                    ...categories.map(cat => ({ value: cat.id, label: `${cat.nama} (${cat.jenisPorsi})` }))
+                                ]}
+                            />
                             <input
                                 type="number"
                                 placeholder="Jumlah Paket"
                                 value={tempDetail.jumlahPaket}
                                 onChange={e => setTempDetail(prev => ({ ...prev, jumlahPaket: e.target.value }))}
-                                style={{
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    width: '120px',
-                                    boxSizing: 'border-box'
-                                }}
+                                className="form-field"
+                                style={{ width: '120px' }}
                             />
                             <input
                                 type="number"
                                 placeholder="Harga Satuan"
                                 value={tempDetail.hargaSatuan}
                                 onChange={e => setTempDetail(prev => ({ ...prev, hargaSatuan: e.target.value }))}
-                                style={{
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    width: '120px',
-                                    boxSizing: 'border-box'
-                                }}
+                                className="form-field"
+                                style={{ width: '120px' }}
                             />
                             <button
                                 type="button"

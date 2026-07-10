@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
+import Dropdown from '../../components/Dropdown';
 
 export const AslapDashboard = () => {
   const { request } = useApi();
@@ -132,26 +133,15 @@ export const AslapDashboard = () => {
           }}>
               Pilih Periode Aktif
           </label>
-          <select 
+          <Dropdown
+              style={{ width: '100%' }}
               value={selectedPeriod?.id || ''}
-              onChange={(e) => handlePeriodChange(e.target.value)}
-              style={{
-                  width: '100%',
-                  padding: '10px 12px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--input-border)',
-                  backgroundColor: 'var(--bg)',
-                  color: 'var(--text)',
-                  fontSize: '14px',
-                  boxSizing: 'border-box'
-              }}
-          >
-              {periods.map(p => (
-                  <option key={p.id} value={p.id}>
-                      {p.tanggalMulai} - {p.tanggalSelesai}
-                  </option>
-              ))}
-          </select>
+              onChange={handlePeriodChange}
+              options={periods.map(p => ({
+                  value: p.id,
+                  label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+              }))}
+          />
       </div>
 
       {selectedPeriod?.setupLembaga && (

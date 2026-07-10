@@ -102,16 +102,7 @@ export const KebutuhanBelanjaBahanPage = () => {
                     <select
                         value={periodeId}
                         onChange={e => handlePeriodChange(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
+                        className="form-field"
                     >
                         {periods.map(p => (
                             <option key={p.id} value={p.id}>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderStatus, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
+import Dropdown from '../../components/Dropdown';
 
 export const MutasiStokPage = () => {
     const { request } = useApi();
@@ -197,26 +198,15 @@ export const MutasiStokPage = () => {
                 }}>
                     Pilih Periode Aktif
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai} - {p.tanggalSelesai}
-                        </option>
-                    ))}
-                </select>
+                    onChange={val => setPeriodeId(val)}
+                    options={periods.map(p => ({
+                        value: p.id,
+                        label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+                    }))}
+                />
             </div>
 
             {/* Form Mutasi */}
@@ -246,28 +236,18 @@ export const MutasiStokPage = () => {
                         }}>
                             Bahan Pokok
                         </label>
-                        <select
+                        <Dropdown
+                            style={{ width: '100%' }}
                             value={mutasiForm.bahanPokokId}
-                            onChange={e => setMutasiForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                        >
-                            <option value="">-- Pilih Bahan Pokok --</option>
-                            {bahanPokokList.map(b => (
-                                <option key={b.id} value={b.id}>
-                                    {b.nama} ({b.satuan})
-                                </option>
-                            ))}
-                        </select>
+                            onChange={val => setMutasiForm(prev => ({ ...prev, bahanPokokId: val }))}
+                            options={[
+                                { value: '', label: '-- Pilih Bahan Pokok --' },
+                                ...bahanPokokList.map(b => ({
+                                    value: b.id,
+                                    label: `${b.nama} (${b.satuan})`
+                                }))
+                            ]}
+                        />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -302,10 +282,10 @@ export const MutasiStokPage = () => {
                         }}>
                             Jenis Mutasi
                         </label>
-                        <select
+                        <Dropdown
+                            style={{ width: '100%' }}
                             value={mutasiForm.jenis}
-                            onChange={e => {
-                                const val = e.target.value;
+                            onChange={val => {
                                 setMutasiForm(prev => ({
                                     ...prev,
                                     jenis: val,
@@ -314,22 +294,12 @@ export const MutasiStokPage = () => {
                                     kelompokPenerima: val === 'MASUK' ? '' : prev.kelompokPenerima
                                 }));
                             }}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                        >
-                            <option value="">-- Pilih Jenis --</option>
-                            <option value="MASUK">MASUK (Barang Datang / PO)</option>
-                            <option value="KELUAR">KELUAR (Penggunaan Dapur)</option>
-                        </select>
+                            options={[
+                                { value: '', label: '-- Pilih Jenis --' },
+                                { value: 'MASUK', label: 'MASUK (Barang Datang / PO)' },
+                                { value: 'KELUAR', label: 'KELUAR (Penggunaan Dapur)' }
+                            ]}
+                        />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -350,16 +320,7 @@ export const MutasiStokPage = () => {
                             value={mutasiForm.qty}
                             onChange={e => setMutasiForm(prev => ({ ...prev, qty: e.target.value }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                 </div>
@@ -381,16 +342,7 @@ export const MutasiStokPage = () => {
                         placeholder="Catatan / Keterangan"
                         value={mutasiForm.keterangan}
                         onChange={e => setMutasiForm(prev => ({ ...prev, keterangan: e.target.value }))}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
+                        className="form-field"
                     />
                 </div>
 
@@ -420,28 +372,15 @@ export const MutasiStokPage = () => {
                                 }}>
                                     Supplier
                                 </label>
-                                <select
+                                <Dropdown
+                                    style={{ width: '100%' }}
                                     value={mutasiForm.supplierId}
-                                    onChange={e => setMutasiForm(prev => ({ ...prev, supplierId: e.target.value }))}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                >
-                                    <option value="">-- Pilih Supplier --</option>
-                                    {supplierList.map(s => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.nama}
-                                        </option>
-                                    ))}
-                                </select>
+                                    onChange={val => setMutasiForm(prev => ({ ...prev, supplierId: val }))}
+                                    options={[
+                                        { value: '', label: '-- Pilih Supplier --' },
+                                        ...supplierList.map(s => ({ value: s.id, label: s.nama }))
+                                    ]}
+                                />
                             </div>
                             <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
@@ -461,16 +400,7 @@ export const MutasiStokPage = () => {
                                     value={mutasiForm.hargaBeli}
                                     onChange={e => setMutasiForm(prev => ({ ...prev, hargaBeli: e.target.value }))}
                                     required
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
+                                    className="form-field"
                                 />
                             </div>
                         </div>
@@ -502,25 +432,16 @@ export const MutasiStokPage = () => {
                             }}>
                                 Kelompok Penerima
                             </label>
-                            <select
+                            <Dropdown
+                                style={{ width: '100%' }}
                                 value={mutasiForm.kelompokPenerima}
-                                onChange={e => setMutasiForm(prev => ({ ...prev, kelompokPenerima: e.target.value }))}
-                                required
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
-                            >
-                                <option value="">-- Pilih Kelompok --</option>
-                                <option value="SISWA">SISWA</option>
-                                <option value="B3">B3 (Pendidik/Masyarakat)</option>
-                            </select>
+                                onChange={val => setMutasiForm(prev => ({ ...prev, kelompokPenerima: val }))}
+                                options={[
+                                    { value: '', label: '-- Pilih Kelompok --' },
+                                    { value: 'SISWA', label: 'SISWA' },
+                                    { value: 'B3', label: 'B3 (Pendidik/Masyarakat)' }
+                                ]}
+                            />
                         </div>
                     </div>
                 )}

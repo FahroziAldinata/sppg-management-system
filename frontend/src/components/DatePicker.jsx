@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useId } from 'react';
 import { Calendar } from './Calendar';
 import { parseDate } from '@internationalized/date';
 
@@ -11,66 +11,81 @@ export function DatePicker({
     className = '',
     disabled = false
 }) {
-    const [showCalendar, setShowCalendar] = useState(false);
-    const calendarRef = useRef(null);
+    const [open, setOpen] = useState(false);
+    const containerRef = useRef(null);
+    const triggerRef = useRef(null);
+    const id = useId();
+
+    const close = () => {
+        setOpen(false);
+        triggerRef.current?.blur();
+    };
 
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-                setShowCalendar(false);
+        function onClickOutside(e) {
+            if (containerRef.current && !containerRef.current.contains(e.target)) {
+                close();
             }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        }
+        document.addEventListener('mousedown', onClickOutside);
+        return () => document.removeEventListener('mousedown', onClickOutside);
     }, []);
 
     const handleDateChange = (val) => {
         if (onChange) {
             onChange(val ? val.toString() : '');
         }
-        setShowCalendar(false);
+        close();
     };
 
-    const inputStyle = {
-        width: '100%',
-        padding: '10px 12px',
-        borderRadius: 'var(--radius-sm)',
-        border: '1px solid var(--input-border)',
-        backgroundColor: disabled ? 'var(--bg-elevated)' : 'var(--bg)',
-        color: 'var(--text)',
-        fontSize: '14px',
-        boxSizing: 'border-box',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        ...style
-    };
+    function onKeyDown(e) {
+        if (!open && ['Enter', ' ', 'ArrowDown'].includes(e.key)) {
+            e.preventDefault();
+            if (!disabled) setOpen(true);
+            return;
+        }
+        if (!open) return;
+        if (e.key === 'Escape') {
+            close();
+        }
+    }
 
     return (
-        <div ref={calendarRef} className={className} style={{ position: 'relative', width: '100%' }}>
-            <input
-                type="text"
-                placeholder={placeholder}
-                value={value}
-                onClick={() => !disabled && setShowCalendar(true)}
-                readOnly
-                required={required}
+        <div
+            ref={containerRef}
+            className={`custom-select-container${className ? ` ${className}` : ''}`}
+            style={style}
+        >
+            <button
+                type="button"
+                id={id}
+                ref={triggerRef}
+                className={`custom-select-trigger form-field-picker${open ? ' active' : ''}`}
+                aria-haspopup="dialog"
+                aria-expanded={open}
                 disabled={disabled}
-                style={inputStyle}
-            />
-            {showCalendar && !disabled && (
-                <div style={{
-                    position: 'absolute',
-                    top: '100%',
-                    left: 0,
-                    zIndex: 1000,
-                    marginTop: '5px',
-                    backgroundColor: 'var(--bg-elevated)',
-                    border: '1px solid var(--border)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '16px',
-                    boxShadow: 'var(--shadow)'
-                }}>
+                onClick={() => {
+                    if (disabled) return;
+                    open ? close() : setOpen(true);
+                }}
+                onKeyDown={onKeyDown}
+            >
+                <span>{value || placeholder}</span>
+                <span aria-hidden style={{ marginLeft: 8, opacity: 0.6 }}>▾</span>
+            </button>
+            {required && (
+                <input
+                    type="text"
+                    value={value}
+                    required
+                    tabIndex={-1}
+                    aria-hidden
+                    style={{ opacity: 0, height: 0, width: 0, position: 'absolute', pointerEvents: 'none' }}
+                    onChange={() => {}}
+                />
+            )}
+            {open && !disabled && (
+                <div className="form-field-popover">
                     <Calendar
                         value={value ? parseDate(value) : null}
                         onChange={handleDateChange}

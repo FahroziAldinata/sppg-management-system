@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table } from '../../components/Table';
+import Dropdown from '../../components/Dropdown';
 
 export const DokumenResmiPage = () => {
     const { request } = useApi();
@@ -181,26 +182,7 @@ export const DokumenResmiPage = () => {
                 }}>
                     Pilih Periode Aktif
                 </label>
-                <select
-                    value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai} - {p.tanggalSelesai}
-                        </option>
-                    ))}
-                </select>
+                <Dropdown style={{ width: '100%' }} value={periodeId} onChange={val => setPeriodeId(val)} options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai} - ${p.tanggalSelesai}` }))} />
             </div>
 
             {/* Form Generate */}
@@ -230,26 +212,16 @@ export const DokumenResmiPage = () => {
                         }}>
                             Jenis Dokumen
                         </label>
-                        <select
+                        <Dropdown
                             value={dokumenForm.jenisDokumen}
-                            onChange={e => setDokumenForm(prev => ({ ...prev, jenisDokumen: e.target.value }))}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                        >
-                            <option value="">-- Pilih Jenis --</option>
-                            <option value="LPA">LPA (Laporan Pertanggungjawaban Anggaran)</option>
-                            <option value="SPTJ">SPTJ (Surat Pernyataan Tanggung Jawab)</option>
-                            <option value="BAPSD">BAPSD (Berita Acara Penyerahan Selisih Dana)</option>
-                        </select>
+                            onChange={val => setDokumenForm(prev => ({ ...prev, jenisDokumen: val }))}
+                            options={[
+                                { value: '', label: '-- Pilih Jenis --' },
+                                { value: 'LPA', label: 'LPA (Laporan Pertanggungjawaban Anggaran)' },
+                                { value: 'SPTJ', label: 'SPTJ (Surat Pernyataan Tanggung Jawab)' },
+                                { value: 'BAPSD', label: 'BAPSD (Berita Acara Penyerahan Selisih Dana)' }
+                            ]}
+                        />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -268,16 +240,7 @@ export const DokumenResmiPage = () => {
                             placeholder="Nomor Dokumen"
                             value={dokumenForm.nomorDokumen}
                             onChange={e => setDokumenForm(prev => ({ ...prev, nomorDokumen: e.target.value }))}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                 </div>

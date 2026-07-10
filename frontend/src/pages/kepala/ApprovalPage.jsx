@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderDate, renderStatus, renderTruncate } from '../../components/Table';
+import Dropdown from '../../components/Dropdown';
 
 export const ApprovalPage = () => {
     const { request } = useApi();
@@ -128,7 +129,18 @@ export const ApprovalPage = () => {
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Dashboard Kepala SPPG</h2>
             {/* ponytail: unify shade pastel to bg-elevated */}
-            {error && <div style={{ color: 'var(--color-danger)', position: 'sticky', top: 0, background: 'var(--bg-elevated)', padding: '8px', zIndex: 10, border: '1px solid var(--border)' }}>{error}</div>}
+            {error && (
+                <div style={{
+                    color: 'var(--color-danger)',
+                    marginBottom: '20px',
+                    padding: '8px',
+                    border: '1px solid var(--color-danger)',
+                    borderRadius: 'var(--radius-sm)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
+                }}>
+                    {error}
+                </div>
+            )}
 
             {/* Pilihan Periode */}
             <div style={{
@@ -138,8 +150,7 @@ export const ApprovalPage = () => {
                 backgroundColor: 'var(--bg-elevated)',
                 boxShadow: 'var(--shadow)',
                 marginBottom: '30px',
-                width: '26%',
-                minWidth: '320px'
+                width: '26%',                minWidth: '320px'
             }}>
                 <label style={{
                     textTransform: 'uppercase',
@@ -152,26 +163,15 @@ export const ApprovalPage = () => {
                 }}>
                     Periode
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai.split('T')[0]} - {p.tanggalSelesai.split('T')[0]}
-                        </option>
-                    ))}
-                </select>
+                    onChange={setPeriodeId}
+                    options={periods.map(p => ({
+                        value: p.id,
+                        label: `${p.tanggalMulai.split('T')[0]} - ${p.tanggalSelesai.split('T')[0]}`
+                    }))}
+                />
             </div>
 
             <hr style={{ margin: '20px 0' }} />

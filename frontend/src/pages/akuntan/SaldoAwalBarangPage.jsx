@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Table, renderCurrency } from '../../components/Table';
+import Dropdown from '../../components/Dropdown';
 
 export const SaldoAwalBarangPage = () => {
     const { request } = useApi();
@@ -171,26 +172,12 @@ export const SaldoAwalBarangPage = () => {
                 }}>
                     Pilih Periode Aktif
                 </label>
-                <select
+                <Dropdown
+                    style={{ width: '100%' }}
                     value={periodeId}
-                    onChange={e => setPeriodeId(e.target.value)}
-                    style={{
-                        width: '300px',
-                        padding: '10px 12px',
-                        borderRadius: 'var(--radius-sm)',
-                        border: '1px solid var(--input-border)',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        fontSize: '14px',
-                        boxSizing: 'border-box'
-                    }}
-                >
-                    {periods.map(p => (
-                        <option key={p.id} value={p.id}>
-                            {p.tanggalMulai} - {p.tanggalSelesai}
-                        </option>
-                    ))}
-                </select>
+                    onChange={val => setPeriodeId(val)}
+                    options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai} - ${p.tanggalSelesai}` }))}
+                />
             </div>
 
             {/* Form Saldo Awal */}
@@ -220,28 +207,14 @@ export const SaldoAwalBarangPage = () => {
                         }}>
                             Bahan Pokok
                         </label>
-                        <select
+                        <Dropdown
                             value={saldoAwalForm.bahanPokokId}
-                            onChange={e => setSaldoAwalForm(prev => ({ ...prev, bahanPokokId: e.target.value }))}
-                            required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
-                        >
-                            <option value="">-- Pilih Bahan Pokok --</option>
-                            {bahanPokokList.map(b => (
-                                <option key={b.id} value={b.id}>
-                                    {b.nama} ({b.satuan})
-                                </option>
-                            ))}
-                        </select>
+                            onChange={val => setSaldoAwalForm(prev => ({ ...prev, bahanPokokId: val }))}
+                            options={[
+                                { value: '', label: '-- Pilih Bahan Pokok --' },
+                                ...bahanPokokList.map(b => ({ value: b.id, label: `${b.nama} (${b.satuan})` }))
+                            ]}
+                        />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
                         <label style={{
@@ -262,16 +235,7 @@ export const SaldoAwalBarangPage = () => {
                             value={saldoAwalForm.saldoAwalQty}
                             onChange={e => setSaldoAwalForm(prev => ({ ...prev, saldoAwalQty: e.target.value }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                     <div style={{ flex: '1 1 200px' }}>
@@ -293,16 +257,7 @@ export const SaldoAwalBarangPage = () => {
                             value={saldoAwalForm.hargaBeliAwal}
                             onChange={e => setSaldoAwalForm(prev => ({ ...prev, hargaBeliAwal: e.target.value }))}
                             required
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         />
                     </div>
                 </div>
