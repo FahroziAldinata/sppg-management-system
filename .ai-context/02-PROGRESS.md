@@ -36,14 +36,14 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **API & Notifikasi Baru** — Pembuatan router baru notifikasi.js dengan endpoint GET `/api/notifikasi` (userId = req.user.sub, take 20) dan didaftarkan ke app.js.
 - [x] **Perbaikan Bug Lintas Periode StockBarang** — Memperbaiki bug kalkulasi ganda mutasi stok lintas periode di laporan StockBarang dengan menambahkan filter rentang tanggal mulai periode (`gte: periode.tanggalMulai`) di query `mutasiStok.groupBy` backend, serta menambahkan penanganan error P2025 (`findUniqueOrThrow`).
 - [x] **StockBarangPage Selesai (Frontend)** — Membuat halaman baru StockBarangPage.jsx untuk visualisasi laporan stok barang persediaan (termasuk filter periode & tanggal, auto-trigger load, dan format mata uang Rupiah), serta mendaftarkan rute di App.jsx dan menu navigasi di Layout.jsx.
-- [x] **Frontend Tahap 3 (Laporan) — SEMUA 9 laporan selesai** — BKU, BP per akun, LPA, SPTJ, BAPSD, StockBarang, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan seluruhnya terintegrasi Frontend+Backend, teruji manual di browser.
+- [x] **Frontend Tahap 3 (Laporan) — SEMUA 9 laporan selesai** — BKU, BP per akun, LPA, SPTJ, BAPSD, Stock Barang (Persediaan) (Backend bugfix & Frontend Page selesai), Kebutuhan Belanja Bahan (Selesai), Laporan Per Periode (Pendidikan & Posyandu) (Selesai), Laporan Per Bulan (Selesai) seluruhnya terintegrasi Frontend+Backend, teruji manual di browser.
 - [x] **Manajemen Periode & SetupLembaga** — Pembuatan endpoint backend baru (GET `/latest-setup` & POST `/periode` di akuntan.js) dan halaman form baru `PeriodeSetupPage.jsx` dengan sistem autofill hibrida berbasis data historis (mengisi otomatis nama lembaga/pejabat/VA, dan menyugestikan tanggal operasional logis berikutnya).
+- [x] **Penyelarasan Layout Form & Global Dropdown Fix (Tahap 4)** — Menonaktifkan transisi/animasi CSS secara global pada seluruh tag select (`index.css`) demi responsivitas instan, serta menyelaraskan tata letak form setup lembaga (`PeriodeSetupPage.jsx`) dan form pengaturan akun (`SettingPage.jsx`) dengan format baris Flexbox responsif menyamai layout form Jurnal Transaksi yang telah disetujui.
 
 ## Sedang jalan / berikutnya
 
-- Tahap 4 — Styling visual, keselarasan warna, layout, dan spacing secara konsisten di seluruh halaman frontend.
+- Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
 
 ## Belum dikerjakan sama sekali
 
-- UI/UX Frontend seluruhnya (styling visual konsisten/layout/spacing).
-- Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
+- Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase) (Semua pengerjaan frontend, UI/UX, dan penyelarasan visual telah rampung 100%).

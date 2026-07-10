@@ -16,7 +16,7 @@ Referensi schema: `prisma/schema.prisma` v5.2 (38+ model). Dokumen ini ringkasan
 |---|---|---|
 | User & Auth | `User` | semua |
 | Periode | `Periode`, `SetupLembaga` | semua |
-| Taksonomi | `KategoriPenerima`, `KelompokUmurMenu`, `BatasHargaPorsi` | Aslap, Ahli Gizi, Akuntan |
+| Taksonomi | `KategoriPenerima`, `KelompokUmurMenu`, `BatasHargaPorsi` | Aslap, Ahli Gizi, Akuntan, Kepala SPPG |
 | Penerima manfaat | `Sekolah`, `Posyandu`, `InputPenerimaManfaat`, `InputPenerimaManfaatDetail`, `SekolahKelasDetail` (pembantu) | Aslap |
 | Harga | `HargaPaketKategoriPeriode`, `BahanPokok`, `HargaBahanPeriode` | Akuntan, Mitra |
 | Stok | `SaldoAwalBarang`, `MutasiStok` | Mitra/Akuntan (pencatat) |

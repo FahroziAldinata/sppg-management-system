@@ -54,9 +54,15 @@ Tahap 3 — Laporan (read-only, low-risk)
     - [x] Laporan Per Periode (Pendidikan & Posyandu) (Selesai)
     - [x] Laporan Per Bulan (Selesai)
 
-Tahap 4 — Baru styling
+Tahap 4 — Styling & Penyelarasan Layout
 
- Setelah semua tahap 1-3 functional & lo udah cek sendiri alurnya bener
- Kamu kasih arahan visual (warna/layout/spacing), diterapin sekaligus ke semua halaman yang udah jadi
+ - [x] Integrasi rule CSS global untuk menonaktifkan transisi dropdown di `index.css`.
+ - [x] Penerapan style target (padding, border-radius, background/color dari tokens.css) pada tombol Tampilkan Laporan & Refresh di 5 halaman laporan Akuntan.
+ - [x] Penyelarasan tata letak form setup lembaga (`PeriodeSetupPage.jsx`) dan pengaturan akun (`SettingPage.jsx`) ke dalam baris Flexbox responsif menyamai layout form Jurnal Transaksi.
+
+Tahap 5 — Migrasi React Aria Components
+ - [ ] Migrasi seluruh halaman form (native select/date inputs) ke React Aria Components
+    - [x] JurnalTransaksiPage.jsx (Pilot - Selesai 100%)
+    - [ ] Halaman lain di bawah Akuntan, Mitra, Gizi, Aslap, Kepala SPPG (Menunggu Review Audit)
 
 Progress-tracking: bikin file baru 07-TODO-FRONTEND.md di project (bukan overwrite 04-TODO.md — itu punya backend). Update per tahap kelar, sama pola kayak 02-PROGRESS.md.

@@ -70,7 +70,7 @@ export const SettingPage = () => {
     };
 
     return (
-        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <h2 style={{ color: 'var(--text)' }}>Pengaturan Profil &amp; Akun</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '0' }}>
                 Perbarui nama tampilan, username, atau kata sandi Anda di sini.
@@ -111,122 +111,126 @@ export const SettingPage = () => {
                 flexDirection: 'column',
                 gap: '16px'
             }}>
-                <div>
-                    <label style={{
-                        textTransform: 'uppercase',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        letterSpacing: '0.07em',
-                        color: 'var(--text-muted)',
-                        display: 'block',
-                        marginBottom: '6px'
-                    }}>
-                        Nama Lengkap:
-                    </label>
-                    <input
-                        type="text"
-                        value={nama}
-                        onChange={e => setNama(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
-                        required
-                    />
-                </div>
-                <div>
-                    <label style={{
-                        textTransform: 'uppercase',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        letterSpacing: '0.07em',
-                        color: 'var(--text-muted)',
-                        display: 'block',
-                        marginBottom: '6px'
-                    }}>
-                        Username:
-                    </label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={e => setUsername(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
-                        required
-                    />
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Nama Lengkap:
+                        </label>
+                        <input
+                            type="text"
+                            value={nama}
+                            onChange={e => setNama(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        />
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Username:
+                        </label>
+                        <input
+                            type="text"
+                            value={username}
+                            onChange={e => setUsername(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                            required
+                        />
+                    </div>
                 </div>
                 <hr style={{ border: '0', borderTop: '1px solid var(--border)', margin: '5px 0' }} />
-                <div>
-                    <label style={{
-                        textTransform: 'uppercase',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        letterSpacing: '0.07em',
-                        color: 'var(--text-muted)',
-                        display: 'block',
-                        marginBottom: '6px'
-                    }}>
-                        Kata Sandi Baru (opsional):
-                    </label>
-                    <input
-                        type="password"
-                        placeholder="Kosongkan jika tidak ingin mengubah"
-                        value={password}
-                        onChange={e => setPassword(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
-                    />
-                </div>
-                <div>
-                    <label style={{
-                        textTransform: 'uppercase',
-                        fontSize: 11,
-                        fontWeight: 700,
-                        letterSpacing: '0.07em',
-                        color: 'var(--text-muted)',
-                        display: 'block',
-                        marginBottom: '6px'
-                    }}>
-                        Konfirmasi Kata Sandi Baru:
-                    </label>
-                    <input
-                        type="password"
-                        placeholder="Ulangi kata sandi baru"
-                        value={confirmPassword}
-                        onChange={e => setConfirmPassword(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '10px 12px',
-                            borderRadius: 'var(--radius-sm)',
-                            border: '1px solid var(--input-border)',
-                            backgroundColor: 'var(--bg)',
-                            color: 'var(--text)',
-                            fontSize: '14px',
-                            boxSizing: 'border-box'
-                        }}
-                    />
+                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Kata Sandi Baru (opsional):
+                        </label>
+                        <input
+                            type="password"
+                            placeholder="Kosongkan jika tidak ingin mengubah"
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: 11,
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Konfirmasi Kata Sandi Baru:
+                        </label>
+                        <input
+                            type="password"
+                            placeholder="Ulangi kata sandi baru"
+                            value={confirmPassword}
+                            onChange={e => setConfirmPassword(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '10px 12px',
+                                borderRadius: 'var(--radius-sm)',
+                                border: '1px solid var(--input-border)',
+                                backgroundColor: 'var(--bg)',
+                                color: 'var(--text)',
+                                fontSize: '14px',
+                                boxSizing: 'border-box'
+                            }}
+                        />
+                    </div>
                 </div>
 
                 <div style={{ marginTop: '10px' }}>

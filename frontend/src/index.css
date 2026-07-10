@@ -62,7 +62,6 @@ body {
 /* Custom transitions for icons & interactive elements */
 a,
 button,
-select,
 input,
 textarea {
   transition: all var(--transition-fast);
@@ -89,11 +88,102 @@ textarea {
   box-shadow: var(--shadow-hover);
 }
 
-/* Custom interactive input focus states */
-input:focus,
-select:focus,
-textarea:focus {
+/* Custom interactive input hover and focus states (excluding HeroUI) */
+input:not([data-slot="input"]):not([class*="heroui"]),
+select:not([data-slot="input"]):not([class*="heroui"]),
+textarea:not([data-slot="input"]):not([class*="heroui"]) {
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+input:not([data-slot="input"]):not([class*="heroui"]):hover,
+select:not([data-slot="input"]):not([class*="heroui"]):hover,
+textarea:not([data-slot="input"]):not([class*="heroui"]):hover {
+  border-color: var(--input-hover-border);
+}
+
+input:not([data-slot="input"]):not([class*="heroui"]):focus,
+select:not([data-slot="input"]):not([class*="heroui"]):focus,
+textarea:not([data-slot="input"]):not([class*="heroui"]):focus {
   outline: none;
-  border-color: var(--color-primary-light);
-  box-shadow: 0 0 0 3px rgba(181, 224, 234, 0.25);
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+select {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Custom Select Dropdown Styles */
+.custom-select-container {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select-trigger {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--input-border);
+  background-color: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.custom-select-trigger:hover {
+  border-color: var(--input-hover-border);
+}
+
+.custom-select-trigger:focus-visible,
+.custom-select-trigger.active {
+  border-color: var(--input-focus-border);
+  box-shadow: 0 0 0 3px var(--input-focus-shadow);
+}
+
+.custom-select-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background-color: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 4px 0;
+  list-style: none;
+}
+
+.custom-select-option {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  outline: none;
+  transition: background-color 100ms ease, color 100ms ease;
+}
+
+/* Hover & Focus styling - light/dark mode compliant options */
+.custom-select-option:hover,
+.custom-select-option:focus {
+  background-color: var(--input-hover-border);
+  color: #ffffff;
+}
+
+.custom-select-option.selected {
+  background-color: var(--input-focus-border);
+  color: #ffffff;
 }

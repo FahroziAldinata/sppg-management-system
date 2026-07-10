@@ -39,7 +39,6 @@ import { LaporanPerBulanPage } from './pages/akuntan/laporan/LaporanPerBulanPage
 import { PeriodeSetupPage } from './pages/akuntan/laporan/PeriodeSetupPage';
 
 import { useAuth } from './context/AuthContext';
-
 function RoleRedirect() {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" replace />;
@@ -66,7 +65,7 @@ function App() {
             }
           >
             <Route index element={<RoleRedirect />} />
-            
+
             {/* ===== ASLAP Routes ===== */}
             <Route
               path="aslap"

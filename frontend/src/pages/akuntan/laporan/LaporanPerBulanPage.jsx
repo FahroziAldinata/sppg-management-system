@@ -80,7 +80,16 @@ export const LaporanPerBulanPage = () => {
                 <button
                     type="button"
                     onClick={loadLaporanPerBulan}
-                    style={{ padding: '4px 12px' }}
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        fontWeight: '600',
+                        fontSize: '14px'
+                    }}
                 >
                     Tampilkan Laporan
                 </button>

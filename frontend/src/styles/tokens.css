@@ -7,6 +7,7 @@
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
 
+
   /* Fonts & Radius */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --radius-sm: 4px;
@@ -46,6 +47,9 @@
   --btn-cancel-bg: var(--bg-elevated);
   --btn-cancel-border: var(--text);
   --btn-cancel-text: var(--text);
+  --input-hover-border: #0284c7;
+  --input-focus-border: #071e49;
+  --input-focus-shadow: rgba(7, 30, 73, 0.15);
 }
 
 [data-theme="dark"] {
@@ -67,4 +71,7 @@
   --btn-cancel-bg: transparent;
   --btn-cancel-border: var(--color-primary-light);
   --btn-cancel-text: var(--color-primary-light);
+  --input-hover-border: #7c3aed;
+  --input-focus-border: #b5e0ea;
+  --input-focus-shadow: rgba(181, 224, 234, 0.15);
 }

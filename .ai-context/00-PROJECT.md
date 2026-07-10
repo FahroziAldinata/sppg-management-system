@@ -8,7 +8,7 @@ di bawah Badan Gizi Nasional (BGN).
 
 Periode kerja: 2 minggu (bukan 1 minggu — sudah direvisi dari draf awal).
 
-## Siapa yang pakai (4 role)
+## Siapa yang pakai (5 role)
 
 1. **Aslap** (Asisten Lapangan) — input jumlah penerima manfaat per periode
    (porsi kecil vs porsi besar). Ini adalah trigger pembuka tiap periode baru.
@@ -20,6 +20,7 @@ Periode kerja: 2 minggu (bukan 1 minggu — sudah direvisi dari draf awal).
 4. **Akuntan** — kelola anggaran, hitung total biaya dari menu vs anggaran
    tersedia, tracking pengeluaran kas, generate laporan periodik. Berwenang
    memutuskan revisi jika anggaran minus.
+5. **Kepala SPPG** — melakukan persetujuan (approval/rejection) atas dokumen Menu Harian (yang disusun Ahli Gizi) dan RAB Harian (yang disusun Akuntan) per hari operasional.
 
 ## Alur kerja inti (lihat 01-ARCHITECTURE.md untuk detail skema)
 
@@ -36,9 +37,12 @@ Aslap input penerima manfaat
         v
    Akuntan hitung total biaya vs anggaran
         |
-        +-- cukup -> approved, periode terkunci, lanjut ke pelaksanaan dapur
+        v
+   Kepala SPPG lakukan approval (Menu Harian & RAB Harian)
         |
-        +-- minus -> balik ke ahli gizi untuk revisi menu (loop)
+        +-- disetujui (cukup) -> approved, periode berjalan, lanjut ke pelaksanaan dapur
+        |
+        +-- ditolak (minus/revisi) -> balik ke ahli gizi/akuntan untuk revisi (loop)
 ```
 
 Setelah periode disetujui dan berjalan, aslap melakukan validasi stok fisik

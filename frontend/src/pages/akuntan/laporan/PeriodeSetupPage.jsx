@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
 import { RangeCalendar } from "@heroui/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
+import { parseDate } from "@internationalized/date";
 
 export const PeriodeSetupPage = () => {
     const { request } = useApi();
@@ -27,6 +28,19 @@ export const PeriodeSetupPage = () => {
     const [awalPeriodeBerikutnya, setAwalPeriodeBerikutnya] = useState('');
     const [tanggalPelaporan, setTanggalPelaporan] = useState('');
     const [tempatPelaporan, setTempatPelaporan] = useState('');
+
+    const calendarDateToString = (date) => {
+        if (!date) return "";
+
+        return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
+    };
+
+    const handleRangeChange = (range) => {
+        if (!range?.start || !range?.end) return;
+        setSelectedRange(range);
+        setTanggalMulai(calendarDateToString(range.start));
+        setTanggalSelesai(calendarDateToString(range.end));
+    };
 
     // Fetch latest period on mount for autofilling defaults
     const fetchLatestSetup = async () => {
@@ -60,6 +74,13 @@ export const PeriodeSetupPage = () => {
 
                     // Suggested year = sugStart's year
                     setTahunAnggaran(sugStart.getUTCFullYear().toString());
+
+                    if (sugStartStr && sugEndStr) {
+                        setSelectedRange({
+                            start: parseDate(sugStartStr),
+                            end: parseDate(sugEndStr)
+                        });
+                    }
 
                     // 2. Autofill constants from previous SetupLembaga
                     if (latest.setupLembaga) {
@@ -165,8 +186,9 @@ export const PeriodeSetupPage = () => {
         }
     };
 
+
     return (
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <h2 style={{ color: 'var(--text)' }}>Buka Periode & Setup Lembaga Baru</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '-10px', marginBottom: '20px' }}>
                 Halaman ini digunakan untuk memulai periode operasional dan keuangan baru. Data lembaga di-autofill otomatis dari periode sebelumnya untuk menghemat waktu Anda.
@@ -230,128 +252,104 @@ export const PeriodeSetupPage = () => {
                         }}>
                             1. Rentang Periode &amp; Pagu Dana
                         </legend>
+                        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap', alignItems: 'start' }}>
+                            <div style={{ flex: '1 1 0%', minWidth: '300px' }}>
+                                <RangeCalendar
+                                    aria-label="Rentang Periode"
+                                    value={selectedRange}
+                                    onChange={handleRangeChange}
+                                    style={{ width: '100%' }}
+                                >
+                                    <RangeCalendar.Header>
+                                        <RangeCalendar.NavButton slot="previous" />
+                                        <RangeCalendar.Heading />
+                                        <RangeCalendar.NavButton slot="next" />
+                                    </RangeCalendar.Header>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
-                            <div>
-                                <label style={{
-                                    textTransform: 'uppercase',
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    letterSpacing: '0.07em',
-                                    color: 'var(--text-muted)',
-                                    display: 'block',
-                                    marginBottom: '6px'
-                                }}>
-                                    Tanggal Mulai *
-                                </label>
-                                <input
-                                    type="date"
-                                    value={tanggalMulai}
-                                    onChange={e => setTanggalMulai(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                    required
-                                />
+                                    <RangeCalendar.Grid>
+                                        <RangeCalendar.GridHeader>
+                                            {(day) => (
+                                                <RangeCalendar.HeaderCell>
+                                                    {day}
+                                                </RangeCalendar.HeaderCell>
+                                            )}
+                                        </RangeCalendar.GridHeader>
+
+                                        <RangeCalendar.GridBody>
+                                            {(date) => (
+                                                <RangeCalendar.Cell date={date} />
+                                            )}
+                                        </RangeCalendar.GridBody>
+                                    </RangeCalendar.Grid>
+                                </RangeCalendar>
+                                <div className="text-sm font-medium mt-2 space-y-1" style={{ color: 'var(--text-muted)' }}>
+                                    <div>Tanggal Mulai: {tanggalMulai || "-"}</div>
+                                    <div>Tanggal Selesai: {tanggalSelesai || "-"}</div>
+                                </div>
                             </div>
 
-                            <div>
-                                <label style={{
-                                    textTransform: 'uppercase',
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    letterSpacing: '0.07em',
-                                    color: 'var(--text-muted)',
-                                    display: 'block',
-                                    marginBottom: '6px'
-                                }}>
-                                    Tanggal Selesai *
-                                </label>
-                                <input
-                                    type="date"
-                                    value={tanggalSelesai}
-                                    onChange={e => setTanggalSelesai(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label style={{
-                                    textTransform: 'uppercase',
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    letterSpacing: '0.07em',
-                                    color: 'var(--text-muted)',
-                                    display: 'block',
-                                    marginBottom: '6px'
-                                }}>
-                                    Anggaran Alokasi (Pagu BGN) *
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="Masukkan Pagu Dana"
-                                    value={anggaranAlokasi}
-                                    onChange={e => setAnggaranAlokasi(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label style={{
-                                    textTransform: 'uppercase',
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    letterSpacing: '0.07em',
-                                    color: 'var(--text-muted)',
-                                    display: 'block',
-                                    marginBottom: '6px'
-                                }}>
-                                    Total Dana Diterima (Opsional)
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="Diisi jika dana sudah cair ke VA"
-                                    value={totalDanaDiterima}
-                                    onChange={e => setTotalDanaDiterima(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
+                            <div style={{ flex: '1 1 0%', minWidth: '300px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <div>
+                                    <label style={{
+                                        textTransform: 'uppercase',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.07em',
+                                        color: 'var(--text-muted)',
+                                        display: 'block',
+                                        marginBottom: '6px'
+                                    }}>
+                                        Anggaran Alokasi (Pagu BGN) *
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Masukkan Pagu Dana"
+                                        value={anggaranAlokasi}
+                                        onChange={e => setAnggaranAlokasi(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            borderRadius: 'var(--radius-sm)',
+                                            border: '1px solid var(--input-border)',
+                                            backgroundColor: 'var(--bg-elevated)',
+                                            color: 'var(--text)',
+                                            fontSize: '14px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{
+                                        textTransform: 'uppercase',
+                                        fontSize: '11px',
+                                        fontWeight: 700,
+                                        letterSpacing: '0.07em',
+                                        color: 'var(--text-muted)',
+                                        display: 'block',
+                                        marginBottom: '6px'
+                                    }}>
+                                        Total Dana Diterima (Opsional)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Diisi jika dana sudah cair ke VA"
+                                        value={totalDanaDiterima}
+                                        onChange={e => setTotalDanaDiterima(e.target.value)}
+                                        style={{
+                                            width: '100%',
+                                            padding: '10px 12px',
+                                            borderRadius: 'var(--radius-sm)',
+                                            border: '1px solid var(--input-border)',
+                                            backgroundColor: 'var(--bg-elevated)',
+                                            color: 'var(--text)',
+                                            fontSize: '14px',
+                                            boxSizing: 'border-box'
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </fieldset>
@@ -375,8 +373,8 @@ export const PeriodeSetupPage = () => {
                         }}>
                             2. Pengaturan Lembaga &amp; Pejabat Penandatangan
                         </legend>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
-                            <div>
+                        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginTop: '10px' }}>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -405,7 +403,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -434,7 +432,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div style={{ gridColumn: 'span 2' }}>
+                            <div style={{ flex: '1 1 100%' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -463,7 +461,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -492,7 +490,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -521,7 +519,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -550,7 +548,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -601,8 +599,8 @@ export const PeriodeSetupPage = () => {
                         }}>
                             3. Pelaporan &amp; Periode Berikutnya
                         </legend>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '10px' }}>
-                            <div>
+                        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginTop: '10px' }}>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -631,7 +629,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -660,7 +658,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -689,7 +687,7 @@ export const PeriodeSetupPage = () => {
                                     required
                                 />
                             </div>
-                            <div>
+                            <div style={{ flex: '1 1 200px' }}>
                                 <label style={{
                                     textTransform: 'uppercase',
                                     fontSize: '11px',
@@ -725,16 +723,19 @@ export const PeriodeSetupPage = () => {
                         type="submit"
                         disabled={submitting}
                         style={{
-                            padding: '12px 24px',
-                            fontWeight: '600',
+                            padding: "12px 24px",
+                            fontWeight: 600,
                             backgroundColor: submitting ? 'var(--border)' : 'var(--btn-primary-bg)',
                             color: submitting ? 'var(--text-muted)' : 'var(--btn-primary-text)',
-                            border: 'none',
-                            borderRadius: 'var(--radius-sm)',
+                            borderWidth: "medium",
+                            borderStyle: "none",
+                            borderColor: "currentColor",
+                            borderImage: "none",
+                            borderRadius: "var(--radius-sm)",
                             cursor: submitting ? 'not-allowed' : 'pointer',
-                            marginTop: '10px',
-                            fontSize: '14px',
-                            alignSelf: 'flex-start'
+                            marginTop: "10px",
+                            fontSize: "14px",
+                            alignSelf: "flex-start"
                         }}
                     >
                         {submitting ? 'Menyimpan...' : 'Buka & Setup Periode Baru'}
