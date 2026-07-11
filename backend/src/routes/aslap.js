@@ -258,24 +258,13 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
             resolvedSekolahId = sekolahId;
           } else if (sekolahNama) {
             const normalizedNama = sekolahNama.trim();
-            let sekolahObj;
-            try {
+            let sekolahObj = await tx.sekolah.findFirst({
+              where: { nama: { equals: normalizedNama, mode: "insensitive" } }
+            });
+            if (!sekolahObj) {
               sekolahObj = await tx.sekolah.create({
                 data: { nama: normalizedNama }
               });
-            } catch (err) {
-              if (err.code === "P2002") {
-                sekolahObj = await tx.sekolah.findUnique({
-                  where: { nama: normalizedNama }
-                });
-                if (!sekolahObj) {
-                  sekolahObj = await tx.sekolah.findFirst({
-                    where: { nama: { equals: normalizedNama, mode: "insensitive" } }
-                  });
-                }
-              } else {
-                throw err;
-              }
             }
             resolvedSekolahId = sekolahObj.id;
           }
@@ -284,24 +273,13 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
             resolvedPosyanduId = posyanduId;
           } else if (posyanduNama) {
             const normalizedNama = posyanduNama.trim();
-            let posyanduObj;
-            try {
+            let posyanduObj = await tx.posyandu.findFirst({
+              where: { nama: { equals: normalizedNama, mode: "insensitive" } }
+            });
+            if (!posyanduObj) {
               posyanduObj = await tx.posyandu.create({
                 data: { nama: normalizedNama }
               });
-            } catch (err) {
-              if (err.code === "P2002") {
-                posyanduObj = await tx.posyandu.findUnique({
-                  where: { nama: normalizedNama }
-                });
-                if (!posyanduObj) {
-                  posyanduObj = await tx.posyandu.findFirst({
-                    where: { nama: { equals: normalizedNama, mode: "insensitive" } }
-                  });
-                }
-              } else {
-                throw err;
-              }
             }
             resolvedPosyanduId = posyanduObj.id;
           }
@@ -488,24 +466,13 @@ router.put("/penerima-manfaat/:id", requireAuth, requireRole("ASLAP"), async (re
               resolvedSekolahId = sekolahId;
             } else if (sekolahNama) {
               const normalizedNama = sekolahNama.trim();
-              let sekolahObj;
-              try {
+              let sekolahObj = await tx.sekolah.findFirst({
+                where: { nama: { equals: normalizedNama, mode: "insensitive" } }
+              });
+              if (!sekolahObj) {
                 sekolahObj = await tx.sekolah.create({
                   data: { nama: normalizedNama }
                 });
-              } catch (err) {
-                if (err.code === "P2002") {
-                  sekolahObj = await tx.sekolah.findUnique({
-                    where: { nama: normalizedNama }
-                  });
-                  if (!sekolahObj) {
-                    sekolahObj = await tx.sekolah.findFirst({
-                      where: { nama: { equals: normalizedNama, mode: "insensitive" } }
-                    });
-                  }
-                } else {
-                  throw err;
-                }
               }
               resolvedSekolahId = sekolahObj.id;
             }
@@ -514,24 +481,13 @@ router.put("/penerima-manfaat/:id", requireAuth, requireRole("ASLAP"), async (re
               resolvedPosyanduId = posyanduId;
             } else if (posyanduNama) {
               const normalizedNama = posyanduNama.trim();
-              let posyanduObj;
-              try {
+              let posyanduObj = await tx.posyandu.findFirst({
+                where: { nama: { equals: normalizedNama, mode: "insensitive" } }
+              });
+              if (!posyanduObj) {
                 posyanduObj = await tx.posyandu.create({
                   data: { nama: normalizedNama }
                 });
-              } catch (err) {
-                if (err.code === "P2002") {
-                  posyanduObj = await tx.posyandu.findUnique({
-                    where: { nama: normalizedNama }
-                  });
-                  if (!posyanduObj) {
-                    posyanduObj = await tx.posyandu.findFirst({
-                      where: { nama: { equals: normalizedNama, mode: "insensitive" } }
-                    });
-                  }
-                } else {
-                  throw err;
-                }
               }
               resolvedPosyanduId = posyanduObj.id;
             }

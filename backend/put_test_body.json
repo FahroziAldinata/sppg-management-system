@@ -1,0 +1,150 @@
+﻿{
+    "detail":  [
+                   {
+                       "sekolahId":  "cmr9j9f04001itcjw11wu98s4",
+                       "lakiLaki":  12,
+                       "kategoriId":  "cmr9j9eto0000tcjwlh55jx60",
+                       "perempuan":  11
+                   },
+                   {
+                       "sekolahId":  "cmr9j9f07001jtcjwutbxgx4q",
+                       "lakiLaki":  16,
+                       "kategoriId":  "cmr9j9ev40001tcjwrdq3y5g3",
+                       "perempuan":  11
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2o0000tcg05yylfbnr",
+                       "lakiLaki":  25,
+                       "kategoriId":  "cmr9j9ev40001tcjwrdq3y5g3",
+                       "perempuan":  22
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2p0001tcg0ckdlcpzs",
+                       "lakiLaki":  35,
+                       "kategoriId":  "cmr9j9ev40001tcjwrdq3y5g3",
+                       "perempuan":  35
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2q0002tcg0zna4kjdb",
+                       "lakiLaki":  24,
+                       "kategoriId":  "cmr9j9ev40001tcjwrdq3y5g3",
+                       "perempuan":  29
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2r0003tcg0g6eli1o0",
+                       "lakiLaki":  40,
+                       "kategoriId":  "cmr9j9ev40001tcjwrdq3y5g3",
+                       "perempuan":  29
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2s0004tcg0jjrlflcy",
+                       "lakiLaki":  22,
+                       "kategoriId":  "cmr9j9ev40001tcjwrdq3y5g3",
+                       "perempuan":  24
+                   },
+                   {
+                       "sekolahId":  "cmr9j9f07001jtcjwutbxgx4q",
+                       "lakiLaki":  18,
+                       "kategoriId":  "cmr9j9ev60002tcjwjhkdgx0v",
+                       "perempuan":  17
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2o0000tcg05yylfbnr",
+                       "lakiLaki":  18,
+                       "kategoriId":  "cmr9j9ev60002tcjwjhkdgx0v",
+                       "perempuan":  33
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2p0001tcg0ckdlcpzs",
+                       "lakiLaki":  31,
+                       "kategoriId":  "cmr9j9ev60002tcjwjhkdgx0v",
+                       "perempuan":  42
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2q0002tcg0zna4kjdb",
+                       "lakiLaki":  30,
+                       "kategoriId":  "cmr9j9ev60002tcjwjhkdgx0v",
+                       "perempuan":  28
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2r0003tcg0g6eli1o0",
+                       "lakiLaki":  45,
+                       "kategoriId":  "cmr9j9ev60002tcjwjhkdgx0v",
+                       "perempuan":  31
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2s0004tcg0jjrlflcy",
+                       "lakiLaki":  20,
+                       "kategoriId":  "cmr9j9ev60002tcjwjhkdgx0v",
+                       "perempuan":  21
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2v0005tcg0h5bu03kb",
+                       "lakiLaki":  81,
+                       "kategoriId":  "cmr9j9ev80004tcjwqq4t7gtr",
+                       "perempuan":  76
+                   },
+                   {
+                       "sekolahId":  "cmr9j9f04001itcjw11wu98s4",
+                       "lakiLaki":  0,
+                       "kategoriId":  "cmr9j9eve0008tcjwuz75gflc",
+                       "perempuan":  2
+                   },
+                   {
+                       "sekolahId":  "cmr9j9f07001jtcjwutbxgx4q",
+                       "lakiLaki":  2,
+                       "kategoriId":  "cmr9j9eve0008tcjwuz75gflc",
+                       "perempuan":  8
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2o0000tcg05yylfbnr",
+                       "lakiLaki":  4,
+                       "kategoriId":  "cmr9j9eve0008tcjwuz75gflc",
+                       "perempuan":  6
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2p0001tcg0ckdlcpzs",
+                       "lakiLaki":  3,
+                       "kategoriId":  "cmr9j9eve0008tcjwuz75gflc",
+                       "perempuan":  6
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2q0002tcg0zna4kjdb",
+                       "lakiLaki":  5,
+                       "kategoriId":  "cmr9j9eve0008tcjwuz75gflc",
+                       "perempuan":  5
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2r0003tcg0g6eli1o0",
+                       "lakiLaki":  4,
+                       "kategoriId":  "cmr9j9eve0008tcjwuz75gflc",
+                       "perempuan":  6
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2s0004tcg0jjrlflcy",
+                       "lakiLaki":  4,
+                       "kategoriId":  "cmr9j9eto0000tcjwlh55jx60",
+                       "perempuan":  6
+                   },
+                   {
+                       "sekolahId":  "cmrf5rn2v0005tcg0h5bu03kb",
+                       "lakiLaki":  21,
+                       "kategoriId":  "cmr9j9eto0000tcjwlh55jx60",
+                       "perempuan":  11
+                   },
+                   {
+                       "sekolahNama":  "TK Verifikasi PUT Test",
+                       "lakiLaki":  3,
+                       "kategoriId":  "cmr9j9eto0000tcjwlh55jx60",
+                       "perempuan":  4
+                   }
+               ],
+    "periodeId":  "cmrd0cn4j0000tc6s580crb14",
+    "hariAktif":  [
+                      "SENIN",
+                      "SELASA",
+                      "RABU",
+                      "KAMIS",
+                      "JUMAT"
+                  ]
+}

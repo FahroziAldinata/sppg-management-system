@@ -1,0 +1,21 @@
+﻿
+> src\routes\aslap.js:288:        resolvedDetails.push({
+  src\routes\aslap.js:289:          kategoriId,
+  src\routes\aslap.js:290:          sekolahId: resolvedSekolahId,
+  src\routes\aslap.js:291:          posyanduId: resolvedPosyanduId,
+  src\routes\aslap.js:292:          lakiLaki: parseInt(lakiLaki, 10),
+  src\routes\aslap.js:293:          perempuan: parseInt(perempuan, 10)
+  src\routes\aslap.js:294:        });
+  src\routes\aslap.js:295:      }
+  src\routes\aslap.js:296:
+> src\routes\aslap.js:500:          resolvedDetails.push({
+  src\routes\aslap.js:501:            kategoriId,
+  src\routes\aslap.js:502:            sekolahId: resolvedSekolahId,
+  src\routes\aslap.js:503:            posyanduId: resolvedPosyanduId,
+  src\routes\aslap.js:504:            lakiLaki: parseInt(lakiLaki, 10),
+  src\routes\aslap.js:505:            perempuan: parseInt(perempuan, 10)
+  src\routes\aslap.js:506:          });
+  src\routes\aslap.js:507:        }
+  src\routes\aslap.js:508:      }
+
+

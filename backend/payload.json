@@ -1,0 +1,229 @@
+{
+    "periodeId": "cmrd0cn4j0000tc6s580crb14",
+    "hariAktif": [
+        "SENIN",
+        "SELASA",
+        "RABU",
+        "KAMIS",
+        "JUMAT",
+        "SABTU"
+    ],
+    "detail": [
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 4,
+            "posyanduNama": "CEMPAKA 1"
+        },
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 5,
+            "posyanduNama": "CEMPAKA 2"
+        },
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 4,
+            "posyanduNama": "CEMPAKA 3"
+        },
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 13,
+            "posyanduNama": "TERATAI 1"
+        },
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 3,
+            "posyanduNama": "TERATAI 2"
+        },
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 6,
+            "posyanduNama": "TERATAI 3"
+        },
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 4,
+            "posyanduNama": "MAWAR 1"
+        },
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 4,
+            "posyanduNama": "MAWAR 2"
+        },
+        {
+            "kategoriId": "cmr9j9evf0009tcjws2jzza7m",
+            "lakiLaki": 0,
+            "perempuan": 0,
+            "posyanduNama": "MAWAR 3"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 20,
+            "posyanduNama": "CEMPAKA 1"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 12,
+            "posyanduNama": "CEMPAKA 2"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 21,
+            "posyanduNama": "CEMPAKA 3"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 34,
+            "posyanduNama": "TERATAI 1"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 14,
+            "posyanduNama": "TERATAI 2"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 20,
+            "posyanduNama": "TERATAI 3"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 25,
+            "posyanduNama": "MAWAR 1"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 22,
+            "posyanduNama": "MAWAR 2"
+        },
+        {
+            "kategoriId": "cmr9j9evh000atcjw0no4rbpd",
+            "lakiLaki": 0,
+            "perempuan": 2,
+            "posyanduNama": "MAWAR 3"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 35,
+            "perempuan": 38,
+            "posyanduNama": "CEMPAKA 1"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 22,
+            "perempuan": 16,
+            "posyanduNama": "CEMPAKA 2"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 29,
+            "perempuan": 23,
+            "posyanduNama": "CEMPAKA 3"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 56,
+            "perempuan": 36,
+            "posyanduNama": "TERATAI 1"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 24,
+            "perempuan": 20,
+            "posyanduNama": "TERATAI 2"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 34,
+            "perempuan": 42,
+            "posyanduNama": "TERATAI 3"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 50,
+            "perempuan": 30,
+            "posyanduNama": "MAWAR 1"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 29,
+            "perempuan": 47,
+            "posyanduNama": "MAWAR 2"
+        },
+        {
+            "kategoriId": "cmr9j9evi000btcjwo2c6urg3",
+            "lakiLaki": 3,
+            "perempuan": 6,
+            "posyanduNama": "MAWAR 3"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 7,
+            "posyanduNama": "CEMPAKA 1"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 7,
+            "posyanduNama": "CEMPAKA 2"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 7,
+            "posyanduNama": "CEMPAKA 3"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 6,
+            "posyanduNama": "TERATAI 1"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 6,
+            "posyanduNama": "TERATAI 2"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 7,
+            "posyanduNama": "TERATAI 3"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 6,
+            "posyanduNama": "MAWAR 1"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 7,
+            "posyanduNama": "MAWAR 2"
+        },
+        {
+            "kategoriId": "cmr9j9evj000ctcjwcx5hqluz",
+            "lakiLaki": 0,
+            "perempuan": 5,
+            "posyanduNama": "MAWAR 3"
+        }
+    ]
+}

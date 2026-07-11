@@ -1,0 +1,2 @@
+1. User (aslap) ngeluh saat input tambah data baru penjelasan "milih dropdown antari tk, kelas 1-3 dll bikin ribet, bisa agak jika mau isi bagian misalnya sd kls 1-3 masukkan nama sekolahnya, dan jmlah nya begitu yang lainnya.
+2. jika ada input yang kurang cuman muncul peringatan tidak ada jeaskan bagian mana yang hkuring (Plan resolving gunakan semacam fitur case field input mana yang kosong)
