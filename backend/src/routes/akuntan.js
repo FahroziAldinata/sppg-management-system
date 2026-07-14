@@ -317,6 +317,25 @@ router.put("/rab-harian/:id", requireAuth, requireRole("AKUNTAN"), async (req, r
         }
       }
 
+      if (status === "DIAJUKAN" && existing.status !== "DIAJUKAN") {
+        const kepalaUsers = await tx.user.findMany({
+          where: { role: "KEPALA_SPPG", aktif: true },
+          select: { id: true }
+        });
+        if (kepalaUsers.length > 0) {
+          const formattedDate = new Date(existing.tanggal).toLocaleDateString('id-ID', { dateStyle: 'medium' });
+          await tx.notifikasi.createMany({
+            data: kepalaUsers.map((k) => ({
+              userId: k.id,
+              judul: "RAB Harian Baru Butuh Persetujuan",
+              pesan: `RAB Harian tanggal ${formattedDate} telah diajukan dan menunggu persetujuan Anda.`,
+              entityType: "RAB",
+              entityId: id
+            }))
+          });
+        }
+      }
+
       return await tx.rabHarian.update({
         where: { id },
         data: {

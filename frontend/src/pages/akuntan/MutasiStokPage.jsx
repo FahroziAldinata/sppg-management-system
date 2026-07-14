@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table, renderDate, renderStatus, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 
 export const MutasiStokPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [supplierList, setSupplierList] = useState([]);
     const [bahanPokokList, setBahanPokokList] = useState([]);
     const [mutasiStokList, setMutasiStokList] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
     const [mutasiForm, setMutasiForm] = useState({
         bahanPokokId: '',
         tanggal: '',
@@ -34,7 +33,7 @@ export const MutasiStokPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode.'));
+            .catch(() => toast.error('Gagal memuat daftar periode.'));
 
         request('/akuntan/supplier')
             .then(r => r.json())
@@ -50,17 +49,16 @@ export const MutasiStokPage = () => {
     const loadMutasiStok = async (pid) => {
         if (!pid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/akuntan/mutasi-stok?periodeId=${pid}`);
             if (r.ok) {
                 setMutasiStokList(await r.json());
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat daftar mutasi stok' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         } finally {
             setLoading(false);
         }
@@ -75,9 +73,6 @@ export const MutasiStokPage = () => {
 
     const handleCreateMutasi = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
         const {
             bahanPokokId,
             tanggal,
@@ -89,12 +84,12 @@ export const MutasiStokPage = () => {
             kelompokPenerima
         } = mutasiForm;
 
-        if (!bahanPokokId) { setError('Bahan pokok wajib dipilih.'); return; }
-        if (!tanggal) { setError('Tanggal wajib diisi.'); return; }
-        if (!jenis) { setError('Jenis mutasi wajib dipilih (MASUK/KELUAR).'); return; }
-        if (qty === '' || qty === undefined) { setError('Qty wajib diisi.'); return; }
+        if (!bahanPokokId) { toast.error('Bahan pokok wajib dipilih.'); return; }
+        if (!tanggal) { toast.error('Tanggal wajib diisi.'); return; }
+        if (!jenis) { toast.error('Jenis mutasi wajib dipilih (MASUK/KELUAR).'); return; }
+        if (qty === '' || qty === undefined) { toast.error('Qty wajib diisi.'); return; }
         const valQty = parseFloat(qty);
-        if (isNaN(valQty) || valQty <= 0) { setError('Qty harus berupa angka positif.'); return; }
+        if (isNaN(valQty) || valQty <= 0) { toast.error('Qty harus berupa angka positif.'); return; }
 
         const body = {
             bahanPokokId,
@@ -105,15 +100,15 @@ export const MutasiStokPage = () => {
         };
 
         if (jenis === 'MASUK') {
-            if (!supplierId) { setError('Supplier wajib dipilih untuk mutasi MASUK.'); return; }
-            if (hargaBeli === '' || hargaBeli === undefined) { setError('Harga beli wajib diisi untuk mutasi MASUK.'); return; }
+            if (!supplierId) { toast.error('Supplier wajib dipilih untuk mutasi MASUK.'); return; }
+            if (hargaBeli === '' || hargaBeli === undefined) { toast.error('Harga beli wajib diisi untuk mutasi MASUK.'); return; }
             const valHarga = parseFloat(hargaBeli);
-            if (isNaN(valHarga) || valHarga < 0) { setError('Harga beli harus berupa angka non-negatif.'); return; }
+            if (isNaN(valHarga) || valHarga < 0) { toast.error('Harga beli harus berupa angka non-negatif.'); return; }
             body.supplierId = supplierId;
             body.hargaBeli = valHarga;
             body.kelompokPenerima = null;
         } else if (jenis === 'KELUAR') {
-            if (!kelompokPenerima) { setError('Kelompok penerima wajib dipilih untuk mutasi KELUAR.'); return; }
+            if (!kelompokPenerima) { toast.error('Kelompok penerima wajib dipilih untuk mutasi KELUAR.'); return; }
             body.kelompokPenerima = kelompokPenerima;
             body.supplierId = null;
             body.hargaBeli = null;
@@ -127,7 +122,7 @@ export const MutasiStokPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('Mutasi Stok berhasil disimpan.');
+                toast.success('Mutasi Stok berhasil disimpan.');
                 setMutasiForm({
                     bahanPokokId: '',
                     tanggal: '',
@@ -141,41 +136,16 @@ export const MutasiStokPage = () => {
                 loadMutasiStok(periodeId);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                setError(d.error || 'Gagal menyimpan Mutasi Stok');
+                toast.error(d.error || 'Gagal menyimpan Mutasi Stok');
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pencatatan Mutasi Stok Gudang (Masuk / Keluar)</h2>
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
-
             {/* Pilihan Periode */}
             <div style={{
                 border: '1px solid var(--border)',

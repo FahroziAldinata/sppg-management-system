@@ -5,6 +5,7 @@ import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 import Dropdown from '../../components/Dropdown';
 import { Card } from '../../components/Card';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export const AkuntanDashboard = () => {
   const { request } = useApi();
@@ -15,8 +16,8 @@ export const AkuntanDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dashSummary, setDashSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(true);
-
-
+  const [realisasiData, setRealisasiData] = useState(null);
+  const [loadingRealisasi, setLoadingRealisasi] = useState(true);
 
   const shortcuts = [
     { label: '1. Setup Periode', path: '/akuntan/laporan/periode-setup', color: '#007bff' },
@@ -35,7 +36,40 @@ export const AkuntanDashboard = () => {
     { label: '14. Nominatif Upah', path: '/akuntan/nominatif-upah', color: '#bd2130' }
   ];
 
-
+  const loadRealisasi = async (pid) => {
+    setLoadingRealisasi(true);
+    try {
+      const res = await request(`/laporan/per-periode?periodeId=${pid}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const d = json.data;
+          const chartDataRaw = [
+            {
+              name: 'Bahan Makanan',
+              RAB: (d.bahanMakanan?.pendidikan?.rab || 0) + (d.bahanMakanan?.posyandu?.rab || 0),
+              Aktual: (d.bahanMakanan?.pendidikan?.aktual || 0) + (d.bahanMakanan?.posyandu?.aktual || 0),
+            },
+            {
+              name: 'Operasional',
+              RAB: d.operasional?.rab || 0,
+              Aktual: d.operasional?.aktual || 0,
+            },
+            {
+              name: 'Insentif & Fasilitas',
+              RAB: d.insentifFasilitas?.rab || 0,
+              Aktual: d.insentifFasilitas?.aktual || 0,
+            }
+          ];
+          setRealisasiData(chartDataRaw);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingRealisasi(false);
+    }
+  };
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -47,7 +81,10 @@ export const AkuntanDashboard = () => {
         if (dataP.length > 0) {
           const activePId = dataP[0].id;
           setSelectedPeriodId(activePId);
-          await loadStats(activePId);
+          await Promise.all([
+            loadStats(activePId),
+            loadRealisasi(activePId)
+          ]);
 
           try {
             const resSummary = await request(`/dashboard/summary?periodeId=${activePId}`);
@@ -59,9 +96,11 @@ export const AkuntanDashboard = () => {
           }
         } else {
           setLoadingSummary(false);
+          setLoadingRealisasi(false);
         }
       } catch (err) {
         console.error(err);
+        setLoadingRealisasi(false);
       } finally {
         setLoading(false);
       }
@@ -101,7 +140,10 @@ export const AkuntanDashboard = () => {
 
   const handlePeriodChange = async (pid) => {
     setSelectedPeriodId(pid);
-    await loadStats(pid);
+    await Promise.all([
+      loadStats(pid),
+      loadRealisasi(pid)
+    ]);
 
     setLoadingSummary(true);
     try {
@@ -182,7 +224,37 @@ export const AkuntanDashboard = () => {
         </Card>
       </div>
 
-
+      {/* Chart Section */}
+      {!loadingRealisasi && realisasiData ? (
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px' }}>
+          <h3 style={{ margin: '0 0 20px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>
+            Grafik Realisasi Anggaran per Kategori (RAB vs Aktual)
+          </h3>
+          <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={realisasiData}
+                margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" stroke="var(--text)" />
+                <YAxis stroke="var(--text)" tickFormatter={(value) => `Rp${(value / 1e6).toFixed(1)}Jt`} />
+                <Tooltip 
+                  formatter={(value) => `Rp${value.toLocaleString('id-ID')}`}
+                  contentStyle={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                />
+                <Legend />
+                <Bar dataKey="RAB" fill="#94a3b8" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Aktual" fill="var(--color-primary)" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      ) : loadingRealisasi ? (
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 350 }}>
+          <p style={{ color: 'var(--text-muted)' }}>Memuat data grafik...</p>
+        </Card>
+      ) : null}
 
       {/* Workflow Progress & Notifikasi */}
       <div style={{ marginTop: '25px' }}>

@@ -6,6 +6,7 @@ import { NotifikasiList } from '../../components/NotifikasiList';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 import Dropdown from '../../components/Dropdown';
 import { Card } from '../../components/Card';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export const KepalaDashboard = () => {
   const { request } = useApi();
@@ -17,8 +18,34 @@ export const KepalaDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [dashSummary, setDashSummary] = useState(null);
   const [loadingSummary, setLoadingSummary] = useState(true);
+  const [trendData, setTrendData] = useState([]);
+  const [loadingTrend, setLoadingTrend] = useState(true);
 
-
+  const loadTrendData = async (pid) => {
+    setLoadingTrend(true);
+    try {
+      const res = await request(`/laporan/per-bulan?periodeId=${pid}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const formatMonth = (m) => {
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return months[m - 1] || m;
+          };
+          const formatted = json.data.map(item => ({
+            monthLabel: `${formatMonth(item.month)} ${item.year}`,
+            'Uang Masuk': item.totalMasuk,
+            'Uang Keluar': item.totalKeluar,
+          }));
+          setTrendData(formatted);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingTrend(false);
+    }
+  };
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -31,7 +58,10 @@ export const KepalaDashboard = () => {
         if (dataP.length > 0) {
           activeP = dataP[0];
           setSelectedPeriod(activeP);
-          await loadStats(activeP);
+          await Promise.all([
+            loadStats(activeP),
+            loadTrendData(activeP.id)
+          ]);
 
           try {
             const resSummary = await request(`/dashboard/summary?periodeId=${activeP.id}`);
@@ -43,9 +73,11 @@ export const KepalaDashboard = () => {
           }
         } else {
           setLoadingSummary(false);
+          setLoadingTrend(false);
         }
       } catch (err) {
         console.error(err);
+        setLoadingTrend(false);
       } finally {
         setLoading(false);
       }
@@ -88,7 +120,10 @@ export const KepalaDashboard = () => {
   const handlePeriodChange = async (pid) => {
     const period = periods.find(p => p.id === pid);
     setSelectedPeriod(period);
-    await loadStats(period);
+    await Promise.all([
+      loadStats(period),
+      loadTrendData(pid)
+    ]);
 
     setLoadingSummary(true);
     try {
@@ -178,6 +213,52 @@ export const KepalaDashboard = () => {
           <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>LPA, SPTJ, &amp; BAPSD terbit</div>
         </Card>
       </div>
+
+      {/* Chart Section */}
+      {!loadingTrend && trendData && trendData.length > 0 ? (
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px' }}>
+          <h3 style={{ margin: '0 0 20px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>
+            Grafik Trend Arus Kas Bulanan (Uang Masuk vs Uang Keluar)
+          </h3>
+          <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={trendData}
+                margin={{ top: 10, right: 30, left: 20, bottom: 5 }}
+              >
+                <defs>
+                  <linearGradient id="colorMasuk" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#28a745" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#28a745" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorKeluar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#dc3545" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#dc3545" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="monthLabel" stroke="var(--text)" />
+                <YAxis stroke="var(--text)" tickFormatter={(value) => `Rp${(value / 1e6).toFixed(1)}Jt`} />
+                <Tooltip 
+                  formatter={(value) => `Rp${value.toLocaleString('id-ID')}`}
+                  contentStyle={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                />
+                <Legend />
+                <Area type="monotone" dataKey="Uang Masuk" stroke="#28a745" fillOpacity={1} fill="url(#colorMasuk)" />
+                <Area type="monotone" dataKey="Uang Keluar" stroke="#dc3545" fillOpacity={1} fill="url(#colorKeluar)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+      ) : !loadingTrend && trendData && trendData.length === 0 ? (
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+          <p style={{ color: 'var(--text-muted)' }}>Belum ada data arus kas bulanan untuk periode ini.</p>
+        </Card>
+      ) : loadingTrend ? (
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 350 }}>
+          <p style={{ color: 'var(--text-muted)' }}>Memuat data grafik...</p>
+        </Card>
+      ) : null}
 
       {/* Quick Actions Panel */}
       {/* ponytail: unify shade pastel to bg-elevated */}

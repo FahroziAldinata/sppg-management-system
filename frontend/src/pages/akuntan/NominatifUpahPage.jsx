@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 
 export const NominatifUpahPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [upahList, setUpahList] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
     const [upahForm, setUpahForm] = useState({
         jenisPekerjaan: '',
         namaRelawan: '',
@@ -31,23 +30,22 @@ export const NominatifUpahPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode.'));
+            .catch(() => toast.error('Gagal memuat daftar periode.'));
     }, []);
 
     const loadUpahList = async (pid) => {
         if (!pid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/akuntan/daftar-nominatif-upah?periodeId=${pid}`);
             if (r.ok) {
                 setUpahList(await r.json());
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat daftar Nominatif Upah' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         } finally {
             setLoading(false);
         }
@@ -77,9 +75,6 @@ export const NominatifUpahPage = () => {
 
     const createNominatifUpah = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
         const {
             jenisPekerjaan,
             namaRelawan,
@@ -89,15 +84,15 @@ export const NominatifUpahPage = () => {
         } = upahForm;
 
         if (!periodeId) {
-            setError('Periode wajib dipilih.');
+            toast.error('Periode wajib dipilih.');
             return;
         }
         if (!jenisPekerjaan) {
-            setError('Jenis pekerjaan wajib diisi.');
+            toast.error('Jenis pekerjaan wajib diisi.');
             return;
         }
         if (!namaRelawan) {
-            setError('Nama relawan wajib diisi.');
+            toast.error('Nama relawan wajib diisi.');
             return;
         }
 
@@ -122,7 +117,7 @@ export const NominatifUpahPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('Daftar Nominatif Upah berhasil disimpan.');
+                toast.success('Daftar Nominatif Upah berhasil disimpan.');
                 setUpahForm({
                     jenisPekerjaan: '',
                     namaRelawan: '',
@@ -134,41 +129,16 @@ export const NominatifUpahPage = () => {
                 loadUpahList(periodeId);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                setError(d.error || 'Gagal menyimpan Daftar Nominatif Upah');
+                toast.error(d.error || 'Gagal menyimpan Daftar Nominatif Upah');
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Daftar Nominatif Upah Relawan</h2>
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
-
             {/* Pilihan Periode */}
             <div style={{
                 border: '1px solid var(--border)',

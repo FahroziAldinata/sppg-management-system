@@ -188,7 +188,7 @@ export const AslapDashboard = () => {
 
       {/* Quick Actions Panel */}
       {/* ponytail: unify shade pastel to bg-elevated */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)', width: '30%' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px' }}>
           <button

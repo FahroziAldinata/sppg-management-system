@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { useToast } from '../../../context/ToastContext';
 import { Table } from '../../../components/Table';
 
 export const LaporanPerPeriodePage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     // Fetch periods on mount
     useEffect(() => {
@@ -18,18 +19,17 @@ export const LaporanPerPeriodePage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode'));
+            .catch(() => toast.error('Gagal memuat daftar periode'));
     }, []);
 
     // Load Laporan Per Periode
     const loadLaporanPerPeriode = async () => {
         if (!periodeId) {
-            setError('Pilih periode terlebih dahulu');
+            toast.error('Pilih periode terlebih dahulu');
             return;
         }
 
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/per-periode?periodeId=${periodeId}`);
             if (r.ok) {
@@ -37,11 +37,11 @@ export const LaporanPerPeriodePage = () => {
                 setReportData(resJson.data || null);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Per Periode' }));
-                setError(d.error);
+                toast.error(d.error);
                 setReportData(null);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
             setReportData(null);
         } finally {
             setLoading(false);

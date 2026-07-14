@@ -165,11 +165,15 @@ async function main() {
   // ---------------------------------------------------------------------
   // 7. SEKOLAH & POSYANDU — contoh dari data yang sudah dibahas
   // ---------------------------------------------------------------------
-  const sekolahNama = ["TK Amanah", "SDN Wanajaya", "SMK Pelita"];
-  for (const nama of sekolahNama) {
-    const existing = await prisma.sekolah.findFirst({ where: { nama } });
+  const sekolahData = [
+    { nama: "TK Amanah", jenjang: "TK" },
+    { nama: "SDN Wanajaya", jenjang: "SD" },
+    { nama: "SMK Pelita", jenjang: "SMA_SMK" }
+  ];
+  for (const item of sekolahData) {
+    const existing = await prisma.sekolah.findFirst({ where: { nama: item.nama } });
     if (!existing) {
-      await prisma.sekolah.create({ data: { nama } });
+      await prisma.sekolah.create({ data: item });
     }
   }
 

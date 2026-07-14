@@ -1,20 +1,19 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table, renderDate, renderCurrency, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 
 export const ValidasiStokPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [bahanPokokList, setBahanPokokList] = useState([]);
     const [validasiList, setValidasiList] = useState([]);
     const [validasiPreview, setValidasiPreview] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
     // Printing related states
     const [isPrinting, setIsPrinting] = useState(false);
     const [printDate, setPrintDate] = useState(new Date().toISOString().split('T')[0]);
@@ -37,7 +36,7 @@ export const ValidasiStokPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode.'));
+            .catch(() => toast.error('Gagal memuat daftar periode.'));
 
         request('/mitra/bahan-pokok')
             .then(r => r.json())
@@ -50,17 +49,16 @@ export const ValidasiStokPage = () => {
     // Load riwayat validasi stok
     const loadValidasiStok = async () => {
         try {
-            setError('');
             const r = await request('/akuntan/validasi-stok');
             if (r.ok) {
                 const resJson = await r.json();
                 setValidasiList(resJson.data || []);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat riwayat validasi stok' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
@@ -74,7 +72,6 @@ export const ValidasiStokPage = () => {
                 return;
             }
             try {
-                setError('');
                 const query = new URLSearchParams({
                     bahanPokokId: bpId,
                     tanggal: tgl
@@ -94,13 +91,13 @@ export const ValidasiStokPage = () => {
                     }));
                 } else {
                     const d = await r.json().catch(() => ({ error: 'Gagal memuat preview data sistem' }));
-                    setError(d.error);
+                    toast.error(d.error);
                     setValidasiPreview(null);
                     setValidasiForm(prev => ({ ...prev, qtyDibeli: '', qtyTerpakai: '' }));
                 }
             } catch (err) {
                 if (!active) return;
-                setError(err.message || 'Terjadi kesalahan koneksi');
+                toast.error(err.message || 'Terjadi kesalahan koneksi');
                 setValidasiPreview(null);
                 setValidasiForm(prev => ({ ...prev, qtyDibeli: '', qtyTerpakai: '' }));
             }
@@ -120,25 +117,22 @@ export const ValidasiStokPage = () => {
 
     const handleCreateValidasi = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
         const { bahanPokokId, tanggal, qtyDibeli, qtyTerpakai, catatan } = validasiForm;
 
         if (!bahanPokokId) {
-            setError('Bahan pokok wajib dipilih.');
+            toast.error('Bahan pokok wajib dipilih.');
             return;
         }
         if (!tanggal) {
-            setError('Tanggal validasi wajib diisi.');
+            toast.error('Tanggal validasi wajib diisi.');
             return;
         }
         if (qtyDibeli === undefined || qtyDibeli === null || qtyDibeli === '') {
-            setError('Jumlah pembelian fisik wajib diisi.');
+            toast.error('Jumlah pembelian fisik wajib diisi.');
             return;
         }
         if (qtyTerpakai === undefined || qtyTerpakai === null || qtyTerpakai === '') {
-            setError('Jumlah pemakaian fisik wajib diisi.');
+            toast.error('Jumlah pemakaian fisik wajib diisi.');
             return;
         }
 
@@ -146,11 +140,11 @@ export const ValidasiStokPage = () => {
         const valQtyTerpakai = parseFloat(qtyTerpakai);
 
         if (isNaN(valQtyDibeli) || valQtyDibeli < 0) {
-            setError('Jumlah pembelian fisik harus berupa angka non-negatif.');
+            toast.error('Jumlah pembelian fisik harus berupa angka non-negatif.');
             return;
         }
         if (isNaN(valQtyTerpakai) || valQtyTerpakai < 0) {
-            setError('Jumlah pemakaian fisik harus berupa angka non-negatif.');
+            toast.error('Jumlah pemakaian fisik harus berupa angka non-negatif.');
             return;
         }
 
@@ -168,7 +162,7 @@ export const ValidasiStokPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('Validasi dan penyesuaian stok berhasil disimpan.');
+                toast.success('Validasi dan penyesuaian stok berhasil disimpan.');
                 setValidasiForm({
                     bahanPokokId: '',
                     tanggal: '',
@@ -179,21 +173,20 @@ export const ValidasiStokPage = () => {
                 loadValidasiStok();
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                setError(d.error || 'Gagal menyimpan Validasi Stok');
+                toast.error(d.error || 'Gagal menyimpan Validasi Stok');
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
     // Load Stock balance for printable checklist
     const generatePrintChecklist = async () => {
         if (!periodeId || !printDate) {
-            setError('Pilih periode dan tanggal pencetakan terlebih dahulu.');
+            toast.error('Pilih periode dan tanggal pencetakan terlebih dahulu.');
             return;
         }
         setPrintLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/stock-barang?periodeId=${periodeId}&tanggal=${printDate}`);
             if (r.ok) {
@@ -202,10 +195,10 @@ export const ValidasiStokPage = () => {
                 setIsPrinting(true);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat data stock untuk checklist.' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi.');
+            toast.error(err.message || 'Terjadi kesalahan koneksi.');
         } finally {
             setPrintLoading(false);
         }
@@ -298,31 +291,6 @@ export const ValidasiStokPage = () => {
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Validasi &amp; Rekonsiliasi Stok Fisik</h2>
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
-
             {/* Print Section (Checklist Generation) */}
             <div style={{
                 border: '1px solid var(--border)',
@@ -331,7 +299,7 @@ export const ValidasiStokPage = () => {
                 backgroundColor: 'var(--bg-elevated)',
                 boxShadow: 'var(--shadow)',
                 marginBottom: '30px',
-                width: '65%'
+                width: '50%'
             }}>
                 <h4 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Cetak Lembar Checklist Fisik Gudang</h4>
                 <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginTop: '0', marginBottom: '20px' }}>

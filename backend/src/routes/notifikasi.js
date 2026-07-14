@@ -19,4 +19,18 @@ router.get("/", requireAuth, async (req, res) => {
   }
 });
 
+// PATCH /api/notifikasi/mark-read - Tandai semua notifikasi milik user login sebagai dibaca
+router.patch("/mark-read", requireAuth, async (req, res) => {
+  try {
+    await prisma.notifikasi.updateMany({
+      where: { userId: req.user.sub, dibaca: false },
+      data: { dibaca: true }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Gagal menandai notifikasi sebagai dibaca" });
+  }
+});
+
 module.exports = router;

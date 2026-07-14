@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { useToast } from '../../../context/ToastContext';
 import { Table } from '../../../components/Table';
 import { DatePicker } from '../../../components/DatePicker';
 
 export const StockBarangPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [tanggal, setTanggal] = useState(new Date().toISOString().split('T')[0]);
     const [reportData, setReportData] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     // Fetch periods on mount
     useEffect(() => {
@@ -20,14 +21,13 @@ export const StockBarangPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode'));
+            .catch(() => toast.error('Gagal memuat daftar periode'));
     }, []);
 
     // Load Stock Barang Laporan
     const loadStockBarang = async (pid, tgl) => {
         if (!pid || !tgl) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/stock-barang?periodeId=${pid}&tanggal=${tgl}`);
             if (r.ok) {
@@ -35,11 +35,11 @@ export const StockBarangPage = () => {
                 setReportData(resJson.data || []);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Stock Barang' }));
-                setError(d.error);
+                toast.error(d.error);
                 setReportData([]);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
             setReportData([]);
         } finally {
             setLoading(false);

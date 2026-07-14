@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table, renderDate, renderStatus } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 export const RabHarianPage = () => {
     const { request } = useApi();
+    const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [tanggalInput, setTanggalInput] = useState('');
     const [rabList, setRabList] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [pendingRabId, setPendingRabId] = useState(null);
 
     // Fetch periods on mount
     useEffect(() => {
@@ -22,23 +25,22 @@ export const RabHarianPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode'));
+            .catch(() => toast.error('Gagal memuat daftar periode'));
     }, []);
 
     const loadRabHarian = async (pid) => {
         if (!pid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/akuntan/rab-harian?periodeId=${pid}`);
             if (r.ok) {
                 setRabList(await r.json());
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat daftar RAB Harian' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         } finally {
             setLoading(false);
         }
@@ -51,17 +53,42 @@ export const RabHarianPage = () => {
         }
     }, [periodeId]);
 
+    const triggerAjukan = (id) => {
+        setPendingRabId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleAjukan = async () => {
+        if (!pendingRabId) return;
+        setConfirmOpen(false);
+        try {
+            const r = await request(`/akuntan/rab-harian/${pendingRabId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'DIAJUKAN' })
+            });
+            if (r.ok) {
+                toast.success('RAB Harian berhasil diajukan ke Kepala SPPG.');
+                loadRabHarian(periodeId);
+            } else {
+                const err = await r.json().catch(() => ({ error: 'Gagal mengajukan RAB Harian' }));
+                toast.error(err.error || 'Gagal mengajukan RAB Harian');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        } finally {
+            setPendingRabId(null);
+        }
+    };
+
     const createRabHarian = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-        
         if (!periodeId) {
-            setError('Periode wajib dipilih.');
+            toast.error('Periode wajib dipilih.');
             return;
         }
         if (!tanggalInput) {
-            setError('Tanggal wajib diisi.');
+            toast.error('Tanggal wajib diisi.');
             return;
         }
 
@@ -76,45 +103,21 @@ export const RabHarianPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('RAB Harian baru berhasil dibuat.');
+                toast.success('RAB Harian baru berhasil dibuat.');
                 setTanggalInput('');
                 loadRabHarian(periodeId);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                setError(d.error || 'Gagal membuat RAB Harian');
+                toast.error(d.error || 'Gagal membuat RAB Harian');
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Manajemen Anggaran Belanja (RAB Harian)</h2>
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
 
             {/* Pilihan Periode */}
             <div style={{
@@ -206,10 +209,41 @@ export const RabHarianPage = () => {
                         header: 'Jumlah Pembelian',
                         align: 'right',
                         render: (v) => `${(v || []).length} transaksi`
+                    },
+                    {
+                        key: 'aksi',
+                        header: 'Aksi',
+                        render: (_, row) => (row.status === 'DRAFT' || row.status === 'DITOLAK') ? (
+                            <button
+                                onClick={() => triggerAjukan(row.id)}
+                                style={{
+                                    padding: '5px 12px',
+                                    backgroundColor: 'var(--btn-primary-bg)',
+                                    color: 'var(--btn-primary-text)',
+                                    border: 'none',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    fontSize: '12px'
+                                }}
+                            >
+                                Ajukan
+                            </button>
+                        ) : '—'
                     }
                 ]}
                 data={rabList}
                 emptyText="Belum ada data RAB Harian untuk periode ini."
+            />
+            <ConfirmDialog
+                open={confirmOpen}
+                title="Konfirmasi Pengajuan"
+                message="Ajukan RAB Harian ini ke Kepala SPPG untuk persetujuan?"
+                onConfirm={handleAjukan}
+                onCancel={() => {
+                    setConfirmOpen(false);
+                    setPendingRabId(null);
+                }}
             />
         </div>
     );

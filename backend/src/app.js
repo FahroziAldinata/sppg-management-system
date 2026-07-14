@@ -11,6 +11,8 @@ const kepalaRoutes = require('./routes/kepala');
 const laporanRoutes = require('./routes/laporan');
 const notifikasiRoutes = require('./routes/notifikasi');
 const dashboardRoutes = require('./routes/dashboard');
+const adminRoutes = require('./routes/admin');
+const laporanBugRoutes = require('./routes/laporanBug');
 
 const app = express();
 app.use(cors({
@@ -30,6 +32,8 @@ app.use('/api/kepala', kepalaRoutes);
 app.use('/api/laporan', laporanRoutes);
 app.use('/api/notifikasi', notifikasiRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/laporan-bug', laporanBugRoutes);
 
 // 500 catch-all — biar error gak pernah bocor stack trace ke client
 app.use((err, req, res, next) => {

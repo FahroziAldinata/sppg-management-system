@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useToast } from '../../context/ToastContext';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { User, Lock, LogIn, Sun, Moon } from 'lucide-react';
@@ -8,7 +9,6 @@ export const Login = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loginSuccessUser, setLoginSuccessUser] = useState(null);
 
@@ -18,7 +18,6 @@ export const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
@@ -39,12 +38,12 @@ export const Login = () => {
           navigate('/');
         }, 1200);
       } else {
-        setError(data.error || 'Terjadi kesalahan');
+        toast.error(data.error || 'Terjadi kesalahan');
         setLoading(false);
       }
     } catch (err) {
       console.error(err);
-      setError('Koneksi ke server gagal.');
+      toast.error('Koneksi ke server gagal.');
       setLoading(false);
     }
   };
@@ -139,23 +138,6 @@ export const Login = () => {
           <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text)', letterSpacing: '-0.5px' }}>Selamat Datang</h2>
           <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '5px' }}>Masuk ke akun SIKOP-SPPG Anda untuk melapor</p>
         </div>
-
-        {error && (
-          <div style={{
-            color: 'var(--color-danger)',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.2)',
-            padding: '12px',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '13px',
-            fontWeight: '500',
-            marginBottom: '20px',
-            textAlign: 'center'
-          }}>
-            {error}
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {/* Username Input */}
           <div>
@@ -181,16 +163,8 @@ export const Login = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Masukkan username"
                 required
-                style={{
-                  width: '100%',
-                  padding: '12px 12px 12px 38px',
-                  backgroundColor: 'var(--bg)',
-                  border: '1px solid var(--input-border)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--text)',
-                  fontSize: '14px',
-                  boxSizing: 'border-box'
-                }}
+                className="form-field"
+                style={{ paddingLeft: '38px' }}
               />
             </div>
           </div>
@@ -219,16 +193,8 @@ export const Login = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
                 required
-                style={{
-                  width: '100%',
-                  padding: '12px 12px 12px 38px',
-                  backgroundColor: 'var(--bg)',
-                  border: '1px solid var(--input-border)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--text)',
-                  fontSize: '14px',
-                  boxSizing: 'border-box'
-                }}
+                className="form-field"
+                style={{ paddingLeft: '38px' }}
               />
             </div>
           </div>

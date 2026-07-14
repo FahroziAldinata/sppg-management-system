@@ -178,6 +178,18 @@ textarea:not([data-slot="input"]):not([class*="heroui"]):focus {
   box-shadow: var(--shadow);
 }
 
+/* === Dropdown open animation === */
+@keyframes dropdown-open {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
 .custom-select-dropdown {
   position: absolute;
   top: 100%;
@@ -187,12 +199,14 @@ textarea:not([data-slot="input"]):not([class*="heroui"]):focus {
   background-color: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-hover);
   z-index: 1000;
   max-height: 250px;
   overflow-y: auto;
   padding: 4px 0;
   list-style: none;
+  transform-origin: top center;
+  animation: dropdown-open 150ms ease forwards;
 }
 
 .custom-select-option {
@@ -216,7 +230,19 @@ textarea:not([data-slot="input"]):not([class*="heroui"]):focus {
 
 .custom-select-option.selected {
   background-color: var(--color-primary);
-  color: var(--bg-elevated);
+  color: white;
+}
+
+/* Chevron rotate on open */
+.custom-select-trigger .dropdown-chevron {
+  transition: transform 200ms ease;
+  flex-shrink: 0;
+  opacity: 0.55;
+}
+
+.custom-select-trigger.active .dropdown-chevron {
+  transform: rotate(180deg);
+  opacity: 0.9;
 }
 
 /* ==========================================
@@ -231,12 +257,12 @@ button:not([class*="heroui"]) {
     transform var(--transition-fast);
 }
 
-button:not([class*="heroui"]):not(.custom-select-trigger):hover {
+button:not([class*="heroui"]):hover {
   filter: brightness(1.05);
   box-shadow: var(--shadow-hover);
 }
 
-button:not([class*="heroui"]):not(.custom-select-trigger):active {
+button:not([class*="heroui"]):active {
   transform: scale(0.98);
 }
 

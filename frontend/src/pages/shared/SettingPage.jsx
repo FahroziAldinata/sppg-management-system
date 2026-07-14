@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 
 export const SettingPage = () => {
     const { user, token, login } = useAuth();
     const { request } = useApi();
+  const toast = useToast();
 
     const [nama, setNama] = useState('');
     const [username, setUsername] = useState('');
@@ -12,9 +14,6 @@ export const SettingPage = () => {
     const [confirmPassword, setConfirmPassword] = useState('');
 
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
     // Prefill user details
     useEffect(() => {
         if (user) {
@@ -25,16 +24,13 @@ export const SettingPage = () => {
 
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
         if (password && password.length < 6) {
-            setError('Password minimal harus 6 karakter.');
+            toast.error('Password minimal harus 6 karakter.');
             return;
         }
 
         if (password !== confirmPassword) {
-            setError('Konfirmasi password tidak cocok.');
+            toast.error('Konfirmasi password tidak cocok.');
             return;
         }
 
@@ -53,17 +49,17 @@ export const SettingPage = () => {
 
             if (r.ok) {
                 const resJson = await r.json();
-                setSuccess('Profil berhasil diperbarui.');
+                toast.success('Profil berhasil diperbarui.');
                 setPassword('');
                 setConfirmPassword('');
                 // Update user details in context
                 login(token, resJson.user);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memperbarui profil.' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError('Terjadi kesalahan koneksi.');
+            toast.error('Terjadi kesalahan koneksi.');
         } finally {
             setLoading(false);
         }
@@ -75,32 +71,6 @@ export const SettingPage = () => {
             <p style={{ color: 'var(--text-muted)', fontSize: '13px', marginTop: '0', marginBottom: '20px' }}>
                 Perbarui nama tampilan, username, atau kata sandi Anda di sini.
             </p>
-
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '10px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '10px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(34, 197, 94, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
-
             <form onSubmit={handleUpdateProfile} style={{
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',

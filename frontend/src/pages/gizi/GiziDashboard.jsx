@@ -194,7 +194,7 @@ export const GiziDashboard = () => {
 
       {/* Quick Actions Panel */}
       {/* ponytail: unify shade pastel to bg-elevated */}
-      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)' }}>
+      <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', backgroundColor: 'var(--bg-elevated)', width: '30%' }}>
         <h3 style={{ margin: '0 0 12px 0', fontSize: '16px' }}>Pintasan Aksi Cepat</h3>
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
           <button onClick={() => navigate('/gizi/menu-harian')} style={{ padding: '10px 20px', backgroundColor: '#fd7e14', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Kelola Menu Harian</button>

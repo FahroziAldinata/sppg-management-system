@@ -258,6 +258,25 @@ router.put("/menu-harian/:id", requireAuth, requireRole("AHLI_GIZI"), async (req
         updateData.status = status;
       }
 
+      if (status === "DIAJUKAN" && existing.status !== "DIAJUKAN") {
+        const kepalaUsers = await tx.user.findMany({
+          where: { role: "KEPALA_SPPG", aktif: true },
+          select: { id: true }
+        });
+        if (kepalaUsers.length > 0) {
+          const formattedDate = new Date(existing.tanggal).toLocaleDateString('id-ID', { dateStyle: 'medium' });
+          await tx.notifikasi.createMany({
+            data: kepalaUsers.map((k) => ({
+              userId: k.id,
+              judul: "Menu Harian Baru Butuh Persetujuan",
+              pesan: `Menu Harian tanggal ${formattedDate} telah diajukan dan menunggu persetujuan Anda.`,
+              entityType: "MENU",
+              entityId: id
+            }))
+          });
+        }
+      }
+
       return await tx.menuHarian.update({
         where: { id },
         data: updateData,

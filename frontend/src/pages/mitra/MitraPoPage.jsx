@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table, renderDate, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 
 export const MitraPoPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [selectedPeriodId, setSelectedPeriodId] = useState('');
     const [suppliers, setSuppliers] = useState([]);
@@ -19,9 +21,6 @@ export const MitraPoPage = () => {
 
     const [loading, setLoading] = useState(false);
     const [listLoading, setListLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
     // Print State
     const [isPrinting, setIsPrinting] = useState(false);
     const [printPoData, setPrintPoData] = useState(null);
@@ -34,7 +33,7 @@ export const MitraPoPage = () => {
                 setPeriods(d);
                 if (d.length) setSelectedPeriodId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode.'));
+            .catch(() => toast.error('Gagal memuat daftar periode.'));
 
         request('/akuntan/supplier')
             .then(r => r.json())
@@ -42,7 +41,7 @@ export const MitraPoPage = () => {
                 setSuppliers(d);
                 if (d.length) setSupplierId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar supplier.'));
+            .catch(() => toast.error('Gagal memuat daftar supplier.'));
     }, []);
 
     // Load PO list when period changes
@@ -78,7 +77,6 @@ export const MitraPoPage = () => {
 
         const fetchKebutuhan = async () => {
             setLoading(true);
-            setError('');
             try {
                 const r = await request(`/mitra/po/kebutuhan?tanggal=${poDate}&periodeId=${selectedPeriodId}`);
                 if (r.ok) {
@@ -87,12 +85,12 @@ export const MitraPoPage = () => {
                     setPoItems(data.ingredients || []);
                 } else {
                     const errData = await r.json().catch(() => ({ error: 'Gagal memuat kebutuhan bahan.' }));
-                    setError(errData.error);
+                    toast.error(errData.error);
                     setPoItems([]);
                     setMenuDescription('');
                 }
             } catch (err) {
-                setError('Koneksi server gagal.');
+                toast.error('Koneksi server gagal.');
             } finally {
                 setLoading(false);
             }
@@ -116,13 +114,10 @@ export const MitraPoPage = () => {
 
     const handleCreatePo = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
-        if (!selectedPeriodId) return setError('Periode wajib dipilih.');
-        if (!poDate) return setError('Tanggal wajib diisi.');
-        if (!supplierId) return setError('Supplier wajib dipilih.');
-        if (poItems.length === 0) return setError('Tidak ada item PO yang tersedia untuk tanggal ini.');
+        if (!selectedPeriodId) return toast.error('Periode wajib dipilih.');
+        if (!poDate) return toast.error('Tanggal wajib diisi.');
+        if (!supplierId) return toast.error('Supplier wajib dipilih.');
+        if (poItems.length === 0) return toast.error('Tidak ada item PO yang tersedia untuk tanggal ini.');
 
         const itemsPayload = poItems.map(item => ({
             bahanPokokId: item.bahanPokokId,
@@ -144,7 +139,7 @@ export const MitraPoPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('Nota Pesanan (PO) berhasil disimpan.');
+                toast.success('Nota Pesanan (PO) berhasil disimpan.');
                 setPoDate('');
                 setCatatan('');
                 setPoItems([]);
@@ -152,10 +147,10 @@ export const MitraPoPage = () => {
                 loadPoList(selectedPeriodId);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan server saat menyimpan PO' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError('Terjadi kesalahan koneksi.');
+            toast.error('Terjadi kesalahan koneksi.');
         }
     };
 
@@ -295,32 +290,6 @@ export const MitraPoPage = () => {
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Penyusunan Nota Pesanan (PO Bahan Makanan)</h2>
-
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
-
             {/* Filter Periode */}
             <div style={{
                 border: '1px solid var(--border)',

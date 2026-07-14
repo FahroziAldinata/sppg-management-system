@@ -207,37 +207,38 @@ function App() {
           8 Januari 2026 -
           17 Januari 2026
         </p>
-      </div>
 
-      <Dropdown
-        style={{
-          width: 300
-        }}
-        options={[
-          {
-            value:
-              "periode-contoh-8-17-jan-2026",
-            label:
-              "2026-01-08 - 2026-01-17"
-          },
-          {
-            value: "periode-2",
-            label:
-              "2026-01-18 - 2026-01-27"
-          },
-          {
-            value: "periode-3",
-            label:
-              "2026-01-28 - 2026-02-06"
-          }
-        ]}
-        value={periode}
-        onChange={setPeriode}
-      />
+        <div style={{ marginTop: "16px" }}>
+          <Dropdown
+            style={{
+              width: 300
+            }}
+            options={[
+              {
+                value:
+                  "periode-contoh-8-17-jan-2026",
+                label:
+                  "2026-01-08 - 2026-01-17"
+              },
+              {
+                value: "periode-2",
+                label:
+                  "2026-01-18 - 2026-01-27"
+              },
+              {
+                value: "periode-3",
+                label:
+                  "2026-01-28 - 2026-02-06"
+              }
+            ]}
+            value={periode}
+            onChange={setPeriode}
+          />
+        </div>
+      </div>
     </div>
   );
 }
-
 ReactDOM
   .createRoot(
     document.getElementById("root")

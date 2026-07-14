@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Login } from './pages/auth/Login';
 import { Layout } from './components/Layout';
@@ -11,6 +12,9 @@ import { MitraDashboard } from './pages/mitra/MitraDashboard';
 import { GiziDashboard } from './pages/gizi/GiziDashboard';
 import { AkuntanDashboard } from './pages/akuntan/AkuntanDashboard';
 import { KepalaDashboard } from './pages/kepala/KepalaDashboard';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { UserManagementPage } from './pages/admin/UserManagementPage';
+import { LaporanBugPage } from './pages/admin/LaporanBugPage';
 
 // Sub-pages / CRUD Pages
 import { PenerimaManfaatPage } from './pages/aslap/PenerimaManfaatPage';
@@ -47,12 +51,14 @@ function RoleRedirect() {
   if (user.role === 'AHLI_GIZI') return <Navigate to="/gizi" replace />;
   if (user.role === 'AKUNTAN') return <Navigate to="/akuntan" replace />;
   if (user.role === 'KEPALA_SPPG') return <Navigate to="/kepala" replace />;
+  if (user.role === 'ADMIN') return <Navigate to="/admin" replace />;
   return <div>Selamat datang, {user.nama} ({user.role}). Halaman modul Anda belum diimplementasikan.</div>;
 }
 
 function App() {
   return (
     <Router>
+      <ToastProvider>
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -268,6 +274,32 @@ function App() {
               }
             />
 
+            {/* ===== ADMIN Routes ===== */}
+            <Route
+              path="admin"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/users"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <UserManagementPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="admin/laporan-bug"
+              element={
+                <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <LaporanBugPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* ===== SHARED Routes ===== */}
             <Route
               path="setting"
@@ -282,6 +314,7 @@ function App() {
           </Route>
         </Routes>
       </AuthProvider>
+      </ToastProvider>
     </Router>
   );
 }

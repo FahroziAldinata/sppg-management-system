@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { useToast } from '../../../context/ToastContext';
 import { RangeCalendar } from "@heroui/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
@@ -7,10 +8,9 @@ import { DatePicker } from '../../../components/DatePicker';
 
 export const PeriodeSetupPage = () => {
     const { request } = useApi();
+    const toast = useToast();
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
 
     // Form fields state
     const [tanggalMulai, setTanggalMulai] = useState('');
@@ -46,7 +46,6 @@ export const PeriodeSetupPage = () => {
     // Fetch latest period on mount for autofilling defaults
     const fetchLatestSetup = async () => {
         setLoading(true);
-        setError('');
         try {
             const r = await request('/akuntan/periode/latest-setup');
             if (r.ok) {
@@ -105,10 +104,10 @@ export const PeriodeSetupPage = () => {
                     setTahunAnggaran(new Date().getFullYear().toString());
                 }
             } else {
-                setError('Gagal memuat data periode terakhir untuk autofill.');
+                toast.error('Gagal memuat data periode terakhir untuk autofill.');
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi saat memuat data awal.');
+            toast.error(err.message || 'Terjadi kesalahan koneksi saat memuat data awal.');
         } finally {
             setLoading(false);
         }
@@ -132,18 +131,13 @@ export const PeriodeSetupPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
-        // Basic front-end validation
         if (!tanggalMulai || !tanggalSelesai || !anggaranAlokasi ||
             !namaLembaga || !alamat || !namaKepalaSPPG || !namaAkuntanSPPG ||
             !namaYayasan || !ketuaYayasan || !nomorRekeningVA || !tahunAnggaran ||
             !awalPeriodeBerikutnya || !tanggalPelaporan || !tempatPelaporan) {
-            setError('Seluruh field wajib harus diisi.');
+            toast.error('Seluruh field wajib harus diisi.');
             return;
         }
-
         setSubmitting(true);
         try {
             const body = {
@@ -171,17 +165,17 @@ export const PeriodeSetupPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('Periode dan Setup Lembaga baru berhasil dibuat!');
+                toast.success('Periode dan Setup Lembaga baru berhasil dibuat!');
                 // Reload to reset the defaults based on the newly created period
                 await fetchLatestSetup();
                 setAnggaranAlokasi('');
                 setTotalDanaDiterima('');
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal membuat periode baru' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi.');
+            toast.error(err.message || 'Terjadi kesalahan koneksi.');
         } finally {
             setSubmitting(false);
         }
@@ -190,35 +184,10 @@ export const PeriodeSetupPage = () => {
 
     return (
         <div>
-            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Buka Periode & Setup Lembaga Baru</h2>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Buka Periode &amp; Setup Lembaga Baru</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', marginTop: '-10px', marginBottom: '20px' }}>
                 Halaman ini digunakan untuk memulai periode operasional dan keuangan baru. Data lembaga di-autofill otomatis dari periode sebelumnya untuk menghemat waktu Anda.
             </p>
-
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
 
             {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat konfigurasi default...</p>}
 

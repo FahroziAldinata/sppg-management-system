@@ -1,18 +1,17 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table, renderCurrency } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
 
 export const SaldoAwalBarangPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [bahanPokokList, setBahanPokokList] = useState([]);
     const [saldoAwalList, setSaldoAwalList] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
     const [saldoAwalForm, setSaldoAwalForm] = useState({
         bahanPokokId: '',
         saldoAwalQty: '',
@@ -27,7 +26,7 @@ export const SaldoAwalBarangPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode.'));
+            .catch(() => toast.error('Gagal memuat daftar periode.'));
 
         request('/mitra/bahan-pokok')
             .then(r => r.json())
@@ -38,17 +37,16 @@ export const SaldoAwalBarangPage = () => {
     const loadSaldoAwalList = async (pid) => {
         if (!pid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/akuntan/saldo-awal-barang?periodeId=${pid}`);
             if (r.ok) {
                 setSaldoAwalList(await r.json());
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat riwayat saldo awal' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         } finally {
             setLoading(false);
         }
@@ -63,25 +61,22 @@ export const SaldoAwalBarangPage = () => {
 
     const handleCreateSaldoAwal = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
         const { bahanPokokId, saldoAwalQty, hargaBeliAwal } = saldoAwalForm;
 
         if (!periodeId) {
-            setError('Periode wajib dipilih.');
+            toast.error('Periode wajib dipilih.');
             return;
         }
         if (!bahanPokokId) {
-            setError('Bahan pokok wajib dipilih.');
+            toast.error('Bahan pokok wajib dipilih.');
             return;
         }
         if (saldoAwalQty === undefined || saldoAwalQty === null || saldoAwalQty === '') {
-            setError('Saldo awal qty wajib diisi.');
+            toast.error('Saldo awal qty wajib diisi.');
             return;
         }
         if (hargaBeliAwal === undefined || hargaBeliAwal === null || hargaBeliAwal === '') {
-            setError('Harga beli awal wajib diisi.');
+            toast.error('Harga beli awal wajib diisi.');
             return;
         }
 
@@ -89,11 +84,11 @@ export const SaldoAwalBarangPage = () => {
         const valHarga = parseFloat(hargaBeliAwal);
 
         if (isNaN(valQty) || valQty < 0) {
-            setError('Saldo awal qty harus berupa angka non-negatif.');
+            toast.error('Saldo awal qty harus berupa angka non-negatif.');
             return;
         }
         if (isNaN(valHarga) || valHarga < 0) {
-            setError('Harga beli awal harus berupa angka non-negatif.');
+            toast.error('Harga beli awal harus berupa angka non-negatif.');
             return;
         }
 
@@ -110,46 +105,21 @@ export const SaldoAwalBarangPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('Saldo Awal Barang berhasil disimpan.');
+                toast.success('Saldo Awal Barang berhasil disimpan.');
                 setSaldoAwalForm({ bahanPokokId: '', saldoAwalQty: '', hargaBeliAwal: '' });
                 loadSaldoAwalList(periodeId);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                setError(d.error || 'Gagal menyimpan Saldo Awal Barang');
+                toast.error(d.error || 'Gagal menyimpan Saldo Awal Barang');
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Input Saldo Awal Barang (Persediaan Awal)</h2>
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
-
             {/* Pilihan Periode */}
             <div style={{
                 border: '1px solid var(--border)',

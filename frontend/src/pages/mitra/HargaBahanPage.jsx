@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
 
 export const HargaBahanPage = () => {
   const { request } = useApi();
+  const toast = useToast();
 
   const [periods, setPeriods] = useState([]);
   const [bahanList, setBahanList] = useState([]);
@@ -15,10 +17,6 @@ export const HargaBahanPage = () => {
   const [formBahanId, setFormBahanId] = useState('');
   const [formHarga, setFormHarga] = useState('');
   const [formIsFallback, setFormIsFallback] = useState(false);
-
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-
   // Load master data
   useEffect(() => {
     const loadMaster = async () => {
@@ -28,7 +26,7 @@ export const HargaBahanPage = () => {
           request('/mitra/bahan-pokok')
         ]);
         if (!resP.ok || !resB.ok) {
-          setError('Gagal memuat data master.');
+          toast.error('Gagal memuat data master.');
           return;
         }
         const dataP = await resP.json();
@@ -41,7 +39,7 @@ export const HargaBahanPage = () => {
         }
       } catch (err) {
         console.error(err);
-        setError('Koneksi ke server gagal saat memuat data master.');
+        toast.error('Koneksi ke server gagal saat memuat data master.');
       }
     };
     loadMaster();
@@ -56,11 +54,11 @@ export const HargaBahanPage = () => {
         setItems(data);
       } else {
         const errData = await res.json();
-        setError(errData.error || 'Gagal mengambil daftar harga bahan.');
+        toast.error(errData.error || 'Gagal mengambil daftar harga bahan.');
       }
     } catch (err) {
       console.error(err);
-      setError('Koneksi ke server gagal.');
+      toast.error('Koneksi ke server gagal.');
     }
   };
 
@@ -75,42 +73,32 @@ export const HargaBahanPage = () => {
     setFormBahanId(bahanList[0]?.id || '');
     setFormHarga('');
     setFormIsFallback(false);
-    setError('');
   };
 
   const handleEditClick = (row) => {
     setEditingId(row.id);
     setFormBahanId(row.bahanPokokId);
     setFormHarga(String(row.harga));
-    setFormIsFallback(row.isFallback);
-    setError('');
-    setSuccess('');
-  };
+    setFormIsFallback(row.isFallback);  };
 
   const handleDeleteClick = async (id) => {
-    if (!window.confirm('Yakin hapus harga bahan ini?')) return;
-    setError('');
-    setSuccess('');
-    try {
+    if (!window.confirm('Yakin hapus harga bahan ini?')) return;    try {
       const res = await request(`/mitra/harga-bahan/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setSuccess('Data berhasil dihapus.');
+        toast.success('Data berhasil dihapus.');
         fetchList(selectedPeriodId);
       } else {
         const errData = await res.json();
-        setError(errData.error || 'Gagal menghapus data.');
+        toast.error(errData.error || 'Gagal menghapus data.');
       }
     } catch (err) {
       console.error(err);
-      setError('Koneksi ke server gagal.');
+      toast.error('Koneksi ke server gagal.');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-
     const payload = editingId
       ? { bahanPokokId: formBahanId, harga: parseFloat(formHarga), isFallback: formIsFallback }
       : { periodeId: selectedPeriodId, bahanPokokId: formBahanId, harga: parseFloat(formHarga), isFallback: formIsFallback };
@@ -123,47 +111,21 @@ export const HargaBahanPage = () => {
       const data = await res.json();
 
       if (res.ok) {
-        setSuccess(editingId ? 'Harga berhasil diperbarui.' : 'Harga berhasil ditambahkan.');
+        toast.success(editingId ? 'Harga berhasil diperbarui.' : 'Harga berhasil ditambahkan.');
         resetForm();
         fetchList(selectedPeriodId);
       } else {
-        setError(data.error || 'Terjadi kesalahan pada input.');
+        toast.error(data.error || 'Terjadi kesalahan pada input.');
       }
     } catch (err) {
       console.error(err);
-      setError('Koneksi ke server gagal.');
+      toast.error('Koneksi ke server gagal.');
     }
   };
 
   return (
     <div>
       <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pengelolaan Daftar Harga Bahan Periode</h2>
-
-      {error && (
-        <div style={{
-          color: 'var(--color-danger)',
-          marginBottom: '20px',
-          padding: '8px',
-          border: '1px solid var(--color-danger)',
-          borderRadius: 'var(--radius-sm)',
-          backgroundColor: 'rgba(239, 68, 68, 0.05)'
-        }}>
-          {error}
-        </div>
-      )}
-      {success && (
-        <div style={{
-          color: 'var(--color-success)',
-          marginBottom: '20px',
-          padding: '8px',
-          border: '1px solid var(--color-success)',
-          borderRadius: 'var(--radius-sm)',
-          backgroundColor: 'rgba(16, 185, 129, 0.05)'
-        }}>
-          {success}
-        </div>
-      )}
-
       {/* Pilih Periode */}
       <div style={{
         border: '1px solid var(--border)',

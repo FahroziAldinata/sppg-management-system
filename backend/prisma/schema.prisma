@@ -177,6 +177,7 @@ enum Role {
   AHLI_GIZI
   AKUNTAN
   KEPALA_SPPG
+  ADMIN
 }
 
 enum StatusPeriode {
@@ -272,6 +273,19 @@ enum JenisDokumenResmi {
   BAPSD
 }
 
+enum StatusLaporanBug {
+  BARU
+  DIPROSES
+  SELESAI
+}
+
+enum JenjangSekolah {
+  TK
+  SD
+  SMP
+  SMA_SMK
+}
+
 // -----------------------------------------------------------------------------
 // USER & AUTH
 // -----------------------------------------------------------------------------
@@ -299,6 +313,7 @@ model User {
   inputPenerimaManfaat  InputPenerimaManfaat[]      @relation("AslapInputPM")
   auditLogs             AuditLog[]
   notifikasi            Notifikasi[]
+  laporanBug            LaporanBug[]           @relation("PelaporBug")
 
   @@index([role])
 }
@@ -413,11 +428,12 @@ model KelompokUmurMenu {
 // -----------------------------------------------------------------------------
 
 model Sekolah {
-  id     String  @id @default(cuid())
-  nama   String // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
-  npsn   String?
-  alamat String?
-  aktif  Boolean @default(true)
+  id      String         @id @default(cuid())
+  nama    String // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
+  npsn    String?
+  alamat  String?
+  jenjang JenjangSekolah
+  aktif   Boolean        @default(true)
 
   inputDetail InputPenerimaManfaatDetail[]
   kelasDetail SekolahKelasDetail[]
@@ -1067,4 +1083,23 @@ model Notifikasi {
   createdAt  DateTime @default(now())
 
   @@index([userId, dibaca])
+}
+
+// -----------------------------------------------------------------------------
+// LAPORAN BUG
+// -----------------------------------------------------------------------------
+
+model LaporanBug {
+  id          String           @id @default(cuid())
+  pelaporId   String
+  pelapor     User             @relation("PelaporBug", fields: [pelaporId], references: [id])
+  rolePelapor Role             // snapshot role saat lapor
+  judul       String
+  deskripsi   String
+  status      StatusLaporanBug @default(BARU)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([status])
+  @@index([pelaporId])
 }

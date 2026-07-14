@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table, renderDate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 
 export const AnggaranHarianPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [categories, setCategories] = useState([]);
     const [anggaranList, setAnggaranList] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-
     const [anggaranForm, setAnggaranForm] = useState({
         tanggal: '',
         kategoriDana: '',
@@ -32,7 +31,7 @@ export const AnggaranHarianPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode.'));
+            .catch(() => toast.error('Gagal memuat daftar periode.'));
 
         request('/aslap/kategori')
             .then(r => r.json())
@@ -43,17 +42,16 @@ export const AnggaranHarianPage = () => {
     const loadAnggaran = async (pid) => {
         if (!pid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/akuntan/anggaran-harian?periodeId=${pid}`);
             if (r.ok) {
                 setAnggaranList(await r.json());
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat daftar Anggaran Harian' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         } finally {
             setLoading(false);
         }
@@ -68,9 +66,6 @@ export const AnggaranHarianPage = () => {
 
     const createAnggaranHarian = async (e) => {
         e.preventDefault();
-        setError('');
-        setSuccess('');
-
         const {
             tanggal,
             kategoriDana,
@@ -80,19 +75,19 @@ export const AnggaranHarianPage = () => {
         } = anggaranForm;
 
         if (!periodeId) {
-            setError('Periode wajib dipilih.');
+            toast.error('Periode wajib dipilih.');
             return;
         }
         if (!tanggal) {
-            setError('Tanggal anggaran wajib diisi.');
+            toast.error('Tanggal anggaran wajib diisi.');
             return;
         }
         if (!kategoriDana) {
-            setError('Kategori dana wajib diisi.');
+            toast.error('Kategori dana wajib diisi.');
             return;
         }
         if (jumlahPaket === undefined || jumlahPaket === '') {
-            setError('Jumlah paket wajib diisi.');
+            toast.error('Jumlah paket wajib diisi.');
             return;
         }
 
@@ -106,7 +101,7 @@ export const AnggaranHarianPage = () => {
 
         if (kategoriDana === 'BAHAN_MAKANAN') {
             if (!anggaranDetailBahan || anggaranDetailBahan.length === 0) {
-                setError('Rincian bahan makanan wajib diisi untuk kategori BAHAN_MAKANAN.');
+                toast.error('Rincian bahan makanan wajib diisi untuk kategori BAHAN_MAKANAN.');
                 return;
             }
             body.detailBahanMakanan = anggaranDetailBahan.map(item => ({
@@ -116,7 +111,7 @@ export const AnggaranHarianPage = () => {
             }));
         } else {
             if (hargaSatuan === undefined || hargaSatuan === '') {
-                setError('Harga satuan wajib diisi untuk kategori selain bahan makanan.');
+                toast.error('Harga satuan wajib diisi untuk kategori selain bahan makanan.');
                 return;
             }
             body.hargaSatuan = parseFloat(hargaSatuan);
@@ -130,7 +125,7 @@ export const AnggaranHarianPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('Anggaran Harian berhasil disimpan.');
+                toast.success('Anggaran Harian berhasil disimpan.');
                 // Reset form & rincian
                 setAnggaranForm({
                     tanggal: '',
@@ -143,41 +138,16 @@ export const AnggaranHarianPage = () => {
                 loadAnggaran(periodeId);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                setError(d.error || 'Gagal menyimpan Anggaran Harian');
+                toast.error(d.error || 'Gagal menyimpan Anggaran Harian');
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pengajuan Anggaran Harian Resmi</h2>
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
-
             {/* Filter Periode */}
             <div style={{
                 border: '1px solid var(--border)',

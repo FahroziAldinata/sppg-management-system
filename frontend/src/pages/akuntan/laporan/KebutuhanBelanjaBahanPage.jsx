@@ -1,17 +1,18 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { useToast } from '../../../context/ToastContext';
 import { Table } from '../../../components/Table';
 import { DatePicker } from '../../../components/DatePicker';
 
 export const KebutuhanBelanjaBahanPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [tanggalMulai, setTanggalMulai] = useState('');
     const [tanggalSelesai, setTanggalSelesai] = useState('');
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
 
     // Fetch periods on mount
     useEffect(() => {
@@ -26,7 +27,7 @@ export const KebutuhanBelanjaBahanPage = () => {
                     setTanggalSelesai(d[0].tanggalSelesai);
                 }
             })
-            .catch(() => setError('Gagal memuat daftar periode'));
+            .catch(() => toast.error('Gagal memuat daftar periode'));
     }, []);
 
     // Handle change of period to autofill bounds
@@ -41,16 +42,15 @@ export const KebutuhanBelanjaBahanPage = () => {
 
     const loadKebutuhanBelanja = async () => {
         if (!periodeId) {
-            setError('Pilih periode terlebih dahulu');
+            toast.error('Pilih periode terlebih dahulu');
             return;
         }
         if (!tanggalMulai || !tanggalSelesai) {
-            setError('Isi tanggal mulai dan tanggal selesai terlebih dahulu');
+            toast.error('Isi tanggal mulai dan tanggal selesai terlebih dahulu');
             return;
         }
 
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/kebutuhan-belanja-bahan?periodeId=${periodeId}&tanggalMulai=${tanggalMulai}&tanggalSelesai=${tanggalSelesai}`);
             if (r.ok) {
@@ -58,11 +58,11 @@ export const KebutuhanBelanjaBahanPage = () => {
                 setReportData(resJson.data || []);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Kebutuhan Belanja Bahan' }));
-                setError(d.error);
+                toast.error(d.error);
                 setReportData([]);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
             setReportData([]);
         } finally {
             setLoading(false);

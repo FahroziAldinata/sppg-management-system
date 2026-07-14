@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
+import { useToast } from '../../../context/ToastContext';
 import { Table } from '../../../components/Table';
 
 export const LaporanPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [akunList, setAkunList] = useState([]);
@@ -15,7 +17,6 @@ export const LaporanPage = () => {
     const [sptjData, setSptjData] = useState(null);
     const [bapsdData, setBapsdData] = useState(null);
     const [nomorDokumen, setNomorDokumen] = useState('');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     // Fetch periods & accounts on mount
@@ -26,7 +27,7 @@ export const LaporanPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode'));
+            .catch(() => toast.error('Gagal memuat daftar periode'));
 
         request('/akuntan/akun')
             .then(r => r.json())
@@ -34,14 +35,13 @@ export const LaporanPage = () => {
                 setAkunList(d);
                 if (d.length) setAkunId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar akun'));
+            .catch(() => toast.error('Gagal memuat daftar akun'));
     }, []);
 
     // Load BKU Laporan
     const loadBKU = async (pid) => {
         if (!pid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/bku?periodeId=${pid}`);
             if (r.ok) {
@@ -49,11 +49,11 @@ export const LaporanPage = () => {
                 setReportData(resJson.data || []);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Buku Kas Umum' }));
-                setError(d.error);
+                toast.error(d.error);
                 setReportData([]);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
             setReportData([]);
         } finally {
             setLoading(false);
@@ -64,7 +64,6 @@ export const LaporanPage = () => {
     const loadBP = async (pid, aid) => {
         if (!pid || !aid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/bp?periodeId=${pid}&akunId=${aid}`);
             if (r.ok) {
@@ -72,11 +71,11 @@ export const LaporanPage = () => {
                 setReportData(resJson.data || []);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Buku Pembantu' }));
-                setError(d.error);
+                toast.error(d.error);
                 setReportData([]);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
             setReportData([]);
         } finally {
             setLoading(false);
@@ -86,14 +85,13 @@ export const LaporanPage = () => {
     // Load LPA Laporan
     const loadLPA = async (pid, nomorDok) => {
         if (!nomorDok || !nomorDok.trim()) {
-            setError('Isi Nomor Dokumen dulu');
+            toast.error('Isi Nomor Dokumen dulu');
             setLpaData(null);
             return;
         }
         if (!pid) return;
 
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/lpa?periodeId=${pid}&nomorDokumen=${encodeURIComponent(nomorDok.trim())}`);
             if (r.ok) {
@@ -101,11 +99,11 @@ export const LaporanPage = () => {
                 setLpaData(resJson.data || null);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Penggunaan Anggaran (LPA)' }));
-                setError(d.error);
+                toast.error(d.error);
                 setLpaData(null);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
             setLpaData(null);
         } finally {
             setLoading(false);
@@ -146,7 +144,6 @@ export const LaporanPage = () => {
     async function loadSPTJ(pid) {
         if (!pid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/sptj?periodeId=${pid}`);
             if (r.ok) {
@@ -154,11 +151,11 @@ export const LaporanPage = () => {
                 setSptjData(resJson.data || null);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Surat Pernyataan Tanggung Jawab' }));
-                setError(d.error);
+                toast.error(d.error);
                 setSptjData(null);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
             setSptjData(null);
         } finally {
             setLoading(false);
@@ -168,14 +165,13 @@ export const LaporanPage = () => {
     // Load BAPSD Laporan
     async function loadBAPSD(pid, nomorDok) {
         if (!nomorDok || !nomorDok.trim()) {
-            setError('Isi Nomor Dokumen dulu');
+            toast.error('Isi Nomor Dokumen dulu');
             setBapsdData(null);
             return;
         }
         if (!pid) return;
 
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/laporan/bapsd?periodeId=${pid}&nomorDokumen=${encodeURIComponent(nomorDok.trim())}`);
             if (r.ok) {
@@ -183,11 +179,11 @@ export const LaporanPage = () => {
                 setBapsdData(resJson.data || null);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Berita Acara Pengalihan Sisa Dana (BAPSD)' }));
-                setError(d.error);
+                toast.error(d.error);
                 setBapsdData(null);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
             setBapsdData(null);
         } finally {
             setLoading(false);

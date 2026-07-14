@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
 
 export const DokumenResmiPage = () => {
     const { request } = useApi();
+  const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [dokumenList, setDokumenList] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
-    const [previewData, setPreviewData] = useState(null);
+    const [loading, setLoading] = useState(false);    const [previewData, setPreviewData] = useState(null);
 
     const [dokumenForm, setDokumenForm] = useState({ jenisDokumen: '', nomorDokumen: '' });
 
@@ -23,23 +22,22 @@ export const DokumenResmiPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => setError('Gagal memuat daftar periode.'));
+            .catch(() => toast.error('Gagal memuat daftar periode.'));
     }, []);
 
     const loadDokumenList = async (pid) => {
         if (!pid) return;
         setLoading(true);
-        setError('');
         try {
             const r = await request(`/akuntan/dokumen-resmi?periodeId=${pid}`);
             if (r.ok) {
                 setDokumenList(await r.json());
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat daftar dokumen resmi' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         } finally {
             setLoading(false);
         }
@@ -53,23 +51,20 @@ export const DokumenResmiPage = () => {
     }, [periodeId]);
 
     const generateDokumen = async (e) => {
-        if (e) e.preventDefault();
-        setError('');
-        setSuccess('');
-        setPreviewData(null);
+        if (e) e.preventDefault();        setPreviewData(null);
 
         const { jenisDokumen, nomorDokumen } = dokumenForm;
 
         if (!periodeId) {
-            setError('Periode wajib dipilih.');
+            toast.error('Periode wajib dipilih.');
             return;
         }
         if (!jenisDokumen) {
-            setError('Jenis dokumen wajib dipilih.');
+            toast.error('Jenis dokumen wajib dipilih.');
             return;
         }
         if ((jenisDokumen === 'LPA' || jenisDokumen === 'BAPSD') && !nomorDokumen) {
-            setError('Nomor dokumen wajib diisi untuk LPA dan BAPSD.');
+            toast.error('Nomor dokumen wajib diisi untuk LPA dan BAPSD.');
             return;
         }
 
@@ -85,25 +80,22 @@ export const DokumenResmiPage = () => {
                 setPreviewData(await r.json());
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal men-generate preview dokumen' }));
-                setError(d.error);
+                toast.error(d.error);
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
-    const publishDokumen = async () => {
-        setError('');
-        setSuccess('');
-        
+    const publishDokumen = async () => {        
         const { jenisDokumen, nomorDokumen } = dokumenForm;
 
         if (!periodeId) {
-            setError('Periode wajib dipilih.');
+            toast.error('Periode wajib dipilih.');
             return;
         }
         if (!jenisDokumen) {
-            setError('Jenis dokumen wajib dipilih.');
+            toast.error('Jenis dokumen wajib dipilih.');
             return;
         }
 
@@ -119,47 +111,22 @@ export const DokumenResmiPage = () => {
             });
 
             if (r.ok) {
-                setSuccess('Dokumen resmi berhasil diterbitkan.');
+                toast.success('Dokumen resmi berhasil diterbitkan.');
                 setDokumenForm({ jenisDokumen: '', nomorDokumen: '' });
                 setPreviewData(null);
                 loadDokumenList(periodeId);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                setError(d.error || 'Gagal menerbitkan dokumen resmi');
+                toast.error(d.error || 'Gagal menerbitkan dokumen resmi');
             }
         } catch (err) {
-            setError(err.message || 'Terjadi kesalahan koneksi');
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Dokumen Resmi (Generator &amp; Publikasi)</h2>
-            {error && (
-                <div style={{
-                    color: 'var(--color-danger)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-danger)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(239, 68, 68, 0.05)'
-                }}>
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div style={{
-                    color: 'var(--color-success)',
-                    marginBottom: '20px',
-                    padding: '8px',
-                    border: '1px solid var(--color-success)',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'rgba(16, 185, 129, 0.05)'
-                }}>
-                    {success}
-                </div>
-            )}
-
             {/* Pilihan Periode */}
             <div style={{
                 border: '1px solid var(--border)',

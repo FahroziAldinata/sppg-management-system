@@ -1,17 +1,22 @@
 // frontend/src/pages/gizi/MenuHarianList.jsx
 import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useToast } from '../../context/ToastContext';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Table, renderStatus, renderDate } from '../../components/Table';
 import { FieldButton } from '../../components/FieldButton';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 
 export const MenuHarianPage = () => {
     const { request } = useApi();
+    const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
     const [items, setItems] = useState([]);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [pendingMenuId, setPendingMenuId] = useState(null);
     const [tanggal, setTanggal] = useState('');
     const [error, setError] = useState('');
     const [kelompokUmur, setKelompokUmur] = useState([]);
@@ -310,6 +315,34 @@ export const MenuHarianPage = () => {
             }));
         } else {
             setError((await r.json()).error);
+        }
+    };
+
+    const triggerAjukanMenu = (id) => {
+        setPendingMenuId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleAjukanMenu = async () => {
+        if (!pendingMenuId) return;
+        setConfirmOpen(false);
+        try {
+            const r = await request(`/gizi/menu-harian/${pendingMenuId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'DIAJUKAN' })
+            });
+            if (r.ok) {
+                toast.success('Menu Harian berhasil diajukan ke Kepala SPPG.');
+                load(periodeId);
+            } else {
+                const err = await r.json().catch(() => ({ error: 'Gagal mengajukan Menu Harian' }));
+                toast.error(err.error || 'Gagal mengajukan Menu Harian');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        } finally {
+            setPendingMenuId(null);
         }
     };
 
@@ -734,9 +767,28 @@ export const MenuHarianPage = () => {
                 onChange={setSelectedKelompokUmurId}
                 options={kelompokUmur.map(k => ({ value: k.id, label: k.nama }))}
             />
-            <FieldButton onPress={() => addPengiriman(m.id)} style={{ marginTop: '12px' }}>
-                Tambah
+            <FieldButton onPress={() => addBlok(m.id)} style={{ marginBottom: '6px' }}>
+                + Blok
             </FieldButton>
+            {(m.status === 'DRAFT' || m.status === 'DITOLAK') && (
+                <button
+                    onClick={() => triggerAjukanMenu(m.id)}
+                    style={{
+                        display: 'block',
+                        marginTop: '8px',
+                        padding: '5px 12px',
+                        backgroundColor: 'var(--btn-primary-bg)',
+                        color: 'var(--btn-primary-text)',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '12px'
+                    }}
+                >
+                    Ajukan
+                </button>
+            )}
         </>
     );
 
@@ -1196,6 +1248,16 @@ export const MenuHarianPage = () => {
                 <h3 style={{ margin: '0 0 20px 0', color: 'var(--text)' }}>Master Menu Harian</h3>
                 <Table columns={itemsColumns} data={items} />
             </section>
+            <ConfirmDialog
+                open={confirmOpen}
+                title="Konfirmasi Pengajuan"
+                message="Ajukan Menu Harian ini ke Kepala SPPG untuk persetujuan?"
+                onConfirm={handleAjukanMenu}
+                onCancel={() => {
+                    setConfirmOpen(false);
+                    setPendingMenuId(null);
+                }}
+            />
         </div>
     );
 };

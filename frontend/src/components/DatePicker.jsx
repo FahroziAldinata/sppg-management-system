@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useId } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useId } from 'react';
 import { Calendar } from './Calendar';
 import { parseDate } from '@internationalized/date';
 
@@ -12,6 +12,7 @@ export function DatePicker({
     disabled = false
 }) {
     const [open, setOpen] = useState(false);
+    const [placement, setPlacement] = useState('bottom');
     const containerRef = useRef(null);
     const triggerRef = useRef(null);
     const id = useId();
@@ -30,6 +31,19 @@ export function DatePicker({
         document.addEventListener('mousedown', onClickOutside);
         return () => document.removeEventListener('mousedown', onClickOutside);
     }, []);
+
+    useLayoutEffect(() => {
+        if (!open || !triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const calendarHeightThreshold = 340;
+
+        if (spaceBelow < calendarHeightThreshold && rect.top > calendarHeightThreshold) {
+            setPlacement('top');
+        } else {
+            setPlacement('bottom');
+        }
+    }, [open]);
 
     const handleDateChange = (val) => {
         if (onChange) {
@@ -85,7 +99,14 @@ export function DatePicker({
                 />
             )}
             {open && !disabled && (
-                <div className="form-field-popover">
+                <div
+                    className="form-field-popover"
+                    style={
+                        placement === 'top'
+                            ? { top: 'auto', bottom: '100%', marginTop: 0, marginBottom: '4px' }
+                            : {}
+                    }
+                >
                     <Calendar
                         value={value ? parseDate(value) : null}
                         onChange={handleDateChange}
