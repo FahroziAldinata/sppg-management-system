@@ -432,7 +432,7 @@ model Sekolah {
   nama    String // Unik secara case-insensitive (ditangani via custom functional index di migration.sql)
   npsn    String?
   alamat  String?
-  jenjang JenjangSekolah
+  jenjang JenjangSekolah @default(SD)
   aktif   Boolean        @default(true)
 
   inputDetail InputPenerimaManfaatDetail[]
@@ -1103,3 +1103,14 @@ model LaporanBug {
   @@index([status])
   @@index([pelaporId])
 }
+
+// -----------------------------------------------------------------------------
+// HARI LIBUR
+// -----------------------------------------------------------------------------
+
+model HariLibur {
+  id         String   @id @default(cuid())
+  tanggal    DateTime @db.Date @unique
+  keterangan String?
+}
+

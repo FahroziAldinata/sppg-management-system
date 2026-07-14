@@ -2464,4 +2464,81 @@ router.post("/periode", requireAuth, requireRole("AKUNTAN"), async (req, res) =>
   }
 });
 
+// ==========================================
+// CRUD HARI LIBUR
+// ==========================================
+
+// GET /api/akuntan/hari-libur - List HariLibur
+router.get("/hari-libur", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const list = await prisma.hariLibur.findMany({
+      orderBy: { tanggal: "asc" }
+    });
+    res.json(list);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil daftar hari libur" });
+  }
+});
+
+// POST /api/akuntan/hari-libur - Create HariLibur
+router.post("/hari-libur", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { tanggal, keterangan } = req.body || {};
+    if (!tanggal) {
+      return res.status(400).json({ error: "tanggal wajib diisi" });
+    }
+    const parsedDate = new Date(tanggal);
+    if (isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    }
+    const targetDate = normalizeDateUTC(tanggal);
+
+    const existing = await prisma.hariLibur.findUnique({
+      where: { tanggal: targetDate }
+    });
+    if (existing) {
+      return res.status(400).json({ error: "Tanggal libur tersebut sudah terdaftar" });
+    }
+
+    const created = await prisma.hariLibur.create({
+      data: {
+        tanggal: targetDate,
+        keterangan: keterangan || null
+      }
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2002") {
+      return res.status(400).json({ error: "Tanggal libur tersebut sudah terdaftar" });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan hari libur" });
+  }
+});
+
+// DELETE /api/akuntan/hari-libur/:id - Delete HariLibur
+router.delete("/hari-libur/:id", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.hariLibur.findUnique({
+      where: { id }
+    });
+    if (!existing) {
+      return res.status(404).json({ error: "Hari libur tidak ditemukan" });
+    }
+    await prisma.hariLibur.delete({
+      where: { id }
+    });
+    res.json({ success: true, message: "Hari libur berhasil dihapus" });
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Hari libur tidak ditemukan" });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat menghapus hari libur" });
+  }
+});
+
 module.exports = router;
+

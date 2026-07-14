@@ -48,6 +48,7 @@ New Task:
 - [x] tambahkan fitur dashboard grafik
 - [x] bisa klik notif langsung menuju ke halaman 
 - [x] component login field masih lama buat yang terbaru
+= [] redesign pada component yaitu calender. pada bagian "hari minggu" design menjadi wrna merah
 
 Laporan
 ## TODO — Layout Laporan Sesuai Format BGN

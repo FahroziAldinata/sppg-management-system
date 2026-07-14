@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 export const NominatifUpahPage = () => {
     const { request } = useApi();
@@ -21,6 +22,28 @@ export const NominatifUpahPage = () => {
     });
     const [upahDetailList, setUpahDetailList] = useState([]);
     const [tempUpahDetail, setTempUpahDetail] = useState({ tanggal: '', nominal: '' });
+    const [hariLiburList, setHariLiburList] = useState([]);
+    const [newHariLibur, setNewHariLibur] = useState({ tanggal: '', keterangan: '' });
+    const [submittingHariLibur, setSubmittingHariLibur] = useState(false);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [pendingLiburId, setPendingLiburId] = useState(null);
+
+    const loadHariLiburList = async () => {
+        try {
+            const r = await request('/akuntan/hari-libur');
+            if (r.ok) {
+                const d = await r.json();
+                if (Array.isArray(d)) setHariLiburList(d);
+            }
+        } catch (err) {
+            toast.error('Gagal memuat daftar hari libur.');
+        }
+    };
+
+    // Fetch HariLibur on mount
+    useEffect(() => {
+        loadHariLiburList();
+    }, []);
 
     // Fetch periods on mount
     useEffect(() => {
@@ -60,17 +83,83 @@ export const NominatifUpahPage = () => {
 
     const addUpahDetail = () => {
         if (!tempUpahDetail.tanggal || !tempUpahDetail.nominal) {
-            alert('Lengkapi tanggal dan nominal detail harian.');
+            toast.error('Lengkapi tanggal dan nominal detail harian.');
+            return;
+        }
+
+        const dateObj = new Date(tempUpahDetail.tanggal);
+        const isSunday = dateObj.getDay() === 0;
+        const isLibur = hariLiburList.some(hl => {
+            const hlDate = new Date(hl.tanggal);
+            return hlDate.toISOString().split('T')[0] === tempUpahDetail.tanggal;
+        });
+
+        if (isSunday || isLibur) {
+            toast.error('Tanggal tersebut adalah hari Minggu atau hari libur.');
             return;
         }
         
         if (upahDetailList.some(item => item.tanggal === tempUpahDetail.tanggal)) {
-            alert('Tanggal tersebut sudah diinput pada detail harian.');
+            toast.error('Tanggal tersebut sudah diinput pada detail harian.');
             return;
         }
 
         setUpahDetailList(prev => [...prev, { ...tempUpahDetail }]);
         setTempUpahDetail({ tanggal: '', nominal: '' });
+    };
+
+    const handleCreateHariLibur = async (e) => {
+        e.preventDefault();
+        if (!newHariLibur.tanggal) {
+            toast.error('Tanggal wajib diisi.');
+            return;
+        }
+        setSubmittingHariLibur(true);
+        try {
+            const r = await request('/akuntan/hari-libur', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newHariLibur)
+            });
+            if (r.ok) {
+                toast.success('Hari libur berhasil ditambahkan.');
+                setNewHariLibur({ tanggal: '', keterangan: '' });
+                loadHariLiburList();
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal menambahkan hari libur' }));
+                toast.error(d.error || 'Gagal menambahkan hari libur');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        } finally {
+            setSubmittingHariLibur(false);
+        }
+    };
+
+    const triggerDeleteHariLibur = (id) => {
+        setPendingLiburId(id);
+        setConfirmOpen(true);
+    };
+
+    const handleDeleteHariLibur = async () => {
+        if (!pendingLiburId) return;
+        setConfirmOpen(false);
+        try {
+            const r = await request(`/akuntan/hari-libur/${pendingLiburId}`, {
+                method: 'DELETE'
+            });
+            if (r.ok) {
+                toast.success('Hari libur berhasil dihapus.');
+                loadHariLiburList();
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal menghapus hari libur' }));
+                toast.error(d.error || 'Gagal menghapus hari libur');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        } finally {
+            setPendingLiburId(null);
+        }
     };
 
     const createNominatifUpah = async (e) => {
@@ -140,33 +229,151 @@ export const NominatifUpahPage = () => {
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Daftar Nominatif Upah Relawan</h2>
             {/* Pilihan Periode */}
-            <div style={{
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '24px',
-                backgroundColor: 'var(--bg-elevated)',
-                boxShadow: 'var(--shadow)',
-                marginBottom: '30px',
-                width: '26%',
-                minWidth: '320px'
-            }}>
-                <label style={{
-                    textTransform: 'uppercase',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.07em',
-                    color: 'var(--text-muted)',
-                    display: 'block',
-                    marginBottom: '6px'
+            <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
+                {/* Pilihan Periode */}
+                <div style={{
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '24px',
+                    backgroundColor: 'var(--bg-elevated)',
+                    boxShadow: 'var(--shadow)',
+                    flex: '1 1 320px',
+                    maxWidth: '400px'
                 }}>
-                    Pilih Periode Aktif
-                </label>
-                <Dropdown
-                    style={{ width: '100%' }}
-                    value={periodeId}
-                    onChange={val => setPeriodeId(val)}
-                    options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai} - ${p.tanggalSelesai}` }))}
-                />
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Pilih Periode Aktif
+                    </label>
+                    <Dropdown
+                        style={{ width: '100%' }}
+                        value={periodeId}
+                        onChange={val => setPeriodeId(val)}
+                        options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai} - ${p.tanggalSelesai}` }))}
+                    />
+                </div>
+
+                {/* Manajemen Hari Libur */}
+                <div style={{
+                    border: '1px solid var(--border)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '24px',
+                    backgroundColor: 'var(--bg-elevated)',
+                    boxShadow: 'var(--shadow)',
+                    flex: '2 1 450px'
+                }}>
+                    <h3 style={{ margin: '0 0 16px 0', color: 'var(--text)', fontSize: '16px' }}>Kelola Hari Libur</h3>
+                    
+                    {/* Form input hari libur */}
+                    <form onSubmit={handleCreateHariLibur} style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '20px', flexWrap: 'wrap' }}>
+                        <div>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Tanggal Libur
+                            </label>
+                            <DatePicker
+                                value={newHariLibur.tanggal}
+                                onChange={val => setNewHariLibur(prev => ({ ...prev, tanggal: val }))}
+                                required
+                            />
+                        </div>
+                        <div style={{ flex: '1 1 180px' }}>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Keterangan
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Misal: Tahun Baru"
+                                value={newHariLibur.keterangan}
+                                onChange={e => setNewHariLibur(prev => ({ ...prev, keterangan: e.target.value }))}
+                                className="form-field"
+                            />
+                        </div>
+                        <button
+                            type="submit"
+                            disabled={submittingHariLibur}
+                            style={{
+                                padding: '10px 20px',
+                                backgroundColor: 'var(--btn-primary-bg)',
+                                color: 'var(--btn-primary-text)',
+                                border: 'none',
+                                borderRadius: 'var(--radius-sm)',
+                                cursor: 'pointer',
+                                fontWeight: 600,
+                                fontSize: '14px',
+                                height: '42px'
+                            }}
+                        >
+                            Tambah
+                        </button>
+                    </form>
+
+                    {/* Daftar Hari Libur */}
+                    <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px' }}>
+                        {hariLiburList.length === 0 ? (
+                            <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', margin: 0 }}>Belum ada hari libur terdaftar.</p>
+                        ) : (
+                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid var(--border)', textAlign: 'left' }}>
+                                        <th style={{ padding: '6px 0', fontSize: '12px', color: 'var(--text-muted)' }}>Tanggal</th>
+                                        <th style={{ padding: '6px 0', fontSize: '12px', color: 'var(--text-muted)' }}>Keterangan</th>
+                                        <th style={{ padding: '6px 0', fontSize: '12px', color: 'var(--text-muted)', textAlign: 'right' }}>Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {hariLiburList.map((hl) => (
+                                        <tr key={hl.id} style={{ borderBottom: '1px dotted var(--border)' }}>
+                                            <td style={{ padding: '6px 0', fontSize: '13px', color: 'var(--text)' }}>
+                                                {new Date(hl.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                                            </td>
+                                            <td style={{ padding: '6px 0', fontSize: '13px', color: 'var(--text)' }}>
+                                                {hl.keterangan || '-'}
+                                            </td>
+                                            <td style={{ padding: '6px 0', textAlign: 'right' }}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => triggerDeleteHariLibur(hl.id)}
+                                                    style={{
+                                                        color: 'var(--color-danger)',
+                                                        border: 'none',
+                                                        background: 'none',
+                                                        cursor: 'pointer',
+                                                        fontWeight: 'bold',
+                                                        fontSize: '12px'
+                                                    }}
+                                                >
+                                                    Hapus
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Form Nominatif */}
@@ -364,21 +571,31 @@ export const NominatifUpahPage = () => {
 
                     {/* List Sementara Rincian Harian */}
                     <ul style={{ paddingLeft: '20px', margin: '10px 0' }}>
-                        {upahDetailList.map((item, index) => (
-                            <li key={index} style={{ marginBottom: '5px' }}>
-                                {item.tanggal} — Rp{Number(item.nominal).toLocaleString('id-ID')}
-                                {' '}
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setUpahDetailList(prev => prev.filter((_, idx) => idx !== index));
-                                    }}
-                                    style={{ color: 'var(--color-danger)', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold' }}
-                                >
-                                    [Hapus]
-                                </button>
-                            </li>
-                        ))}
+                        {upahDetailList.map((item, index) => {
+                            const dateObj = new Date(item.tanggal);
+                            const isSunday = dateObj.getDay() === 0;
+                            const isLibur = hariLiburList.some(hl => {
+                                const hlDate = new Date(hl.tanggal);
+                                return hlDate.toISOString().split('T')[0] === item.tanggal;
+                            });
+                            if (isSunday || isLibur) return null;
+
+                            return (
+                                <li key={index} style={{ marginBottom: '5px' }}>
+                                    {item.tanggal} — Rp{Number(item.nominal).toLocaleString('id-ID')}
+                                    {' '}
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setUpahDetailList(prev => prev.filter((_, idx) => idx !== index));
+                                        }}
+                                        style={{ color: 'var(--color-danger)', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+                                    >
+                                        [Hapus]
+                                    </button>
+                                </li>
+                            );
+                        })}
                         {upahDetailList.length === 0 && (
                             <li style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada rincian harian ditambahkan.</li>
                         )}
@@ -434,6 +651,14 @@ export const NominatifUpahPage = () => {
                     emptyText="Belum ada data Daftar Nominatif Upah untuk periode ini."
                 />
             )}
+
+            <ConfirmDialog
+                open={confirmOpen}
+                title="Hapus Hari Libur"
+                message="Apakah Anda yakin ingin menghapus hari libur ini?"
+                onConfirm={handleDeleteHariLibur}
+                onCancel={() => setConfirmOpen(false)}
+            />
         </div>
     );
 };
