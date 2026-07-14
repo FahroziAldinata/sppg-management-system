@@ -46,10 +46,15 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Bug B FIXED — POST `/api/aslap/penerima-manfaat` 500 error** — Root cause: pola `create()`-catch(P2002)-`findFirst()` gagal di dalam `$transaction` karena Postgres abort seluruh transaksi setelah constraint violation (`25P02: current transaction is aborted`) — command fallback apapun sesudahnya otomatis ditolak DB, bukan cuma Prisma-level issue. Fix: dibalik jadi `findFirst`-then-`create` (cek dulu, baru kemudian create).
 - [x] **Modul Admin — Fitur Pelaporan Bug Selesai** — Penambahan form "Laporkan Bug" di sidebar untuk semua role yang disubmit ke `POST /api/laporan-bug/submit` dan halaman monitoring `/admin/laporan-bug` (Admin) untuk melihat dan mengubah status laporan bug.
 - [x] **Portal Dropdown & Notifikasi Interaktif** — Mengatasi UI stacking/overflow issue pada `Table.jsx` dengan memigrasikan `Dropdown.jsx` menggunakan React Portal (`createPortal` ke `document.body` dengan `position: fixed`). Integrasi notifikasi instan kepada Admin saat ada laporan bug masuk (`entityType: "BUG"`), serta menambahkan fungsionalitas navigasi notifikasi interaktif (`onClick` pada item notifikasi) yang mengarahkan pengguna secara dinamis ke halaman detail.
+- [x] **Visualisasi Grafik Recharts & Penyelarasan Layout** — Mengintegrasikan `BarChart` di Akuntan Dashboard (RAB vs Aktual per Kategori Dana) dan `AreaChart` di Kepala SPPG Dashboard (Trend Arus Kas Bulanan) menggunakan data API existing (`/api/laporan/per-periode` dan `/api/laporan/per-bulan`), dibungkus menggunakan `<Card>` standar sistem.
+- [x] **Perbaikan UI Sidebar & Login Inputs** — Memperbaiki bug horizontal scrollbar di sidebar dengan membatasi navigasi `<nav>` (`overflowX: 'hidden'`) dan melebarkan list menu `<ul>` (`width: '100%'`). Menyelaraskan border, radius, background, dan font-size input username/password di `Login.jsx` agar identik dengan token input "Nomor Dokumen", dengan tetap mempertahankan `padding-left: 38px` untuk ikon pendukung.
+- [x] **Perencanaan Layout Dokumen Resmi & Gap Backend** — Membuat dokumen rencana visualisasi dan pembenahan data 4 dokumen resmi (LPA, SPTJ, BAPSD, BKU) di berkas `.ai-context/08-PLAN-LAYOUT-DOKUMEN.md`.
+
 ## Sedang jalan / berikutnya
 
+- Implementasi layout render visual untuk 4 dokumen resmi (LPA, SPTJ, BAPSD, BKU) di frontend (`LaporanPage.jsx` dan `DokumenResmiPage.jsx`) serta penambalan data backend (`tahunAnggaran` di `/sptj` & ringkasan/kategori di `/bku`) setelah rencana disetujui.
 - Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
 
 ## Belum dikerjakan sama sekali
 
-- Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase) (Semua pengerjaan frontend, UI/UX, dan penyelarasan visual telah rampung 100%).
+- Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
