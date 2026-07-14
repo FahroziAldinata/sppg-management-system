@@ -49,12 +49,14 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Visualisasi Grafik Recharts & Penyelarasan Layout** — Mengintegrasikan `BarChart` di Akuntan Dashboard (RAB vs Aktual per Kategori Dana) dan `AreaChart` di Kepala SPPG Dashboard (Trend Arus Kas Bulanan) menggunakan data API existing (`/api/laporan/per-periode` dan `/api/laporan/per-bulan`), dibungkus menggunakan `<Card>` standar sistem.
 - [x] **Perbaikan UI Sidebar & Login Inputs** — Memperbaiki bug horizontal scrollbar di sidebar dengan membatasi navigasi `<nav>` (`overflowX: 'hidden'`) dan melebarkan list menu `<ul>` (`width: '100%'`). Menyelaraskan border, radius, background, dan font-size input username/password di `Login.jsx` agar identik dengan token input "Nomor Dokumen", dengan tetap mempertahankan `padding-left: 38px` untuk ikon pendukung.
 - [x] **Perencanaan Layout Dokumen Resmi & Gap Backend** — Membuat dokumen rencana visualisasi dan pembenahan data 4 dokumen resmi (LPA, SPTJ, BAPSD, BKU) di berkas `.ai-context/08-PLAN-LAYOUT-DOKUMEN.md`.
+- [x] **Redesign Layout & PDF Preview LPA Selesai** — PDF Preview LPA menggunakan `puppeteer-core` + `@sparticuz/chromium` dengan format visual 100% identik dengan screenshot (Kop Surat resmi panjang, tabel rincian tanpa border vertikal, data nominal murni tanpa prefix "Rp", keterangan inline dalam tabel teratur, perataan teks, dan susunan Footer TTD tiga kolom Pihak Pertama/Kedua/Mengetahui).
 
 ## Sedang jalan / berikutnya
 
-- Implementasi layout render visual untuk 4 dokumen resmi (LPA, SPTJ, BAPSD, BKU) di frontend (`LaporanPage.jsx` dan `DokumenResmiPage.jsx`) serta penambalan data backend (`tahunAnggaran` di `/sptj` & ringkasan/kategori di `/bku`) setelah rencana disetujui.
+- Implementasi layout render visual untuk dokumen resmi lainnya (SPTJ, BAPSD, BKU) di frontend/backend.
 - Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
 
 ## Belum dikerjakan sama sekali
 
 - Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
+

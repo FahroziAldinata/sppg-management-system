@@ -1360,7 +1360,8 @@ async function generateLPA(tx, periodeId, nomorDokumen) {
     tanggalPelaporan: lembaga.tanggalPelaporan ? new Date(lembaga.tanggalPelaporan).toLocaleDateString("id-ID") : null,
     namaYayasan: lembaga.namaYayasan,
     ketuaYayasan: lembaga.ketuaYayasan,
-    namaAkuntan: lembaga.namaAkuntanSPPG
+    namaAkuntan: lembaga.namaAkuntanSPPG,
+    alamat: lembaga.alamat
   };
 }
 

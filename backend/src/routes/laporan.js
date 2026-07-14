@@ -1,8 +1,16 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAuth, requireRole } = require("../middleware/auth");
+const puppeteer = require("puppeteer-core");
+const chromium = require("@sparticuz/chromium").default || require("@sparticuz/chromium");
+const { renderLpaHtml } = require("../templates/dokumen/lpa");
+const { renderSptjHtml } = require("../templates/dokumen/sptj");
+const { renderBapsdHtml } = require("../templates/dokumen/bapsd");
 
 const router = express.Router();
+
+// Jabatan Kepala SPPG — satu sumber kebenaran, dipakai di /lpa dan /lpa/pdf
+const JABATAN_KEPALA_SPPG = "Kepala Satuan Pelayanan Pemenuhan Gizi/Ketua Yayasan";
 
 // KONTRAK: Field tanggal dari client WAJIB dikirim sebagai date-only string "YYYY-MM-DD"
 function normalizeDateUTC(input) {
@@ -180,7 +188,7 @@ router.get("/lpa", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (re
         nomorDokumen,
         periodeLabel: `${periode.tanggalMulai.toISOString().split("T")[0]} - ${periode.tanggalSelesai.toISOString().split("T")[0]}`,
         namaPejabat: lembaga.namaKepalaSPPG,
-        jabatan: "Kepala Satuan Pelayanan Pemenuhan Gizi/Ketua Yayasan",
+        jabatan: JABATAN_KEPALA_SPPG,
         namaLembaga: lembaga.namaLembaga,
         rincian: mappedRincian,
         total,
@@ -190,11 +198,104 @@ router.get("/lpa", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (re
         namaYayasan: lembaga.namaYayasan,
         ketuaYayasan: lembaga.ketuaYayasan,
         namaAkuntan: lembaga.namaAkuntanSPPG,
+        alamat: lembaga.alamat,
       }
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat membuat LPA" });
+  }
+});
+
+// GET /api/laporan/lpa/pdf - Render LPA sebagai PDF (inline, buka di tab baru)
+router.get("/lpa/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req, res) => {
+  let browser;
+  try {
+    const { periodeId, nomorDokumen } = req.query;
+    if (!periodeId || !nomorDokumen) {
+      return res.status(400).json({ error: "periodeId dan nomorDokumen wajib disertakan" });
+    }
+
+    // === Ambil data (logika identik dengan GET /lpa) ===
+    const periode = await prisma.periode.findUnique({ where: { id: periodeId } });
+    if (!periode) return res.status(404).json({ error: "Periode tidak ditemukan" });
+
+    const lembaga = await prisma.setupLembaga.findFirst({ where: { periodeId } });
+    if (!lembaga) return res.status(404).json({ error: "Setup lembaga tidak ditemukan" });
+
+    const rincianAgg = await Promise.all([
+      prisma.anggaranHarian.aggregate({ where: { periodeId, kategoriDana: "BAHAN_MAKANAN" }, _sum: { rab: true, aktual: true } }),
+      prisma.anggaranHarian.aggregate({ where: { periodeId, kategoriDana: "OPERASIONAL" }, _sum: { rab: true, aktual: true } }),
+      prisma.anggaranHarian.aggregate({ where: { periodeId, kategoriDana: "INSENTIF_FASILITAS" }, _sum: { rab: true, aktual: true } }),
+    ]);
+
+    const rincian = [
+      { label: "Bahan Baku", diajukan: Number(rincianAgg[0]._sum.rab || 0), terealisasi: Number(rincianAgg[0]._sum.aktual || 0), sisa: Number(rincianAgg[0]._sum.rab || 0) - Number(rincianAgg[0]._sum.aktual || 0) },
+      { label: "Operasional", diajukan: Number(rincianAgg[1]._sum.rab || 0), terealisasi: Number(rincianAgg[1]._sum.aktual || 0), sisa: Number(rincianAgg[1]._sum.rab || 0) - Number(rincianAgg[1]._sum.aktual || 0) },
+      { label: "Sewa", diajukan: Number(rincianAgg[2]._sum.rab || 0), terealisasi: Number(rincianAgg[2]._sum.aktual || 0), sisa: Number(rincianAgg[2]._sum.rab || 0) - Number(rincianAgg[2]._sum.aktual || 0) },
+    ];
+
+    const total = rincian.reduce(
+      (acc, r) => ({ diajukan: acc.diajukan + r.diajukan, terealisasi: acc.terealisasi + r.terealisasi, sisa: acc.sisa + r.sisa }),
+      { diajukan: 0, terealisasi: 0, sisa: 0 }
+    );
+
+    const data = {
+      nomorDokumen,
+      periodeLabel: `${periode.tanggalMulai.toISOString().split("T")[0]} - ${periode.tanggalSelesai.toISOString().split("T")[0]}`,
+      namaPejabat: lembaga.namaKepalaSPPG,
+      jabatan: JABATAN_KEPALA_SPPG,
+      namaLembaga: lembaga.namaLembaga,
+      rincian,
+      total,
+      nomorRekeningVA: lembaga.nomorRekeningVA,
+      tempatPelaporan: lembaga.tempatPelaporan,
+      tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
+      namaYayasan: lembaga.namaYayasan,
+      ketuaYayasan: lembaga.ketuaYayasan,
+      namaAkuntan: lembaga.namaAkuntanSPPG,
+      alamat: lembaga.alamat,
+    };
+
+    // === Render HTML → PDF via puppeteer-core + @sparticuz/chromium ===
+    const html = renderLpaHtml(data);
+
+    // Setup Chromium serverless-safe (Render/Lambda/Vercel compatible) with local Windows fallback
+    let executablePath;
+    let launchArgs = [];
+    if (process.platform === 'win32') {
+      executablePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    } else {
+      executablePath = await chromium.executablePath();
+      launchArgs = chromium.args;
+    }
+
+    browser = await puppeteer.launch({
+      args: launchArgs.length ? launchArgs : ['--no-sandbox', '--disable-setuid-sandbox'],
+      defaultViewport: chromium.defaultViewport || null,
+      executablePath,
+      headless: chromium.headless || true,
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "20mm", right: "20mm", bottom: "20mm", left: "25mm" },
+    });
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `inline; filename="LPA-${nomorDokumen.replace(/\//g, '-')}.pdf"`,
+      "Content-Length": pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  } catch (error) {
+    console.error("[lpa/pdf]", error);
+    res.status(500).json({ error: "Gagal membuat PDF LPA" });
+  } finally {
+    if (browser) await browser.close();
   }
 });
 
@@ -227,11 +328,85 @@ router.get("/sptj", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (r
         sisaDana: jumlahPenerimaan - jumlahPengeluaran,
         tempatPelaporan: lembaga.tempatPelaporan,
         tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
+        tahunAnggaran: lembaga.tahunAnggaran,
+        namaLembaga: lembaga.namaLembaga,
       }
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat membuat SPTJ" });
+  }
+});
+
+// GET /api/laporan/sptj/pdf - Render SPTJ sebagai PDF
+router.get("/sptj/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req, res) => {
+  let browser;
+  try {
+    const { periodeId } = req.query;
+    if (!periodeId) {
+      return res.status(400).json({ error: "periodeId wajib disertakan" });
+    }
+
+    const lembaga = await prisma.setupLembaga.findFirst({ where: { periodeId } });
+    if (!lembaga) return res.status(404).json({ error: "Setup lembaga tidak ditemukan" });
+
+    const agg = await prisma.anggaranHarian.aggregate({
+      where: { periodeId },
+      _sum: { rab: true, aktual: true },
+    });
+
+    const jumlahPenerimaan = Number(agg._sum.rab || 0);
+    const jumlahPengeluaran = Number(agg._sum.aktual || 0);
+
+    const data = {
+      namaPejabat: lembaga.namaKepalaSPPG,
+      jabatan: "Kepala SPPG " + lembaga.namaLembaga.replace(/^SPPG\s*/i, ""),
+      jumlahPenerimaan,
+      jumlahPengeluaran,
+      sisaDana: jumlahPenerimaan - jumlahPengeluaran,
+      tempatPelaporan: lembaga.tempatPelaporan,
+      tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
+      tahunAnggaran: lembaga.tahunAnggaran,
+      namaLembaga: lembaga.namaLembaga,
+    };
+
+    const html = renderSptjHtml(data);
+
+    let executablePath;
+    let launchArgs = [];
+    if (process.platform === 'win32') {
+      executablePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    } else {
+      executablePath = await chromium.executablePath();
+      launchArgs = chromium.args;
+    }
+
+    browser = await puppeteer.launch({
+      args: launchArgs.length ? launchArgs : ['--no-sandbox', '--disable-setuid-sandbox'],
+      defaultViewport: chromium.defaultViewport || null,
+      executablePath,
+      headless: chromium.headless || true,
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "20mm", right: "20mm", bottom: "20mm", left: "25mm" },
+    });
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `inline; filename="SPTJ-${periodeId}.pdf"`,
+      "Content-Length": pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  } catch (error) {
+    console.error("[sptj/pdf]", error);
+    res.status(500).json({ error: "Gagal membuat PDF SPTJ" });
+  } finally {
+    if (browser) await browser.close();
   }
 });
 
@@ -268,11 +443,87 @@ router.get("/bapsd", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (
         namaPejabat: lembaga.namaKepalaSPPG,
         tempatPelaporan: lembaga.tempatPelaporan,
         tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
+        namaLembaga: lembaga.namaLembaga,
       }
     });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat membuat BAPSD" });
+  }
+});
+
+// GET /api/laporan/bapsd/pdf - Render BAPSD sebagai PDF
+router.get("/bapsd/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req, res) => {
+  let browser;
+  try {
+    const { periodeId, nomorDokumen } = req.query;
+    if (!periodeId || !nomorDokumen) {
+      return res.status(400).json({ error: "periodeId dan nomorDokumen wajib disertakan" });
+    }
+
+    const periode = await prisma.periode.findUnique({ where: { id: periodeId } });
+    if (!periode) return res.status(404).json({ error: "Periode tidak ditemukan" });
+
+    const lembaga = await prisma.setupLembaga.findFirst({ where: { periodeId } });
+    if (!lembaga) return res.status(404).json({ error: "Setup lembaga tidak ditemukan" });
+
+    const agg = await prisma.anggaranHarian.aggregate({
+      where: { periodeId },
+      _sum: { rab: true, aktual: true },
+    });
+    const sisaDana = Number(agg._sum.rab || 0) - Number(agg._sum.aktual || 0);
+
+    const data = {
+      nomorDokumen,
+      periodeLabel: `${periode.tanggalMulai.toISOString().split("T")[0]} - ${periode.tanggalSelesai.toISOString().split("T")[0]}`,
+      sisaDana,
+      tanggalMulaiBerikutnya: lembaga.awalPeriodeBerikutnya ? lembaga.awalPeriodeBerikutnya.toISOString().split("T")[0] : null,
+      namaYayasan: lembaga.namaYayasan,
+      ketuaYayasan: lembaga.ketuaYayasan,
+      namaAkuntan: lembaga.namaAkuntanSPPG,
+      namaPejabat: lembaga.namaKepalaSPPG,
+      tempatPelaporan: lembaga.tempatPelaporan,
+      tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
+      namaLembaga: lembaga.namaLembaga,
+    };
+
+    const html = renderBapsdHtml(data);
+
+    let executablePath;
+    let launchArgs = [];
+    if (process.platform === 'win32') {
+      executablePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    } else {
+      executablePath = await chromium.executablePath();
+      launchArgs = chromium.args;
+    }
+
+    browser = await puppeteer.launch({
+      args: launchArgs.length ? launchArgs : ['--no-sandbox', '--disable-setuid-sandbox'],
+      defaultViewport: chromium.defaultViewport || null,
+      executablePath,
+      headless: chromium.headless || true,
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "20mm", right: "20mm", bottom: "20mm", left: "25mm" },
+    });
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `inline; filename="BAPSD-${nomorDokumen.replace(/\//g, '-')}.pdf"`,
+      "Content-Length": pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  } catch (error) {
+    console.error("[bapsd/pdf]", error);
+    res.status(500).json({ error: "Gagal membuat PDF BAPSD" });
+  } finally {
+    if (browser) await browser.close();
   }
 });
 

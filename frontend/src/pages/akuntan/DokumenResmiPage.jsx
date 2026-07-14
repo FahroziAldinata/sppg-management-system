@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
@@ -51,7 +51,8 @@ export const DokumenResmiPage = () => {
     }, [periodeId]);
 
     const generateDokumen = async (e) => {
-        if (e) e.preventDefault();        setPreviewData(null);
+        if (e) e.preventDefault();
+        setPreviewData(null);
 
         const { jenisDokumen, nomorDokumen } = dokumenForm;
 
@@ -68,22 +69,53 @@ export const DokumenResmiPage = () => {
             return;
         }
 
+        setLoading(true);
         try {
-            const query = new URLSearchParams({
-                periodeId,
-                jenisDokumen,
-                nomorDokumen: nomorDokumen || ''
-            }).toString();
+            if (jenisDokumen === 'LPA' || jenisDokumen === 'SPTJ' || jenisDokumen === 'BAPSD') {
+                let url = '';
+                if (jenisDokumen === 'LPA') {
+                    url = `/laporan/lpa/pdf?periodeId=${periodeId}&nomorDokumen=${encodeURIComponent(nomorDokumen.trim())}`;
+                } else if (jenisDokumen === 'SPTJ') {
+                    url = `/laporan/sptj/pdf?periodeId=${periodeId}`;
+                } else if (jenisDokumen === 'BAPSD') {
+                    url = `/laporan/bapsd/pdf?periodeId=${periodeId}&nomorDokumen=${encodeURIComponent(nomorDokumen.trim())}`;
+                }
 
-            const r = await request(`/akuntan/dokumen-resmi/generate?${query}`);
-            if (r.ok) {
-                setPreviewData(await r.json());
+                const r = await request(url);
+                if (r.ok) {
+                    const blob = new Blob([await r.blob()], { type: 'application/pdf' });
+                    const objectUrl = URL.createObjectURL(blob);
+                    const tab = window.open(objectUrl, '_blank');
+                    setTimeout(() => {
+                        URL.revokeObjectURL(objectUrl);
+                    }, 30000);
+                    if (!tab) {
+                        toast.error('Pop-up diblokir browser. Izinkan pop-up untuk halaman ini.');
+                    }
+                    setPreviewData({ type: jenisDokumen, nomorDokumen });
+                } else {
+                    const d = await r.json().catch(() => ({ error: `Gagal membuat PDF ${jenisDokumen}` }));
+                    toast.error(d.error || `Gagal membuat PDF ${jenisDokumen}`);
+                }
             } else {
-                const d = await r.json().catch(() => ({ error: 'Gagal men-generate preview dokumen' }));
-                toast.error(d.error);
+                const query = new URLSearchParams({
+                    periodeId,
+                    jenisDokumen,
+                    nomorDokumen: nomorDokumen || ''
+                }).toString();
+
+                const r = await request(`/akuntan/dokumen-resmi/generate?${query}`);
+                if (r.ok) {
+                    setPreviewData(await r.json());
+                } else {
+                    const d = await r.json().catch(() => ({ error: 'Gagal men-generate preview dokumen' }));
+                    toast.error(d.error);
+                }
             }
         } catch (err) {
             toast.error(err.message || 'Terjadi kesalahan koneksi');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -238,19 +270,34 @@ export const DokumenResmiPage = () => {
                     borderRadius: 'var(--radius-md)'
                 }}>
                     <h4 style={{ marginTop: '0', marginBottom: '16px', color: 'var(--text)' }}>Preview Data Dokumen Resmi</h4>
-                    <pre style={{
-                        overflowX: 'auto',
-                        whiteSpace: 'pre-wrap',
-                        maxHeight: '300px',
-                        fontSize: '13px',
-                        backgroundColor: 'var(--bg)',
-                        color: 'var(--text)',
-                        padding: '16px',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius-sm)'
-                    }}>
-                        {JSON.stringify(previewData, null, 2)}
-                    </pre>
+                    {['LPA', 'SPTJ', 'BAPSD'].includes(previewData.type) ? (
+                        <div style={{
+                            padding: '16px',
+                            backgroundColor: 'var(--bg)',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-sm)',
+                            color: 'var(--text)',
+                            marginBottom: '16px',
+                            fontWeight: '500'
+                        }}>
+                            📄 PDF Preview untuk <strong>{previewData.type}</strong> 
+                            {previewData.nomorDokumen ? ` dengan Nomor Dokumen ${previewData.nomorDokumen}` : ''} telah dibuka di tab baru. Silakan periksa kembali sebelum menerbitkan.
+                        </div>
+                    ) : (
+                        <pre style={{
+                            overflowX: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            maxHeight: '300px',
+                            fontSize: '13px',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            padding: '16px',
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-sm)'
+                        }}>
+                            {JSON.stringify(previewData, null, 2)}
+                        </pre>
+                    )}
                     <button
                         type="button"
                         onClick={publishDokumen}

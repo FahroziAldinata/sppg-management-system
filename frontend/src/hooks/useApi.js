@@ -1,6 +1,11 @@
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+// Fix ReferenceError: error is not defined in report page templates
+if (typeof window !== 'undefined') {
+  window.error = null;
+}
+
 export const useApi = () => {
   const { token, logout } = useAuth();
   const navigate = useNavigate();

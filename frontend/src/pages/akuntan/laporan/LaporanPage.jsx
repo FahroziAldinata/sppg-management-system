@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
 import { useToast } from '../../../context/ToastContext';
 import { Table } from '../../../components/Table';
@@ -18,6 +18,7 @@ export const LaporanPage = () => {
     const [bapsdData, setBapsdData] = useState(null);
     const [nomorDokumen, setNomorDokumen] = useState('');
     const [loading, setLoading] = useState(false);
+    const [pdfLoading, setPdfLoading] = useState(false);
 
     // Fetch periods & accounts on mount
     useEffect(() => {
@@ -37,6 +38,45 @@ export const LaporanPage = () => {
             })
             .catch(() => toast.error('Gagal memuat daftar akun'));
     }, []);
+
+    // Preview LPA sebagai PDF: fetch dengan header auth, buka blob di tab baru
+    const previewLpaPdf = async () => {
+        if (!nomorDokumen || !nomorDokumen.trim()) {
+            toast.error('Isi Nomor Dokumen dulu sebelum preview PDF');
+            return;
+        }
+        if (!periodeId) {
+            toast.error('Pilih periode terlebih dahulu');
+            return;
+        }
+        setPdfLoading(true);
+        try {
+            const r = await request(
+                `/laporan/lpa/pdf?periodeId=${periodeId}&nomorDokumen=${encodeURIComponent(nomorDokumen.trim())}`
+            );
+            if (!r.ok) {
+                // Error response dari server adalah JSON, bukan PDF
+                const errData = await r.json().catch(() => ({ error: 'Gagal membuat PDF LPA' }));
+                toast.error(errData.error || 'Gagal membuat PDF LPA');
+                return;
+            }
+            const blob = new Blob([await r.blob()], { type: 'application/pdf' });
+            const objectUrl = URL.createObjectURL(blob);
+            const tab = window.open(objectUrl, '_blank');
+            // Revoke setelah 30 detik — cukup waktu browser load PDF,
+            // tidak perlu revoke on-close karena tidak bisa detect tab close secara reliable.
+            setTimeout(() => {
+                URL.revokeObjectURL(objectUrl);
+            }, 30000);
+            if (!tab) {
+                toast.error('Pop-up diblokir browser. Izinkan pop-up untuk halaman ini.');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan saat membuat PDF');
+        } finally {
+            setPdfLoading(false);
+        }
+    };
 
     // Load BKU Laporan
     const loadBKU = async (pid) => {
@@ -336,29 +376,51 @@ export const LaporanPage = () => {
                                 }}
                             />
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => {
-                                if (jenisLaporan === 'LPA') {
-                                    loadLPA(periodeId, nomorDokumen);
-                                } else if (jenisLaporan === 'BAPSD') {
-                                    loadBAPSD(periodeId, nomorDokumen);
-                                }
-                            }}
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: 'var(--btn-primary-bg)',
-                                color: 'var(--btn-primary-text)',
-                                border: 'none',
-                                borderRadius: 'var(--radius-sm)',
-                                cursor: 'pointer',
-                                fontWeight: '600',
-                                fontSize: '14px',
-                                alignSelf: 'flex-start'
-                            }}
-                        >
-                            Tampilkan Laporan
-                        </button>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    if (jenisLaporan === 'LPA') {
+                                        loadLPA(periodeId, nomorDokumen);
+                                    } else if (jenisLaporan === 'BAPSD') {
+                                        loadBAPSD(periodeId, nomorDokumen);
+                                    }
+                                }}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: 'var(--btn-primary-bg)',
+                                    color: 'var(--btn-primary-text)',
+                                    border: 'none',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                }}
+                            >
+                                Tampilkan Laporan
+                            </button>
+                            {jenisLaporan === 'LPA' && (
+                                <button
+                                    type="button"
+                                    id="btn-preview-pdf-lpa"
+                                    onClick={previewLpaPdf}
+                                    disabled={pdfLoading}
+                                    style={{
+                                        padding: '10px 20px',
+                                        backgroundColor: pdfLoading ? 'var(--bg-elevated)' : 'var(--bg-elevated)',
+                                        color: 'var(--text)',
+                                        border: '1px solid var(--border)',
+                                        borderRadius: 'var(--radius-sm)',
+                                        cursor: pdfLoading ? 'not-allowed' : 'pointer',
+                                        fontWeight: '600',
+                                        fontSize: '14px',
+                                        opacity: pdfLoading ? 0.65 : 1,
+                                    }}
+                                >
+                                    {pdfLoading ? 'Membuat PDF…' : '📄 Preview PDF'}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
