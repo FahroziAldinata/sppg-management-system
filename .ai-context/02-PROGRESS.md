@@ -53,13 +53,11 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Redesign Layout & PDF Preview SPTJ Selesai & Approved** — Pemindahan pemuatan logo ke dalam function `renderKopSurat` agar mendukung parameter `logoFileName` secara dinamis, penambahan baris kedua nama lembaga khusus SPPG Palabuan, penyesuaian jarak margin judul, penghapusan border-top dan border-bottom pada kolom keterangan tabel rincian (hanya kolom nominal yang memiliki border), dan perataan kiri (left-align) pada kolom tanda tangan "Mengetahui," di footer TTD.
 - [x] **Redesign Layout & PDF Preview BAPSD Selesai** — Mengimplementasikan layout narrative BAPSD, menonaktifkan baris yayasan pada kop, dan pembersihan pointer detail.
 - [x] **Redesign Layout & PDF Preview BKU Selesai** — Pembuatan modul template visual BKU (`bku.js`) dengan rincian ringkasan, format filter transaksi keluar (kredit > 0), dan penambahan tombol "Preview PDF" di frontend serta endpoint backend `/bku/pdf`.
+- [x] **Redesign Calendar & DatePicker UX Selesai** — Komponen Calendar.jsx: hari Minggu kini berwarna merah (deteksi programatik via getDayOfWeek() dari @internationalized/date, bukan hardcode index kolom, agar aman lintas locale). Komponen DatePicker.jsx: prop baru `defaultFocusMonth` diteruskan ke Calendar sebagai `defaultFocusedValue`, sehingga kalender terbuka langsung di bulan tanggalMulai/tanggalSelesai periode aktif (bukan bulan berjalan) — diterapkan ke 10 titik DatePicker yang field-nya terikat periode (RabHarian, MenuHarian, AnggaranHarian, JurnalTransaksi, MutasiStok, ValidasiStok, NominatifUpah detail harian, MitraPo, KebutuhanBelanjaBahan Mulai & Selesai). 6 titik DatePicker generic (Tanggal Libur, Tanggal Target Pengecekan, StockBarang, PeriodeSetupPage x2) sengaja tidak diubah karena tidak terikat periode. Teruji manual di browser lintas 10 halaman, tanpa regresi ke behavior lama.
 
 
 ## Sedang jalan / berikutnya
 
-- Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
-
 ## Belum dikerjakan sama sekali
 
 - Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
-- [ ] Redesign komponen Calendar — bagian "hari Minggu" ubah warna jadi merah.

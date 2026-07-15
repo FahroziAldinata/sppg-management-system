@@ -412,6 +412,7 @@ export const ValidasiStokPage = () => {
                         <DatePicker
                             value={validasiForm.tanggal}
                             onChange={val => setValidasiForm(prev => ({ ...prev, tanggal: val }))}
+                            defaultFocusMonth={activePeriod?.tanggalMulai}
                             required
                         />
                     </div>

@@ -53,6 +53,8 @@ export const RabHarianPage = () => {
         }
     }, [periodeId]);
 
+    const activePeriod = periods.find(p => p.id === periodeId);
+
     const triggerAjukan = (id) => {
         setPendingRabId(id);
         setConfirmOpen(true);
@@ -178,6 +180,7 @@ export const RabHarianPage = () => {
                     <DatePicker
                         value={tanggalInput}
                         onChange={setTanggalInput}
+                        defaultFocusMonth={activePeriod?.tanggalMulai}
                         required
                     />
                 </div>

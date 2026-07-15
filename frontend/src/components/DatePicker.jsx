@@ -9,7 +9,8 @@ export function DatePicker({
     required = false,
     style = {},
     className = '',
-    disabled = false
+    disabled = false,
+    defaultFocusMonth
 }) {
     const [open, setOpen] = useState(false);
     const [placement, setPlacement] = useState('bottom');
@@ -110,6 +111,7 @@ export function DatePicker({
                     <Calendar
                         value={value ? parseDate(value) : null}
                         onChange={handleDateChange}
+                        defaultFocusedValue={defaultFocusMonth ? parseDate(defaultFocusMonth) : undefined}
                     />
                 </div>
             )}

@@ -127,6 +127,7 @@ export const KebutuhanBelanjaBahanPage = () => {
                         <DatePicker
                             value={tanggalMulai}
                             onChange={setTanggalMulai}
+                            defaultFocusMonth={tanggalMulai}
                             required
                         />
                     </div>
@@ -145,6 +146,7 @@ export const KebutuhanBelanjaBahanPage = () => {
                         <DatePicker
                             value={tanggalSelesai}
                             onChange={setTanggalSelesai}
+                            defaultFocusMonth={tanggalSelesai}
                             required
                         />
                     </div>

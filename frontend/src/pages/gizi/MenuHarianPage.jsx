@@ -170,6 +170,8 @@ export const MenuHarianPage = () => {
 
     useEffect(() => { load(periodeId); }, [periodeId]);
 
+    const activePeriod = periods.find(p => p.id === periodeId);
+
     const create = async (e) => {
         e.preventDefault();
         setError('');
@@ -875,6 +877,7 @@ export const MenuHarianPage = () => {
                     <DatePicker
                         value={tanggal}
                         onChange={setTanggal}
+                        defaultFocusMonth={activePeriod?.tanggalMulai}
                         required
                     />
                 </div>

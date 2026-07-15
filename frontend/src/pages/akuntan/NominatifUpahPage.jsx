@@ -81,6 +81,8 @@ export const NominatifUpahPage = () => {
         }
     }, [periodeId]);
 
+    const activePeriod = periods.find(p => p.id === periodeId);
+
     const addUpahDetail = () => {
         if (!tempUpahDetail.tanggal || !tempUpahDetail.nominal) {
             toast.error('Lengkapi tanggal dan nominal detail harian.');
@@ -526,6 +528,7 @@ export const NominatifUpahPage = () => {
                             <DatePicker
                                 value={tempUpahDetail.tanggal}
                                 onChange={val => setTempUpahDetail(prev => ({ ...prev, tanggal: val }))}
+                                defaultFocusMonth={activePeriod?.tanggalMulai}
                                 required
                             />
                         </div>

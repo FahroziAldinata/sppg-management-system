@@ -64,6 +64,8 @@ export const AnggaranHarianPage = () => {
         }
     }, [periodeId]);
 
+    const activePeriod = periods.find(p => p.id === periodeId);
+
     const createAnggaranHarian = async (e) => {
         e.preventDefault();
         const {
@@ -208,6 +210,7 @@ export const AnggaranHarianPage = () => {
                         <DatePicker
                             value={anggaranForm.tanggal}
                             onChange={val => setAnggaranForm(prev => ({ ...prev, tanggal: val }))}
+                            defaultFocusMonth={activePeriod?.tanggalMulai}
                             required
                         />
                     </div>

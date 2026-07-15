@@ -1,6 +1,7 @@
 'use client';
 import {ChevronLeft, ChevronRight} from 'lucide-react';
 import React from 'react';
+import {getDayOfWeek} from '@internationalized/date';
 import {
   Calendar as AriaCalendar,
   CalendarGridHeader as AriaCalendarGridHeader,
@@ -25,14 +26,35 @@ const cellStyles = tv({
         'text-neutral-900 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700 pressed:bg-neutral-300 dark:pressed:bg-neutral-600',
       true: 'bg-[var(--input-hover-border)] invalid:bg-red-600 text-white forced-colors:bg-[Highlight] forced-colors:invalid:bg-[Mark] forced-colors:text-[HighlightText]'
     },
+    isSunday: {
+      true: ''
+    },
     isDisabled: {
       true: 'text-neutral-300 dark:text-neutral-600 forced-colors:text-[GrayText]'
     }
-  }
+  },
+  compoundVariants: [
+    {
+      isSelected: false,
+      isDisabled: false,
+      isSunday: true,
+      className: 'text-red-600 dark:text-red-400'
+    }
+  ]
 });
 
+function isSunday(date, locale) {
+  return getDayOfWeek(date, locale, 'sun') === 0;
+}
+
+function getSundayHeaderLabel(locale) {
+  return new Intl.DateTimeFormat(locale, {weekday: 'short'}).format(
+    new Date(Date.UTC(2024, 0, 7))
+  );
+}
+
 export function Calendar({errorMessage, ...props}) {
-  let {direction} = useLocale();
+  let {direction, locale} = useLocale();
   let months = props.visibleDuration?.months || 1;
   return (
     <AriaCalendar
@@ -67,10 +89,17 @@ export function Calendar({errorMessage, ...props}) {
               </Button>
             )}
           </header>
-          <CalendarGrid offset={{months: i}} className="border-spacing-0">
-            <CalendarGridHeader />
+          <CalendarGrid offset={{months: i}} weekdayStyle="short" className="border-spacing-0">
+            <CalendarGridHeader locale={locale} />
             <CalendarGridBody>
-              {date => <CalendarCell date={date} className={cellStyles} />}
+              {date => (
+                <CalendarCell
+                  date={date}
+                  className={renderProps =>
+                    cellStyles({...renderProps, isSunday: isSunday(date, locale)})
+                  }
+                />
+              )}
             </CalendarGridBody>
           </CalendarGrid>
         </div>
@@ -84,11 +113,15 @@ export function Calendar({errorMessage, ...props}) {
   );
 }
 
-export function CalendarGridHeader() {
+export function CalendarGridHeader({locale}) {
+  let sundayLabel = getSundayHeaderLabel(locale);
   return (
     <AriaCalendarGridHeader>
       {day => (
-        <CalendarHeaderCell className="text-xs text-neutral-500 font-semibold">
+        <CalendarHeaderCell
+          className={`text-xs font-semibold ${
+            day === sundayLabel ? 'text-red-600 dark:text-red-400' : 'text-neutral-500'
+          }`}>
           {day}
         </CalendarHeaderCell>
       )}

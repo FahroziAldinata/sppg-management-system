@@ -355,6 +355,7 @@ export const MitraPoPage = () => {
                         <DatePicker
                             value={poDate}
                             onChange={setPoDate}
+                            defaultFocusMonth={activePeriod?.tanggalMulai}
                             required
                         />
                     </div>

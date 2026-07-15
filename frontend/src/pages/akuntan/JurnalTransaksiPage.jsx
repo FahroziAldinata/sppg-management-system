@@ -64,6 +64,8 @@ export const JurnalTransaksiPage = () => {
         }
     }, [periodeId]);
 
+    const activePeriod = periods.find(p => p.id === periodeId);
+
     const createJurnal = async (e) => {
         e.preventDefault();
         const {
@@ -213,6 +215,7 @@ export const JurnalTransaksiPage = () => {
                         <DatePicker
                             value={jurnalForm.tanggal}
                             onChange={val => setJurnalForm(prev => ({ ...prev, tanggal: val }))}
+                            defaultFocusMonth={activePeriod?.tanggalMulai}
                             required
                         />
                     </div>

@@ -71,6 +71,8 @@ export const MutasiStokPage = () => {
         }
     }, [periodeId]);
 
+    const activePeriod = periods.find(p => p.id === periodeId);
+
     const handleCreateMutasi = async (e) => {
         e.preventDefault();
         const {
@@ -234,6 +236,7 @@ export const MutasiStokPage = () => {
                         <DatePicker
                             value={mutasiForm.tanggal}
                             onChange={val => setMutasiForm(prev => ({ ...prev, tanggal: val }))}
+                            defaultFocusMonth={activePeriod?.tanggalMulai}
                             required
                         />
                     </div>
