@@ -38,7 +38,7 @@ Referensi schema: `prisma/schema.prisma` v5.2 (38+ model). Dokumen ini ringkasan
 - **"Kebutuhan Belanja Bahan"** (agregasi berat bahan x jumlah penerima, lintas kelompok umur) tidak punya tabel sendiri — dihitung app-layer dari `MenuItemBahan.beratKotorGr` × `InputPenerimaManfaatDetail` via mapping `KelompokUmurMenu → KategoriPenerima`.
 - **Daftar Nominatif Upah**: `HONORARIUM SUKARELAWAN` dan `TOTAL UPAH` adalah nilai turunan (SUM harian, + komponen tambahan), bukan kolom tersimpan. `danaKesehatan`/`tk`/`pj` adalah input manual **per relawan per periode** (dikonfirmasi dari screenshot header sheet asli).
 
-## Yang sengaja TIDAK dibuat sebagai tabel (YAGNI, cek `04-TODO.md`/`05-STATUS-MODUL.md` sebelum menambah)
+## Yang sengaja TIDAK dibuat sebagai tabel (YAGNI, cek `08-TODO.md`/`05-STATUS-MODUL.md` sebelum menambah)
 
 - Rekap "Jumlah Per Kelas" versi resmi → view/query dari `InputPenerimaManfaatDetail`, `SekolahKelasDetail` cuma pembantu.
 - "Tabel bantuan" harga beli terbaru (row-labels/pivot Excel) → query, bukan tabel.

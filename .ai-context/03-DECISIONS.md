@@ -8,7 +8,7 @@ Node.js + Express, React (Vite), Prisma ORM, PostgreSQL, auth custom (bukan OAut
 
 Prisma **di-pin ke v6**, bukan v7 — v7 mindahin `datasource.url` keluar schema ke `prisma.config.ts` + wajib driver adapter. Ditunda sampai ada alasan kuat upgrade.
 
-Database dev: **PostgreSQL lokal** (diinstall di mesin dev, port 5432) dipakai untuk `prisma migrate dev` selama setup awal. Supabase tetap rencana untuk staging/production sesuai `00-PROJECT.md` — **belum diputuskan** apakah dev seterusnya pakai lokal atau langsung pindah ke Supabase dari awal (lihat `04-TODO.md`).
+Database dev: **PostgreSQL lokal** (diinstall di mesin dev, port 5432) dipakai untuk `prisma migrate dev` selama setup awal. Supabase tetap rencana untuk staging/production sesuai `00-PROJECT.md` — **belum diputuskan** apakah dev seterusnya pakai lokal atau langsung pindah ke Supabase dari awal (lihat `08-TODO.md`).
 
 ## Arsitektur data (FINAL)
 
