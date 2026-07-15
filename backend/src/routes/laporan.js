@@ -6,6 +6,7 @@ const chromium = require("@sparticuz/chromium").default || require("@sparticuz/c
 const { renderLpaHtml } = require("../templates/dokumen/lpa");
 const { renderSptjHtml } = require("../templates/dokumen/sptj");
 const { renderBapsdHtml } = require("../templates/dokumen/bapsd");
+const { renderBkuHtml } = require("../templates/dokumen/bku");
 
 const router = express.Router();
 
@@ -18,6 +19,18 @@ function normalizeDateUTC(input) {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
 }
 
+async function getRealisasiPeriode(periodeId, kategoriDana) {
+  const agg = await prisma.anggaranHarian.aggregate({
+    where: { periodeId, kategoriDana },
+    _sum: { rab: true, aktual: true },
+  });
+  return {
+    diajukan: Number(agg._sum.rab || 0),
+    terealisasi: Number(agg._sum.aktual || 0),
+    sisa: Number(agg._sum.rab || 0) - Number(agg._sum.aktual || 0)
+  };
+}
+
 const HARI_MAP = {
   1: "SENIN",
   2: "SELASA",
@@ -27,6 +40,67 @@ const HARI_MAP = {
   6: "SABTU"
 };
 
+async function getBkuData(periodeId) {
+  const [lembaga, periode, saldoAwalAgg, realisasiBahan, realisasiOperasional, realisasiSewa] = await Promise.all([
+    prisma.setupLembaga.findFirst({ where: { periodeId } }),
+    prisma.periode.findUnique({ where: { id: periodeId } }),
+    prisma.saldoAwalPeriode.aggregate({
+      where: { periodeId, akun: { tipe: "KAS" } },
+      _sum: { saldoAwal: true },
+    }),
+    getRealisasiPeriode(periodeId, "BAHAN_MAKANAN"),
+    getRealisasiPeriode(periodeId, "OPERASIONAL"),
+    getRealisasiPeriode(periodeId, "INSENTIF_FASILITAS")
+  ]);
+
+  if (!lembaga || !periode) {
+    return null;
+  }
+
+  const sisaDanaLalu = Number(saldoAwalAgg._sum.saldoAwal || 0);
+  let saldo = sisaDanaLalu;
+
+  const jurnal = await prisma.jurnalTransaksi.findMany({
+    where: { periodeId },
+    orderBy: [{ tanggal: "asc" }, { nomorBukti: "asc" }],
+    include: { akunKas: true, akunDanaBiaya: true },
+  });
+
+  const transaksi = jurnal.map((row) => {
+    const debet = row.jenis === "MASUK" ? Number(row.nominal) : 0;
+    const kredit = row.jenis === "KELUAR" ? Number(row.nominal) : 0;
+    saldo = saldo + debet - kredit;
+    return {
+      id: row.id,
+      bulan: row.tanggal.getUTCMonth() + 1,
+      tanggal: row.tanggal.toISOString().split("T")[0],
+      noBukti: row.nomorBukti,
+      uraian: row.uraian,
+      debet,
+      kredit,
+      saldoBerjalan: saldo,
+      jumlah: kredit
+    };
+  });
+
+  return {
+    ringkasan: {
+      namaLembaga: lembaga.namaLembaga,
+      alamat: lembaga.alamat,
+      periodeLabel: `${periode.tanggalMulai.toISOString().split("T")[0]} - ${periode.tanggalSelesai.toISOString().split("T")[0]}`,
+      sisaDanaLalu,
+      danaDiterimaSaatIni: Number(periode.totalDanaDiterima || 0),
+      danaTersedia: sisaDanaLalu + Number(periode.totalDanaDiterima || 0),
+      biayaBahanBaku: Number(realisasiBahan.terealisasi),
+      biayaOperasional: Number(realisasiOperasional.terealisasi),
+      biayaInsentifFasilitas: Number(realisasiSewa.terealisasi),
+      totalPengeluaran: Number(realisasiBahan.terealisasi) + Number(realisasiOperasional.terealisasi) + Number(realisasiSewa.terealisasi),
+      sisaDanaSaatIni: (sisaDanaLalu + Number(periode.totalDanaDiterima || 0)) - (Number(realisasiBahan.terealisasi) + Number(realisasiOperasional.terealisasi) + Number(realisasiSewa.terealisasi)),
+    },
+    transaksi
+  };
+}
+
 // GET /api/laporan/bku - Buku Kas Umum
 router.get("/bku", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req, res) => {
   try {
@@ -35,38 +109,72 @@ router.get("/bku", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (re
       return res.status(400).json({ error: "periodeId wajib disertakan pada query parameter" });
     }
 
-    const saldoAwalAgg = await prisma.saldoAwalPeriode.aggregate({
-      where: { periodeId, akun: { tipe: "KAS" } },
-      _sum: { saldoAwal: true },
-    });
-    let saldo = Number(saldoAwalAgg._sum.saldoAwal || 0);
+    const data = await getBkuData(periodeId);
+    if (!data) {
+      return res.status(404).json({ error: "Setup lembaga atau periode tidak ditemukan" });
+    }
 
-    const jurnal = await prisma.jurnalTransaksi.findMany({
-      where: { periodeId },
-      orderBy: [{ tanggal: "asc" }, { nomorBukti: "asc" }],
-      include: { akunKas: true, akunDanaBiaya: true },
+    res.json({
+      success: true,
+      data
     });
-
-    const data = jurnal.map((row) => {
-      const debet = row.jenis === "MASUK" ? Number(row.nominal) : 0;
-      const kredit = row.jenis === "KELUAR" ? Number(row.nominal) : 0;
-      saldo = saldo + debet - kredit;
-      return {
-        id: row.id,
-        bulan: row.tanggal.getUTCMonth() + 1,
-        tanggal: row.tanggal.toISOString().split("T")[0],
-        noBukti: row.nomorBukti,
-        uraian: row.uraian,
-        debet,
-        kredit,
-        saldoBerjalan: saldo,
-      };
-    });
-
-    res.json({ success: true, data });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat membuat BKU" });
+  }
+});
+
+// GET /api/laporan/bku/pdf - Render BKU sebagai PDF
+router.get("/bku/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req, res) => {
+  let browser;
+  try {
+    const { periodeId } = req.query;
+    if (!periodeId) {
+      return res.status(400).json({ error: "periodeId wajib disertakan" });
+    }
+
+    const data = await getBkuData(periodeId);
+    if (!data) {
+      return res.status(404).json({ error: "Setup lembaga atau periode tidak ditemukan" });
+    }
+
+    const html = renderBkuHtml(data);
+
+    let executablePath;
+    let launchArgs = [];
+    if (process.platform === 'win32') {
+      executablePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
+    } else {
+      executablePath = await chromium.executablePath();
+      launchArgs = chromium.args;
+    }
+
+    browser = await puppeteer.launch({
+      args: launchArgs.length ? launchArgs : ['--no-sandbox', '--disable-setuid-sandbox'],
+      defaultViewport: chromium.defaultViewport || null,
+      executablePath,
+      headless: chromium.headless || true,
+    });
+
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: "networkidle0" });
+    const pdfBuffer = await page.pdf({
+      format: "A4",
+      printBackground: true,
+      margin: { top: "20mm", right: "20mm", bottom: "20mm", left: "25mm" },
+    });
+
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `inline; filename="BKU-${data.ringkasan.periodeLabel.replace(/\//g, '-')}.pdf"`,
+      "Content-Length": pdfBuffer.length,
+    });
+    res.end(pdfBuffer);
+  } catch (error) {
+    console.error("[bku/pdf]", error);
+    res.status(500).json({ error: "Gagal membuat PDF BKU" });
+  } finally {
+    if (browser) await browser.close();
   }
 });
 
@@ -446,6 +554,7 @@ router.get("/bapsd", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (
         tempatPelaporan: lembaga.tempatPelaporan,
         tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
         namaLembaga: lembaga.namaLembaga,
+        alamat: lembaga.alamat,
       }
     });
   } catch (error) {
@@ -487,6 +596,7 @@ router.get("/bapsd/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), asy
       tempatPelaporan: lembaga.tempatPelaporan,
       tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
       namaLembaga: lembaga.namaLembaga,
+      alamat: lembaga.alamat,
     };
 
     const html = renderBapsdHtml(data);

@@ -61,24 +61,13 @@ function renderBapsdHtml(data) {
   </style>
 </head>
 <body>
-  ${renderKopSurat({ namaLembaga, alamat })}
+  ${renderKopSurat({ namaLembaga, alamat, tampilkanBarisYayasan: false })}
 
-  <h2 class="judul-dok">Berita Acara Pengalihan Sisa Dana</h2>
+  <h2 class="judul-dok" style="margin-top: 20px;">Berita Acara Pengalihan Sisa Dana</h2>
   <div class="nomor-dok">Nomor: <span class="highlight">${escapeHtml(nomorDokumen)}</span></div>
-  <div class="periode-label">Periode: ${escapeHtml(periodeLabel)}</div>
 
   <p class="bapsd-pembuka">
-    Pada hari ini, bertempat di ${escapeHtml(tempatPelaporan || 'Satuan Pelayanan')}, sehubungan dengan telah selesainya pelaksanaan program pelayanan gizi periode ${escapeHtml(periodeLabel)}, kami yang bertanda tangan di bawah ini menyatakan sepakat melakukan pengalihan sisa dana dengan ketentuan sebagai berikut:
-  </p>
-
-  <div class="bapsd-poin">
-    1. Bahwa sisa dana yang belum terealisasi pada periode ini adalah sebesar <strong>${formatRupiah(sisaDana)}</strong>.<br>
-    2. Sisa dana tersebut dialihkan seluruhnya untuk digunakan pada pelaksanaan program gizi periode berikutnya yang akan dimulai pada tanggal <strong>${escapeHtml(tglBerikutnyaStr)}</strong>.<br>
-    3. Penggunaan dana yang dialihkan tersebut tetap wajib dipertanggungjawabkan sesuai ketentuan pedoman keuangan yang berlaku.
-  </div>
-
-  <p class="bapsd-pembuka">
-    Demikian Berita Acara Pengalihan Sisa Dana ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.
+    Sehubungan dengan telah berakhirnya periode ${escapeHtml(periodeLabel)}, sisa dana sebesar Rp${sisaDana},- akan dialihkan ke periode selanjutnya yang dimulai pada ${escapeHtml(tglBerikutnyaStr)}. Pengalihan sisa dana ini bertujuan untuk mendukung kegiatan yang direncanakan pada periode berikutnya.
   </p>
 
   ${footerTTD}

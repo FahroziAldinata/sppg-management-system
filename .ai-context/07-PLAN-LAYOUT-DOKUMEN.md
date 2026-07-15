@@ -1,3 +1,8 @@
+> **STATUS: SEMUA GAP RESOLVED, SEMUA LANGKAH SELESAI (per 2026-07-15).**
+> Dokumen ini dipertahankan sebagai referensi arsitektur historis 4 dokumen resmi.
+> Gap 1 (tahunAnggaran SPTJ) ✅ RESOLVED. Gap 2 (ringkasan BKU) ✅ RESOLVED.
+> Langkah 1–4 ✅ COMPLETED. Template PDF: `lpa.js`, `sptj.js`, `bapsd.js`, `bku.js`.
+
 # Rencana Implementasi Layout & Perbaikan Data 4 Dokumen Resmi (LPA, SPTJ, BAPSD, BKU)
 
 Dokumen ini menjelaskan rancangan layout visual, ketersediaan field data, gap yang ditemukan pada backend, serta langkah-langkah implementasi untuk merender format laporan resmi SPPG.

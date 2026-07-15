@@ -18,7 +18,7 @@ Legenda: ✅ selesai · 🟡 sebagian/ada gap · ⬜ belum mulai
 | RAB Harian & Pembelian | ✅ | — | ✅ | — | ✅ | CRUD RabHarian selesai. Frontend: form create + tabel list di dashboard. |
 | Anggaran Resmi (AnggaranHarian) | ✅ | — | ✅ | — | ✅ | CRUD AnggaranHarian selesai. Frontend: form conditional (BAHAN_MAKANAN rincian vs flat) + tabel list. |
 | Ledger (Akun, Jurnal, SaldoAwal) | ✅ | ✅ (Akun) | ✅ | ✅ | ✅ | Frontend: form + dropdown akun aktif + tabel list. Backend GET `/akun` & GET `/supplier` ditambahkan. |
-| Dokumen Resmi (LPA/SPTJ/BAPSD) | ✅ | — | ✅ | ✅ | ✅ | Frontend: generator preview JSON + publish + tabel list terbitan. |
+| Dokumen Resmi (LPA/SPTJ/BAPSD) | ✅ | — | ✅ | ✅ | ✅ | PDF generation via puppeteer-core + @sparticuz/chromium, layout sesuai format asli BGN (LPA/SPTJ/BAPSD/BKU seluruhnya closed). |
 | Daftar Nominatif Upah | ✅ | — | ✅ | — | ✅ | Frontend: form + sub-form rincian harian + tabel list. |
 | Approval | ✅ | — | ✅ | — | ✅ | Level: per hari (MenuHarian) & RabHarian. Akses eksklusif KEPALA_SPPG, mandatory periodeId, limit/offset pagination, status transition matrix & concurrency lock teruji. Halaman KepalaDashboard.jsx selesai. |
 | Validasi Stok | ✅ | — | ✅ | ✅ | ✅ | Pelaksana: Akuntan. Endpoint POST (reconciliation), GET (list), dan GET preview kalkulator (agregasi MutasiStok masuk vs keluar) serta UI teruji. |

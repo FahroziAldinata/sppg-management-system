@@ -12,8 +12,9 @@ const path = require('path');
  * @param {string} opts.namaLembaga  - nama SPPG, contoh: "SPPG Tunas Harapan"
  * @param {string} opts.alamat       - alamat lengkap (opsional)
  * @param {string} opts.logoFileName - nama file logo (opsional, default 'logo-bgn.png')
+ * @param {boolean} opts.tampilkanBarisYayasan - tampilkan nama yayasan (opsional, default true)
  */
-function renderKopSurat({ namaLembaga = '', alamat = '', logoFileName = 'logo-bgn.png' } = {}) {
+function renderKopSurat({ namaLembaga = '', alamat = '', logoFileName = 'logo-bgn.png', tampilkanBarisYayasan = true } = {}) {
   let logoBase64 = '';
   try {
     const logoPath = path.join(__dirname, `../../../assets/dokumen-resmi/${logoFileName}`);
@@ -46,7 +47,7 @@ function renderKopSurat({ namaLembaga = '', alamat = '', logoFileName = 'logo-bg
       <div class="kop-text">
         <div class="kop-lembaga" style="font-size: 11pt; font-weight: bold; text-transform: uppercase; line-height: 1.3;">
           ${escapeHtml(namaResmiKop)}
-          ${isPalabuan ? `<br><span style="font-size: 9.5pt; font-weight: normal;">(YAYASAN TIGA SRIKANDI BERLIAN SUMEDANG)</span>` : ''}
+          ${isPalabuan && tampilkanBarisYayasan ? `<br><span style="font-size: 9.5pt; font-weight: normal;">(YAYASAN TIGA SRIKANDI BERLIAN SUMEDANG)</span>` : ''}
         </div>
         ${alamat ? `<div class="kop-alamat" style="font-size: 9.5pt; margin-top: 3px; font-weight: normal; line-height: 1.3;">Alamat : ${escapeHtml(alamat)}</div>` : ''}
       </div>

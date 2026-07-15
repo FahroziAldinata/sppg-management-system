@@ -78,6 +78,38 @@ export const LaporanPage = () => {
         }
     };
 
+    // Preview BKU sebagai PDF: fetch dengan header auth, buka blob di tab baru
+    const previewBkuPdf = async () => {
+        if (!periodeId) {
+            toast.error('Pilih periode terlebih dahulu');
+            return;
+        }
+        setPdfLoading(true);
+        try {
+            const r = await request(
+                `/laporan/bku/pdf?periodeId=${periodeId}`
+            );
+            if (!r.ok) {
+                const errData = await r.json().catch(() => ({ error: 'Gagal membuat PDF BKU' }));
+                toast.error(errData.error || 'Gagal membuat PDF BKU');
+                return;
+            }
+            const blob = new Blob([await r.blob()], { type: 'application/pdf' });
+            const objectUrl = URL.createObjectURL(blob);
+            const tab = window.open(objectUrl, '_blank');
+            setTimeout(() => {
+                URL.revokeObjectURL(objectUrl);
+            }, 30000);
+            if (!tab) {
+                toast.error('Pop-up diblokir browser. Izinkan pop-up untuk halaman ini.');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan saat membuat PDF');
+        } finally {
+            setPdfLoading(false);
+        }
+    };
+
     // Load BKU Laporan
     const loadBKU = async (pid) => {
         if (!pid) return;
@@ -86,7 +118,7 @@ export const LaporanPage = () => {
             const r = await request(`/laporan/bku?periodeId=${pid}`);
             if (r.ok) {
                 const resJson = await r.json();
-                setReportData(resJson.data || []);
+                setReportData(resJson.data?.transaksi || []);
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal memuat Buku Kas Umum' }));
                 toast.error(d.error);
@@ -430,45 +462,70 @@ export const LaporanPage = () => {
 
             {/* Render Tabel BKU & BP */}
             {!loading && (jenisLaporan === 'BKU' || jenisLaporan === 'BP') && (
-                <Table
-                    columns={[
-                        { key: 'tanggal', header: 'Tanggal' },
-                        { key: 'noBukti', header: 'No Bukti' },
-                        { key: 'uraian', header: 'Uraian' },
-                        {
-                            key: 'debet',
-                            header: 'Debet',
-                            align: 'right',
-                            render: (v) => (
-                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                    {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
-                                </span>
-                            )
-                        },
-                        {
-                            key: 'kredit',
-                            header: 'Kredit',
-                            align: 'right',
-                            render: (v) => (
-                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                    {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
-                                </span>
-                            )
-                        },
-                        {
-                            key: 'saldoBerjalan',
-                            header: 'Saldo Berjalan',
-                            align: 'right',
-                            render: (v) => (
-                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
-                                    Rp{Number(v).toLocaleString('id-ID')}
-                                </strong>
-                            )
-                        }
-                    ]}
-                    data={reportData}
-                    emptyText="Tidak ada data untuk laporan terpilih pada periode ini."
-                />
+                <div>
+                    {jenisLaporan === 'BKU' && (
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
+                            <button
+                                type="button"
+                                id="btn-preview-pdf-bku"
+                                onClick={previewBkuPdf}
+                                disabled={pdfLoading}
+                                style={{
+                                    padding: '10px 20px',
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    color: 'var(--text)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: pdfLoading ? 'not-allowed' : 'pointer',
+                                    fontWeight: '600',
+                                    fontSize: '14px',
+                                    opacity: pdfLoading ? 0.65 : 1,
+                                }}
+                            >
+                                {pdfLoading ? 'Membuat PDF…' : '📄 Preview PDF'}
+                            </button>
+                        </div>
+                    )}
+                    <Table
+                        columns={[
+                            { key: 'tanggal', header: 'Tanggal' },
+                            { key: 'noBukti', header: 'No Bukti' },
+                            { key: 'uraian', header: 'Uraian' },
+                            {
+                                key: 'debet',
+                                header: 'Debet',
+                                align: 'right',
+                                render: (v) => (
+                                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                        {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
+                                    </span>
+                                )
+                            },
+                            {
+                                key: 'kredit',
+                                header: 'Kredit',
+                                align: 'right',
+                                render: (v) => (
+                                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                        {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
+                                    </span>
+                                )
+                            },
+                            {
+                                key: 'saldoBerjalan',
+                                header: 'Saldo Berjalan',
+                                align: 'right',
+                                render: (v) => (
+                                    <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                        Rp{Number(v).toLocaleString('id-ID')}
+                                    </strong>
+                                )
+                            }
+                        ]}
+                        data={reportData}
+                        emptyText="Tidak ada data untuk laporan terpilih pada periode ini."
+                    />
+                </div>
             )}
 
             {/* Render Laporan LPA */}
