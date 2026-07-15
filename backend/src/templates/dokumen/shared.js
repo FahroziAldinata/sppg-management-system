@@ -6,24 +6,24 @@ const path = require('path');
  * Dipakai ulang oleh LPA, SPTJ, BAPSD, BKU, Nominatif Upah.
  */
 
-// Load logo-bgn.png base64 jika ada, jika tidak, gunakan placeholder
-let logoBase64 = '';
-try {
-  const logoPath = path.join(__dirname, '../../../assets/dokumen-resmi/logo-bgn.png');
-  if (fs.existsSync(logoPath)) {
-    logoBase64 = fs.readFileSync(logoPath).toString('base64');
-  }
-} catch (e) {
-  console.error('Gagal memuat logo untuk kop surat:', e);
-}
-
 /**
  * Render kop surat resmi SPPG.
  * @param {object} opts
  * @param {string} opts.namaLembaga  - nama SPPG, contoh: "SPPG Tunas Harapan"
  * @param {string} opts.alamat       - alamat lengkap (opsional)
+ * @param {string} opts.logoFileName - nama file logo (opsional, default 'logo-bgn.png')
  */
-function renderKopSurat({ namaLembaga = '', alamat = '' } = {}) {
+function renderKopSurat({ namaLembaga = '', alamat = '', logoFileName = 'logo-bgn.png' } = {}) {
+  let logoBase64 = '';
+  try {
+    const logoPath = path.join(__dirname, `../../../assets/dokumen-resmi/${logoFileName}`);
+    if (fs.existsSync(logoPath)) {
+      logoBase64 = fs.readFileSync(logoPath).toString('base64');
+    }
+  } catch (e) {
+    console.error('Gagal memuat logo untuk kop surat:', e);
+  }
+
   const logoSrc = logoBase64 
     ? `data:image/png;base64,${logoBase64}`
     : `data:image/svg+xml;utf8,${encodeURIComponent(`
@@ -33,7 +33,8 @@ function renderKopSurat({ namaLembaga = '', alamat = '' } = {}) {
       </svg>
     `)}`;
 
-  const namaResmiKop = (namaLembaga || '').toUpperCase().includes('PALABUAN')
+  const isPalabuan = (namaLembaga || '').toUpperCase().includes('PALABUAN');
+  const namaResmiKop = isPalabuan
     ? 'SATUAN PELAYANAN PEMENUHAN GIZI (SPPG) SUMEDANG UJUNGJAYA PALABUAN'
     : namaLembaga;
 
@@ -43,7 +44,10 @@ function renderKopSurat({ namaLembaga = '', alamat = '' } = {}) {
         <img src="${logoSrc}" alt="Logo BGN" width="56" height="56" style="display: block; width: 56px; height: 56px; object-fit: contain;" />
       </div>
       <div class="kop-text">
-        <div class="kop-lembaga" style="font-size: 11pt; font-weight: bold; text-transform: uppercase; line-height: 1.3;">${escapeHtml(namaResmiKop)}</div>
+        <div class="kop-lembaga" style="font-size: 11pt; font-weight: bold; text-transform: uppercase; line-height: 1.3;">
+          ${escapeHtml(namaResmiKop)}
+          ${isPalabuan ? `<br><span style="font-size: 9.5pt; font-weight: normal;">(YAYASAN TIGA SRIKANDI BERLIAN SUMEDANG)</span>` : ''}
+        </div>
         ${alamat ? `<div class="kop-alamat" style="font-size: 9.5pt; margin-top: 3px; font-weight: normal; line-height: 1.3;">Alamat : ${escapeHtml(alamat)}</div>` : ''}
       </div>
     </div>

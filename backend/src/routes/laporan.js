@@ -330,6 +330,7 @@ router.get("/sptj", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (r
         tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
         tahunAnggaran: lembaga.tahunAnggaran,
         namaLembaga: lembaga.namaLembaga,
+        alamat: lembaga.alamat,
       }
     });
   } catch (error) {
@@ -368,6 +369,7 @@ router.get("/sptj/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), asyn
       tanggalPelaporan: lembaga.tanggalPelaporan ? lembaga.tanggalPelaporan.toISOString().split("T")[0] : null,
       tahunAnggaran: lembaga.tahunAnggaran,
       namaLembaga: lembaga.namaLembaga,
+      alamat: lembaga.alamat,
     };
 
     const html = renderSptjHtml(data);

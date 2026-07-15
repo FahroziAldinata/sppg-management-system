@@ -53,7 +53,7 @@ New Task:
 Laporan
 ## TODO — Layout Laporan Sesuai Format BGN
 
-**Status:** Perencanaan layout diajukan (menunggu ACC) — Lihat `.ai-context/08-PLAN-LAYOUT-DOKUMEN.md`.
+**Status:** Perencanaan layout LPA dan SPTJ telah disetujui (ACC) & diimplementasikan. Menunggu layout BAPSD dan BKU. — Lihat `.ai-context/08-PLAN-LAYOUT-DOKUMEN.md`.
 
 ### Blocking questions (jawab dulu sebelum eksekusi):
 - [x] Ada file/template resmi BGN (PDF/Word contoh LPA, SPTJ, BAPSD asli)

@@ -50,6 +50,8 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Perbaikan UI Sidebar & Login Inputs** — Memperbaiki bug horizontal scrollbar di sidebar dengan membatasi navigasi `<nav>` (`overflowX: 'hidden'`) dan melebarkan list menu `<ul>` (`width: '100%'`). Menyelaraskan border, radius, background, dan font-size input username/password di `Login.jsx` agar identik dengan token input "Nomor Dokumen", dengan tetap mempertahankan `padding-left: 38px` untuk ikon pendukung.
 - [x] **Perencanaan Layout Dokumen Resmi & Gap Backend** — Membuat dokumen rencana visualisasi dan pembenahan data 4 dokumen resmi (LPA, SPTJ, BAPSD, BKU) di berkas `.ai-context/08-PLAN-LAYOUT-DOKUMEN.md`.
 - [x] **Redesign Layout & PDF Preview LPA Selesai** — PDF Preview LPA menggunakan `puppeteer-core` + `@sparticuz/chromium` dengan format visual 100% identik dengan screenshot (Kop Surat resmi panjang, tabel rincian tanpa border vertikal, data nominal murni tanpa prefix "Rp", keterangan inline dalam tabel teratur, perataan teks, dan susunan Footer TTD tiga kolom Pihak Pertama/Kedua/Mengetahui).
+- [x] **Redesign Layout & PDF Preview SPTJ Selesai & Approved** — Pemindahan pemuatan logo ke dalam function `renderKopSurat` agar mendukung parameter `logoFileName` secara dinamis, penambahan baris kedua nama lembaga khusus SPPG Palabuan, penyesuaian jarak margin judul, penghapusan border-top dan border-bottom pada kolom keterangan tabel rincian (hanya kolom nominal yang memiliki border), dan perataan kiri (left-align) pada kolom tanda tangan "Mengetahui," di footer TTD.
+
 
 ## Sedang jalan / berikutnya
 

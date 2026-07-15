@@ -42,7 +42,7 @@ Dokumen ini menjelaskan rancangan layout visual, ketersediaan field data, gap ya
     *   `sisaDana` (number)
     *   `tempatPelaporan` (string)
     *   `tanggalPelaporan` (string)
-    *   `tahunAnggaran` (number) — **[GAP BACKEND]** saat ini belum dikembalikan oleh endpoint `/sptj`
+    *   `tahunAnggaran` (number) — **[RESOLVED]** dikembalikan oleh endpoint `/sptj`
 *   **Section yang Dirender**:
     1.  **Kop Surat Resmi**: Identik dengan kop surat LPA.
     2.  **Judul Dokumen**: "SURAT PERNYATAAN TANGGUNG JAWAB" (center, bold).
