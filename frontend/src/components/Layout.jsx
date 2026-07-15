@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   ClipboardCheck,
   FileSpreadsheet,
+  Truck,
   TrendingUp,
   PlusCircle,
   RefreshCw,
@@ -149,6 +150,7 @@ export const Layout = () => {
     '/mitra': 'Beranda Mitra',
     '/mitra/harga-bahan': 'Harga Bahan',
     '/mitra/po': 'Nota Pesanan',
+    '/mitra/kendaraan': 'Kendaraan Operasional',
     '/gizi': 'Beranda Gizi',
     '/gizi/menu-harian': 'Menu Harian',
     '/akuntan': 'Beranda Akuntan',
@@ -497,6 +499,7 @@ export const Layout = () => {
                 {renderLink('/mitra', 'Beranda / Dashboard', Home)}
                 {renderLink('/mitra/harga-bahan', 'Harga Bahan', BookOpen)}
                 {renderLink('/mitra/po', 'Nota Pesanan (PO)', ClipboardCheck)}
+                {renderLink('/mitra/kendaraan', 'Kendaraan Operasional', Truck)}
               </>
             )}
 

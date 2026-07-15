@@ -22,7 +22,7 @@ export const GiziDashboard = () => {
       try {
         const [resP, resK] = await Promise.all([
           request('/aslap/periode'),
-          request('/gizi/kendaraan')
+          request('/mitra/kendaraan')
         ]);
 
         const dataP = await resP.json();

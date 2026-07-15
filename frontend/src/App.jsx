@@ -20,6 +20,7 @@ import { LaporanBugPage } from './pages/admin/LaporanBugPage';
 import { PenerimaManfaatPage } from './pages/aslap/PenerimaManfaatPage';
 import { HargaBahanPage } from './pages/mitra/HargaBahanPage';
 import { MitraPoPage } from './pages/mitra/MitraPoPage';
+import { KendaraanPage } from './pages/mitra/KendaraanPage';
 import { MenuHarianPage } from './pages/gizi/MenuHarianPage';
 import { ApprovalPage } from './pages/kepala/ApprovalPage';
 import { SettingPage } from './pages/shared/SettingPage';
@@ -112,6 +113,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['MITRA']}>
                   <MitraPoPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="mitra/kendaraan"
+              element={
+                <ProtectedRoute allowedRoles={['MITRA']}>
+                  <KendaraanPage />
                 </ProtectedRoute>
               }
             />

@@ -1249,66 +1249,15 @@ router.get("/kendaraan/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEP
   }
 });
 
-// POST /api/gizi/kendaraan - Create Kendaraan
-router.post("/kendaraan", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
-  try {
-    const { namaKendaraan, platNomor, aktif } = req.body || {};
-    if (!namaKendaraan) return res.status(400).json({ error: "namaKendaraan wajib diisi" });
+const kendaraanMovedToMitra = (req, res) => {
+  res.status(410).json({
+    error: "Pengaturan kendaraan sudah dipindahkan ke Mitra. Gunakan endpoint /api/mitra/kendaraan."
+  });
+};
 
-    const created = await prisma.kendaraan.create({
-      data: {
-        namaKendaraan,
-        platNomor,
-        aktif: aktif !== undefined ? Boolean(aktif) : true
-      }
-    });
-    res.status(201).json(created);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan kendaraan" });
-  }
-});
-
-// PUT /api/gizi/kendaraan/:id - Update Kendaraan
-router.put("/kendaraan/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { namaKendaraan, platNomor, aktif } = req.body || {};
-
-    const existing = await prisma.kendaraan.findUnique({ where: { id } });
-    if (!existing) return res.status(404).json({ error: "Data kendaraan tidak ditemukan" });
-
-    const updated = await prisma.kendaraan.update({
-      where: { id },
-      data: {
-        namaKendaraan: namaKendaraan !== undefined ? namaKendaraan : undefined,
-        platNomor: platNomor !== undefined ? platNomor : undefined,
-        aktif: aktif !== undefined ? Boolean(aktif) : undefined
-      }
-    });
-    res.json(updated);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Terjadi kesalahan server saat memperbarui kendaraan" });
-  }
-});
-
-// DELETE /api/gizi/kendaraan/:id - Delete Kendaraan
-router.delete("/kendaraan/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const exists = await prisma.kendaraan.findUnique({ where: { id } });
-    if (!exists) return res.status(404).json({ error: "Data kendaraan tidak ditemukan" });
-
-    await prisma.kendaraan.delete({ where: { id } });
-    res.json({ success: true, message: "Data kendaraan berhasil dihapus" });
-  } catch (error) {
-    console.error(error);
-    if (error.code === "P2025") return res.status(404).json({ error: "Data kendaraan tidak ditemukan" });
-    if (error.code === "P2003" || error.message?.includes("23001") || error.message?.includes("foreign key constraint")) return res.status(409).json({ error: "Kendaraan tidak dapat dihapus karena masih digunakan pada data pengiriman" });
-    res.status(500).json({ error: "Terjadi kesalahan server saat menghapus kendaraan" });
-  }
-});
+router.post("/kendaraan", requireAuth, requireRole("AHLI_GIZI"), kendaraanMovedToMitra);
+router.put("/kendaraan/:id", requireAuth, requireRole("AHLI_GIZI"), kendaraanMovedToMitra);
+router.delete("/kendaraan/:id", requireAuth, requireRole("AHLI_GIZI"), kendaraanMovedToMitra);
 
 // ==========================================
 // CRUD PENGIRIMAN HARIAN (Logistics Delivery)
@@ -1493,32 +1442,185 @@ router.delete("/pengiriman/:id", requireAuth, requireRole("AHLI_GIZI"), async (r
 });
 
 // ==========================================
-// CRUD MASTER MENU MINGGUAN (Optional rotational plans)
+// MASTER MENU MINGGUAN (Referensi historis read-only dari MenuHarian approved)
 // ==========================================
 
-// GET /api/gizi/master-menu - List MasterMenuMingguan
+const HARI_MENU_BY_DAY = ["MINGGU", "SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
+const MASTER_MENU_KOMPONEN_KEYS = {
+  KARBOHIDRAT: "menuKarbohidrat",
+  LAUK_HEWANI: "menuLaukHewani",
+  LAUK_NABATI: "menuLaukNabati",
+  SAYUR: "menuSayur",
+  BUAH: "menuBuah"
+};
+
+const decimalToNumber = (value) => {
+  if (value === null || value === undefined) return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+};
+
+const buildMasterMenuReferenceRows = (menus, hargaBahanPeriode) => {
+  const hargaByBahanId = new Map(
+    hargaBahanPeriode.map((row) => [row.bahanPokokId, decimalToNumber(row.harga)])
+  );
+
+  const rows = [];
+  for (const menu of menus) {
+    for (const blok of menu.blok) {
+      const row = {
+        id: blok.id,
+        menuHarianId: menu.id,
+        periodeId: menu.periodeId,
+        tanggal: menu.tanggal,
+        status: menu.status,
+        jalur: blok.kelompokUmurMenu?.jalur || null,
+        hari: HARI_MENU_BY_DAY[new Date(menu.tanggal).getDay()] || null,
+        kelompokUmurMenu: blok.kelompokUmurMenu || null,
+        menuKarbohidrat: null,
+        menuLaukHewani: null,
+        menuLaukNabati: null,
+        menuSayur: null,
+        menuBuah: null,
+        estimasiHargaPerPorsi: 0,
+        estimasiHargaPerPorsiParsial: 0,
+        jumlahBahanTanpaHargaPeriode: 0,
+        menuItem: []
+      };
+
+      for (const item of blok.menuItem) {
+        const itemBahan = [];
+        let itemTotal = 0;
+        let itemHasMissingPrice = false;
+
+        for (const bahan of item.bahan) {
+          const hargaPeriode = hargaByBahanId.get(bahan.bahanPokokId) ?? null;
+          const beratKotorGr = decimalToNumber(bahan.beratKotorGr) || 0;
+          const beratSatuanGr = decimalToNumber(bahan.beratSatuanGr) || 0;
+          const totalHargaBahan = hargaPeriode !== null && beratSatuanGr > 0
+            ? Math.round((beratKotorGr * hargaPeriode / beratSatuanGr) * 100) / 100
+            : null;
+
+          if (totalHargaBahan === null) {
+            itemHasMissingPrice = true;
+            row.jumlahBahanTanpaHargaPeriode += 1;
+          } else {
+            itemTotal += totalHargaBahan;
+          }
+
+          itemBahan.push({
+            id: bahan.id,
+            bahanPokokId: bahan.bahanPokokId,
+            bahanPokok: bahan.bahanPokok,
+            beratKotorGr,
+            beratSatuanGr,
+            hargaPeriode,
+            totalHargaBahan
+          });
+        }
+
+        const normalizedItem = {
+          id: item.id,
+          namaMenu: item.namaMenu,
+          komponen: item.komponen,
+          estimasiHarga: itemHasMissingPrice ? null : Math.round(itemTotal * 100) / 100,
+          estimasiHargaParsial: Math.round(itemTotal * 100) / 100,
+          bahan: itemBahan
+        };
+        row.menuItem.push(normalizedItem);
+
+        const komponenKey = MASTER_MENU_KOMPONEN_KEYS[item.komponen];
+        if (komponenKey) {
+          row[komponenKey] = row[komponenKey]
+            ? `${row[komponenKey]}, ${item.namaMenu}`
+            : item.namaMenu;
+        }
+
+        row.estimasiHargaPerPorsiParsial += normalizedItem.estimasiHargaParsial;
+      }
+
+      row.estimasiHargaPerPorsiParsial = Math.round(row.estimasiHargaPerPorsiParsial * 100) / 100;
+      row.estimasiHargaPerPorsi = row.jumlahBahanTanpaHargaPeriode > 0
+        ? null
+        : row.estimasiHargaPerPorsiParsial;
+      rows.push(row);
+    }
+  }
+
+  return rows;
+};
+
+const getApprovedMasterMenuReferences = async ({ periodeId, jalur, hari, blokId }) => {
+  if (!periodeId && !blokId) {
+    throw new Error("[VALIDASI] periodeId wajib disertakan pada query parameter");
+  }
+
+  const blokWhere = {
+    ...(blokId ? { id: blokId } : {}),
+    ...(jalur ? { kelompokUmurMenu: { jalur } } : {})
+  };
+
+  const menuWhere = {
+    status: "DISETUJUI",
+    periodeId: periodeId || undefined
+  };
+
+  const menus = await prisma.menuHarian.findMany({
+    where: {
+      ...menuWhere,
+      blok: { some: blokWhere }
+    },
+    include: {
+      blok: {
+        where: blokWhere,
+        include: {
+          kelompokUmurMenu: true,
+          menuItem: {
+            include: {
+              bahan: {
+                include: { bahanPokok: true }
+              }
+            }
+          }
+        }
+      }
+    },
+    orderBy: { tanggal: "asc" }
+  });
+
+  const periodeIds = [...new Set(menus.map((menu) => menu.periodeId))];
+  const hargaBahanPeriode = periodeIds.length
+    ? await prisma.hargaBahanPeriode.findMany({
+      where: { periodeId: { in: periodeIds } },
+      include: { bahanPokok: true }
+    })
+    : [];
+
+  const rows = buildMasterMenuReferenceRows(menus, hargaBahanPeriode);
+  return hari ? rows.filter((row) => row.hari === hari) : rows;
+};
+
+// GET /api/gizi/master-menu - List referensi historis dari MenuHarian DISETUJUI
 router.get("/master-menu", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPALA_SPPG", "AKUNTAN"), async (req, res) => {
   try {
     const { periodeId, jalur, hari } = req.query;
-    const list = await prisma.masterMenuMingguan.findMany({
-      where: {
-        periodeId: periodeId || undefined,
-        jalur: jalur || undefined,
-        hari: hari || undefined
-      }
-    });
+    const list = await getApprovedMasterMenuReferences({ periodeId, jalur, hari });
     res.json(list);
   } catch (error) {
     console.error(error);
+    if (error.message?.startsWith("[VALIDASI]")) {
+      return res.status(400).json({ error: error.message.replace("[VALIDASI] ", "") });
+    }
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil daftar master menu" });
   }
 });
 
-// GET /api/gizi/master-menu/:id - Detail MasterMenuMingguan
+// GET /api/gizi/master-menu/:id - Detail referensi historis per blok MenuHarian
 router.get("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPALA_SPPG", "AKUNTAN"), async (req, res) => {
   try {
     const { id } = req.params;
-    const data = await prisma.masterMenuMingguan.findUnique({ where: { id } });
+    const rows = await getApprovedMasterMenuReferences({ blokId: id });
+    const data = rows[0] || null;
     if (!data) return res.status(404).json({ error: "Data master menu tidak ditemukan" });
     res.json(data);
   } catch (error) {
@@ -1527,156 +1629,14 @@ router.get("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "K
   }
 });
 
-// POST /api/gizi/master-menu - Create MasterMenuMingguan
-router.post("/master-menu", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
-  try {
-    const { periodeId, jalur, hari, menuKarbohidrat, menuLaukHewani, menuLaukNabati, menuSayur, menuBuah } = req.body || {};
+const masterMenuReadonly = (req, res) => {
+  res.status(410).json({
+    error: "Master Menu Mingguan sudah menjadi referensi historis read-only dari MenuHarian yang disetujui"
+  });
+};
 
-    if (!periodeId) return res.status(400).json({ error: "periodeId wajib diisi" });
-    if (!jalur) return res.status(400).json({ error: "jalur wajib diisi" });
-    if (!hari) return res.status(400).json({ error: "hari wajib diisi" });
-    if (!menuKarbohidrat) return res.status(400).json({ error: "menuKarbohidrat wajib diisi" });
-    if (!menuLaukHewani) return res.status(400).json({ error: "menuLaukHewani wajib diisi" });
-    if (!menuLaukNabati) return res.status(400).json({ error: "menuLaukNabati wajib diisi" });
-    if (!menuSayur) return res.status(400).json({ error: "menuSayur wajib diisi" });
-    if (!menuBuah) return res.status(400).json({ error: "menuBuah wajib diisi" });
-
-    const validJalur = ["SISWA", "TIGA_B"];
-    if (!validJalur.includes(jalur)) {
-      return res.status(400).json({ error: `jalur harus berupa salah satu dari: ${validJalur.join(", ")}` });
-    }
-
-    const validHari = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
-    if (!validHari.includes(hari)) {
-      return res.status(400).json({ error: `hari harus berupa salah satu dari: ${validHari.join(", ")}` });
-    }
-
-    const created = await prisma.$transaction(async (tx) => {
-      // Validate Periode exists
-      const period = await tx.periode.findUnique({ where: { id: periodeId } });
-      if (!period) throw new Error("[NOT_FOUND] Periode tidak ditemukan");
-
-      return await tx.masterMenuMingguan.create({
-        data: {
-          periodeId,
-          jalur,
-          hari,
-          menuKarbohidrat,
-          menuLaukHewani,
-          menuLaukNabati,
-          menuSayur,
-          menuBuah,
-          createdById: req.user.sub
-        }
-      });
-    });
-
-    res.status(201).json(created);
-  } catch (error) {
-    console.error(error);
-    if (error.code === "P2002") {
-      return res.status(409).json({ error: "Master menu untuk periode, jalur, dan hari ini sudah terdaftar" });
-    }
-    if (error.code === "P2003") {
-      return res.status(404).json({ error: "Periode tidak ditemukan di database" });
-    }
-    if (error.message) {
-      if (error.message.startsWith("[NOT_FOUND]")) return res.status(404).json({ error: error.message.replace("[NOT_FOUND] ", "") });
-      if (error.message.startsWith("[VALIDASI]")) return res.status(400).json({ error: error.message.replace("[VALIDASI] ", "") });
-    }
-    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan master menu" });
-  }
-});
-
-// PUT /api/gizi/master-menu/:id - Update MasterMenuMingguan
-router.put("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { periodeId, jalur, hari, menuKarbohidrat, menuLaukHewani, menuLaukNabati, menuSayur, menuBuah } = req.body || {};
-
-    const updated = await prisma.$transaction(async (tx) => {
-      const existing = await tx.masterMenuMingguan.findUnique({ where: { id } });
-      if (!existing) throw new Error("[NOT_FOUND] Data master menu tidak ditemukan");
-
-      const cleanPeriodeId = periodeId !== undefined ? periodeId : existing.periodeId;
-      const cleanJalur = jalur !== undefined ? jalur : existing.jalur;
-      const cleanHari = hari !== undefined ? hari : existing.hari;
-
-      if (periodeId !== undefined || jalur !== undefined || hari !== undefined) {
-        const period = await tx.periode.findUnique({ where: { id: cleanPeriodeId } });
-        if (!period) throw new Error("[NOT_FOUND] Periode tidak ditemukan");
-
-        const validJalur = ["SISWA", "TIGA_B"];
-        if (!validJalur.includes(cleanJalur)) {
-          throw new Error("[VALIDASI] jalur harus berupa salah satu dari: SISWA, TIGA_B");
-        }
-
-        const validHari = ["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"];
-        if (!validHari.includes(cleanHari)) {
-          throw new Error("[VALIDASI] hari harus berupa salah satu dari: SENIN, SELASA, RABU, KAMIS, JUMAT, SABTU");
-        }
-
-        // Conflict check (exclusion pattern)
-        const conflict = await tx.masterMenuMingguan.findFirst({
-          where: {
-            periodeId: cleanPeriodeId,
-            jalur: cleanJalur,
-            hari: cleanHari,
-            NOT: { id }
-          }
-        });
-        if (conflict) {
-          throw new Error("[CONFLICT] Master menu untuk periode, jalur, dan hari ini sudah terdaftar");
-        }
-      }
-
-      return await tx.masterMenuMingguan.update({
-        where: { id },
-        data: {
-          periodeId: periodeId !== undefined ? periodeId : undefined,
-          jalur: jalur !== undefined ? jalur : undefined,
-          hari: hari !== undefined ? hari : undefined,
-          menuKarbohidrat: menuKarbohidrat !== undefined ? menuKarbohidrat : undefined,
-          menuLaukHewani: menuLaukHewani !== undefined ? menuLaukHewani : undefined,
-          menuLaukNabati: menuLaukNabati !== undefined ? menuLaukNabati : undefined,
-          menuSayur: menuSayur !== undefined ? menuSayur : undefined,
-          menuBuah: menuBuah !== undefined ? menuBuah : undefined
-        }
-      });
-    });
-
-    res.json(updated);
-  } catch (error) {
-    console.error(error);
-    if (error.code === "P2002") {
-      return res.status(409).json({ error: "Master menu untuk periode, jalur, dan hari ini sudah terdaftar" });
-    }
-    if (error.code === "P2003") {
-      return res.status(404).json({ error: "Periode tidak ditemukan di database" });
-    }
-    if (error.message) {
-      if (error.message.startsWith("[NOT_FOUND]")) return res.status(404).json({ error: error.message.replace("[NOT_FOUND] ", "") });
-      if (error.message.startsWith("[VALIDASI]")) return res.status(400).json({ error: error.message.replace("[VALIDASI] ", "") });
-      if (error.message.startsWith("[CONFLICT]")) return res.status(409).json({ error: error.message.replace("[CONFLICT] ", "") });
-    }
-    res.status(500).json({ error: "Terjadi kesalahan server saat memperbarui master menu" });
-  }
-});
-
-// DELETE /api/gizi/master-menu/:id - Delete MasterMenuMingguan
-router.delete("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
-  try {
-    const { id } = req.params;
-    const exists = await prisma.masterMenuMingguan.findUnique({ where: { id } });
-    if (!exists) return res.status(404).json({ error: "Data master menu tidak ditemukan" });
-
-    await prisma.masterMenuMingguan.delete({ where: { id } });
-    res.json({ success: true, message: "Data master menu berhasil dihapus" });
-  } catch (error) {
-    console.error(error);
-    if (error.code === "P2025") return res.status(404).json({ error: "Data master menu tidak ditemukan" });
-    res.status(500).json({ error: "Terjadi kesalahan server saat menghapus master menu" });
-  }
-});
+router.post("/master-menu", requireAuth, requireRole("AHLI_GIZI"), masterMenuReadonly);
+router.put("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI"), masterMenuReadonly);
+router.delete("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI"), masterMenuReadonly);
 
 module.exports = router;

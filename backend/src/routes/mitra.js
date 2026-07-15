@@ -23,6 +23,102 @@ router.get("/bahan-pokok", requireAuth, requireRole("MITRA", "ASLAP", "KEPALA_SP
 });
 
 // ==========================================
+// CRUD KENDARAAN (MITRA OWNS LOGISTICS VEHICLE SETUP)
+// ==========================================
+
+// GET /api/mitra/kendaraan - List Kendaraan
+router.get("/kendaraan", requireAuth, requireRole("MITRA", "AHLI_GIZI", "ASLAP", "KEPALA_SPPG", "AKUNTAN"), async (req, res) => {
+  try {
+    const list = await prisma.kendaraan.findMany({
+      orderBy: [
+        { aktif: "desc" },
+        { namaKendaraan: "asc" }
+      ]
+    });
+    res.json(list);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil daftar kendaraan" });
+  }
+});
+
+// GET /api/mitra/kendaraan/:id - Detail Kendaraan
+router.get("/kendaraan/:id", requireAuth, requireRole("MITRA", "AHLI_GIZI", "ASLAP", "KEPALA_SPPG", "AKUNTAN"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await prisma.kendaraan.findUnique({ where: { id } });
+    if (!data) return res.status(404).json({ error: "Data kendaraan tidak ditemukan" });
+    res.json(data);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil detail kendaraan" });
+  }
+});
+
+// POST /api/mitra/kendaraan - Create Kendaraan
+router.post("/kendaraan", requireAuth, requireRole("MITRA"), async (req, res) => {
+  try {
+    const { namaKendaraan, platNomor, aktif } = req.body || {};
+    if (!namaKendaraan) return res.status(400).json({ error: "namaKendaraan wajib diisi" });
+
+    const created = await prisma.kendaraan.create({
+      data: {
+        namaKendaraan,
+        platNomor,
+        aktif: aktif !== undefined ? Boolean(aktif) : true
+      }
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan kendaraan" });
+  }
+});
+
+// PUT /api/mitra/kendaraan/:id - Update Kendaraan
+router.put("/kendaraan/:id", requireAuth, requireRole("MITRA"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { namaKendaraan, platNomor, aktif } = req.body || {};
+
+    const existing = await prisma.kendaraan.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ error: "Data kendaraan tidak ditemukan" });
+
+    const updated = await prisma.kendaraan.update({
+      where: { id },
+      data: {
+        namaKendaraan: namaKendaraan !== undefined ? namaKendaraan : undefined,
+        platNomor: platNomor !== undefined ? platNomor : undefined,
+        aktif: aktif !== undefined ? Boolean(aktif) : undefined
+      }
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat memperbarui kendaraan" });
+  }
+});
+
+// DELETE /api/mitra/kendaraan/:id - Delete Kendaraan
+router.delete("/kendaraan/:id", requireAuth, requireRole("MITRA"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const exists = await prisma.kendaraan.findUnique({ where: { id } });
+    if (!exists) return res.status(404).json({ error: "Data kendaraan tidak ditemukan" });
+
+    await prisma.kendaraan.delete({ where: { id } });
+    res.json({ success: true, message: "Data kendaraan berhasil dihapus" });
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2025") return res.status(404).json({ error: "Data kendaraan tidak ditemukan" });
+    if (error.code === "P2003" || error.message?.includes("23001") || error.message?.includes("foreign key constraint")) {
+      return res.status(409).json({ error: "Kendaraan tidak dapat dihapus karena masih digunakan pada data pengiriman" });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat menghapus kendaraan" });
+  }
+});
+
+// ==========================================
 // CRUD HARGA BAHAN PERIODE
 // ==========================================
 

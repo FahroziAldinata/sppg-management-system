@@ -222,6 +222,7 @@ export const MitraDashboard = () => {
         <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
           <button onClick={() => navigate('/mitra/harga-bahan')} style={{ padding: '10px 20px', backgroundColor: '#007bff', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Kelola Harga Bahan</button>
           <button onClick={() => navigate('/mitra/po')} style={{ padding: '10px 20px', backgroundColor: '#28a745', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Input &amp; Cetak PO (Nota Pesanan)</button>
+          <button onClick={() => navigate('/mitra/kendaraan')} style={{ padding: '10px 20px', backgroundColor: '#0f766e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Kelola Kendaraan</button>
           <button onClick={() => navigate('/setting')} style={{ padding: '10px 20px', backgroundColor: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Pengaturan Akun</button>
         </div>
       </div>
