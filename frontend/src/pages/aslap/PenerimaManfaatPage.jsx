@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
+import { NumberInput } from '../../components/NumberInput';
 
 export const PenerimaManfaatPage = () => {
   const { request } = useApi();
@@ -231,7 +232,7 @@ export const PenerimaManfaatPage = () => {
     if (!updated[schoolIndex].values[categoryKode]) {
       updated[schoolIndex].values[categoryKode] = { lakiLaki: 0, perempuan: 0 };
     }
-    updated[schoolIndex].values[categoryKode][gender] = parseInt(value, 10) || 0;
+    updated[schoolIndex].values[categoryKode][gender] = value === '' ? '' : (parseInt(value, 10) || 0);
     setFormSchools(updated);
   };
 
@@ -265,7 +266,7 @@ export const PenerimaManfaatPage = () => {
     if (!updated[posyanduIndex].values[categoryKode]) {
       updated[posyanduIndex].values[categoryKode] = { lakiLaki: 0, perempuan: 0 };
     }
-    updated[posyanduIndex].values[categoryKode][gender] = parseInt(value, 10) || 0;
+    updated[posyanduIndex].values[categoryKode][gender] = value === '' ? '' : (parseInt(value, 10) || 0);
     setFormPosyandus(updated);
   };
 
@@ -531,31 +532,27 @@ export const PenerimaManfaatPage = () => {
               <div style={{ display: 'flex', gap: '15px' }}>
                 <div>
                   <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Laki-laki</label>
-                  <input
-                    type="number"
-                    min="0"
+                  <NumberInput
                     required
                     className="form-field"
                     style={{ width: '100px' }}
-                    value={ats.ATS_KURANG_9TH.lakiLaki}
-                    onChange={(e) => setAts({
+                    value={ats.ATS_KURANG_9TH.lakiLaki === '' ? '' : Number(ats.ATS_KURANG_9TH.lakiLaki)}
+                    onChange={(val) => setAts({
                       ...ats,
-                      ATS_KURANG_9TH: { ...ats.ATS_KURANG_9TH, lakiLaki: parseInt(e.target.value, 10) || 0 }
+                      ATS_KURANG_9TH: { ...ats.ATS_KURANG_9TH, lakiLaki: val }
                     })}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Perempuan</label>
-                  <input
-                    type="number"
-                    min="0"
+                  <NumberInput
                     required
                     className="form-field"
                     style={{ width: '100px' }}
-                    value={ats.ATS_KURANG_9TH.perempuan}
-                    onChange={(e) => setAts({
+                    value={ats.ATS_KURANG_9TH.perempuan === '' ? '' : Number(ats.ATS_KURANG_9TH.perempuan)}
+                    onChange={(val) => setAts({
                       ...ats,
-                      ATS_KURANG_9TH: { ...ats.ATS_KURANG_9TH, perempuan: parseInt(e.target.value, 10) || 0 }
+                      ATS_KURANG_9TH: { ...ats.ATS_KURANG_9TH, perempuan: val }
                     })}
                   />
                 </div>
@@ -571,31 +568,27 @@ export const PenerimaManfaatPage = () => {
               <div style={{ display: 'flex', gap: '15px' }}>
                 <div>
                   <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Laki-laki</label>
-                  <input
-                    type="number"
-                    min="0"
+                  <NumberInput
                     required
                     className="form-field"
                     style={{ width: '100px' }}
-                    value={ats.ATS_9_18TH.lakiLaki}
-                    onChange={(e) => setAts({
+                    value={ats.ATS_9_18TH.lakiLaki === '' ? '' : Number(ats.ATS_9_18TH.lakiLaki)}
+                    onChange={(val) => setAts({
                       ...ats,
-                      ATS_9_18TH: { ...ats.ATS_9_18TH, lakiLaki: parseInt(e.target.value, 10) || 0 }
+                      ATS_9_18TH: { ...ats.ATS_9_18TH, lakiLaki: val }
                     })}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '11px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>Perempuan</label>
-                  <input
-                    type="number"
-                    min="0"
+                  <NumberInput
                     required
                     className="form-field"
                     style={{ width: '100px' }}
-                    value={ats.ATS_9_18TH.perempuan}
-                    onChange={(e) => setAts({
+                    value={ats.ATS_9_18TH.perempuan === '' ? '' : Number(ats.ATS_9_18TH.perempuan)}
+                    onChange={(val) => setAts({
                       ...ats,
-                      ATS_9_18TH: { ...ats.ATS_9_18TH, perempuan: parseInt(e.target.value, 10) || 0 }
+                      ATS_9_18TH: { ...ats.ATS_9_18TH, perempuan: val }
                     })}
                   />
                 </div>
@@ -718,26 +711,22 @@ export const PenerimaManfaatPage = () => {
                             <div style={{ display: 'flex', gap: '12px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>L:</span>
-                                <input
-                                  type="number"
-                                  min="0"
+                                <NumberInput
                                   required
                                   className="form-field"
                                   style={{ width: '80px', padding: '6px 8px' }}
-                                  value={val.lakiLaki}
-                                  onChange={(e) => handleSchoolValueChange(sIdx, kode, 'lakiLaki', e.target.value)}
+                                  value={val.lakiLaki === '' ? '' : Number(val.lakiLaki)}
+                                  onChange={(valInput) => handleSchoolValueChange(sIdx, kode, 'lakiLaki', valInput)}
                                 />
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>P:</span>
-                                <input
-                                  type="number"
-                                  min="0"
+                                <NumberInput
                                   required
                                   className="form-field"
                                   style={{ width: '80px', padding: '6px 8px' }}
-                                  value={val.perempuan}
-                                  onChange={(e) => handleSchoolValueChange(sIdx, kode, 'perempuan', e.target.value)}
+                                  value={val.perempuan === '' ? '' : Number(val.perempuan)}
+                                  onChange={(valInput) => handleSchoolValueChange(sIdx, kode, 'perempuan', valInput)}
                                 />
                               </div>
                             </div>
@@ -851,26 +840,22 @@ export const PenerimaManfaatPage = () => {
                             <div style={{ display: 'flex', gap: '12px' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>L:</span>
-                                <input
-                                  type="number"
-                                  min="0"
+                                <NumberInput
                                   required
                                   className="form-field"
                                   style={{ width: '80px', padding: '6px 8px' }}
-                                  value={val.lakiLaki}
-                                  onChange={(e) => handlePosyanduValueChange(pIdx, kode, 'lakiLaki', e.target.value)}
+                                  value={val.lakiLaki === '' ? '' : Number(val.lakiLaki)}
+                                  onChange={(valInput) => handlePosyanduValueChange(pIdx, kode, 'lakiLaki', valInput)}
                                 />
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>P:</span>
-                                <input
-                                  type="number"
-                                  min="0"
+                                <NumberInput
                                   required
                                   className="form-field"
                                   style={{ width: '80px', padding: '6px 8px' }}
-                                  value={val.perempuan}
-                                  onChange={(e) => handlePosyanduValueChange(pIdx, kode, 'perempuan', e.target.value)}
+                                  value={val.perempuan === '' ? '' : Number(val.perempuan)}
+                                  onChange={(valInput) => handlePosyanduValueChange(pIdx, kode, 'perempuan', valInput)}
                                 />
                               </div>
                             </div>
