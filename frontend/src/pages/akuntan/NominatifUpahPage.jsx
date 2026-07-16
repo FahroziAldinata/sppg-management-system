@@ -5,6 +5,8 @@ import { Table } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { StatusBadge } from '../../components/StatusBadge';
+import { NominatifUpahGrid } from '../../components/NominatifUpahGrid';
 
 export const NominatifUpahPage = () => {
     const { request } = useApi();
@@ -13,20 +15,54 @@ export const NominatifUpahPage = () => {
     const [periodeId, setPeriodeId] = useState('');
     const [upahList, setUpahList] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [upahForm, setUpahForm] = useState({
-        jenisPekerjaan: '',
-        namaRelawan: '',
-        danaKesehatan: '',
-        tk: '',
-        pj: ''
-    });
-    const [upahDetailList, setUpahDetailList] = useState([]);
-    const [tempUpahDetail, setTempUpahDetail] = useState({ tanggal: '', nominal: '' });
     const [hariLiburList, setHariLiburList] = useState([]);
     const [newHariLibur, setNewHariLibur] = useState({ tanggal: '', keterangan: '' });
     const [submittingHariLibur, setSubmittingHariLibur] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pendingLiburId, setPendingLiburId] = useState(null);
+
+    // STATE MASTER JENIS PEKERJAAN
+    const [jenisPekerjaanList, setJenisPekerjaanList] = useState([]);
+    const [jpForm, setJpForm] = useState({ nama: '', tarifHarian: '' });
+    const [submittingJp, setSubmittingJp] = useState(false);
+    const [editJpId, setEditJpId] = useState(null);
+    const [editJpForm, setEditJpForm] = useState({ nama: '', tarifHarian: '' });
+
+    const [jenisPekerjaanOptions, setJenisPekerjaanOptions] = useState([]);
+
+    const loadActiveJenisPekerjaanOptions = async () => {
+        try {
+            const r = await request('/akuntan/jenis-pekerjaan');
+            if (r.ok) {
+                const d = await r.json();
+                if (Array.isArray(d)) setJenisPekerjaanOptions(d);
+            }
+        } catch (err) {
+            toast.error('Gagal memuat opsi jenis pekerjaan.');
+        }
+    };
+
+
+
+    const loadJenisPekerjaanList = async () => {
+        try {
+            const r = await request('/akuntan/jenis-pekerjaan?all=true');
+            if (r.ok) {
+                const d = await r.json();
+                if (Array.isArray(d)) setJenisPekerjaanList(d);
+            }
+        } catch (err) {
+            toast.error('Gagal memuat daftar jenis pekerjaan.');
+        }
+    };
+
+    const formatRupiah = (number) => {
+        return new Intl.NumberFormat('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 0
+        }).format(number);
+    };
 
     const loadHariLiburList = async () => {
         try {
@@ -40,9 +76,11 @@ export const NominatifUpahPage = () => {
         }
     };
 
-    // Fetch HariLibur on mount
+    // Fetch HariLibur and JenisPekerjaan on mount
     useEffect(() => {
         loadHariLiburList();
+        loadJenisPekerjaanList();
+        loadActiveJenisPekerjaanOptions();
     }, []);
 
     // Fetch periods on mount
@@ -83,32 +121,7 @@ export const NominatifUpahPage = () => {
 
     const activePeriod = periods.find(p => p.id === periodeId);
 
-    const addUpahDetail = () => {
-        if (!tempUpahDetail.tanggal || !tempUpahDetail.nominal) {
-            toast.error('Lengkapi tanggal dan nominal detail harian.');
-            return;
-        }
 
-        const dateObj = new Date(tempUpahDetail.tanggal);
-        const isSunday = dateObj.getDay() === 0;
-        const isLibur = hariLiburList.some(hl => {
-            const hlDate = new Date(hl.tanggal);
-            return hlDate.toISOString().split('T')[0] === tempUpahDetail.tanggal;
-        });
-
-        if (isSunday || isLibur) {
-            toast.error('Tanggal tersebut adalah hari Minggu atau hari libur.');
-            return;
-        }
-        
-        if (upahDetailList.some(item => item.tanggal === tempUpahDetail.tanggal)) {
-            toast.error('Tanggal tersebut sudah diinput pada detail harian.');
-            return;
-        }
-
-        setUpahDetailList(prev => [...prev, { ...tempUpahDetail }]);
-        setTempUpahDetail({ tanggal: '', nominal: '' });
-    };
 
     const handleCreateHariLibur = async (e) => {
         e.preventDefault();
@@ -164,72 +177,222 @@ export const NominatifUpahPage = () => {
         }
     };
 
-    const createNominatifUpah = async (e) => {
+    const handleCreateJp = async (e) => {
         e.preventDefault();
-        const {
-            jenisPekerjaan,
-            namaRelawan,
-            danaKesehatan,
-            tk,
-            pj
-        } = upahForm;
-
-        if (!periodeId) {
-            toast.error('Periode wajib dipilih.');
+        if (!jpForm.nama || !jpForm.tarifHarian) {
+            toast.error('Nama dan Tarif Harian wajib diisi.');
             return;
         }
-        if (!jenisPekerjaan) {
-            toast.error('Jenis pekerjaan wajib diisi.');
-            return;
-        }
-        if (!namaRelawan) {
-            toast.error('Nama relawan wajib diisi.');
-            return;
-        }
-
-        const body = {
-            periodeId,
-            jenisPekerjaan,
-            namaRelawan,
-            danaKesehatan: danaKesehatan !== '' ? parseFloat(danaKesehatan) : undefined,
-            tk: tk !== '' ? parseFloat(tk) : undefined,
-            pj: pj !== '' ? parseFloat(pj) : undefined,
-            detailHarian: upahDetailList.map(item => ({
-                tanggal: item.tanggal,
-                nominal: parseFloat(item.nominal)
-            }))
-        };
-
+        setSubmittingJp(true);
         try {
-            const r = await request('/akuntan/daftar-nominatif-upah', {
+            const r = await request('/akuntan/jenis-pekerjaan', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
+                body: JSON.stringify({
+                    nama: jpForm.nama,
+                    tarifHarian: parseFloat(jpForm.tarifHarian)
+                })
             });
-
             if (r.ok) {
-                toast.success('Daftar Nominatif Upah berhasil disimpan.');
-                setUpahForm({
-                    jenisPekerjaan: '',
-                    namaRelawan: '',
-                    danaKesehatan: '',
-                    tk: '',
-                    pj: ''
-                });
-                setUpahDetailList([]);
-                loadUpahList(periodeId);
+                toast.success('Jenis pekerjaan berhasil ditambahkan.');
+                setJpForm({ nama: '', tarifHarian: '' });
+                loadJenisPekerjaanList();
+                loadActiveJenisPekerjaanOptions();
             } else {
-                const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-                toast.error(d.error || 'Gagal menyimpan Daftar Nominatif Upah');
+                const d = await r.json().catch(() => ({ error: 'Gagal menambahkan jenis pekerjaan' }));
+                toast.error(d.error || 'Gagal menambahkan jenis pekerjaan');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        } finally {
+            setSubmittingJp(false);
+        }
+    };
+
+    const handleUpdateJp = async (e) => {
+        e.preventDefault();
+        if (!editJpForm.nama || !editJpForm.tarifHarian) {
+            toast.error('Nama dan Tarif Harian wajib diisi.');
+            return;
+        }
+        setSubmittingJp(true);
+        try {
+            const r = await request(`/akuntan/jenis-pekerjaan/${editJpId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    nama: editJpForm.nama,
+                    tarifHarian: parseFloat(editJpForm.tarifHarian)
+                })
+            });
+            if (r.ok) {
+                toast.success('Jenis pekerjaan berhasil diperbarui.');
+                setEditJpId(null);
+                loadJenisPekerjaanList();
+                loadActiveJenisPekerjaanOptions();
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal memperbarui jenis pekerjaan' }));
+                toast.error(d.error || 'Gagal memperbarui jenis pekerjaan');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        } finally {
+            setSubmittingJp(false);
+        }
+    };
+
+    const handleToggleJpAktif = async (item) => {
+        try {
+            const r = await request(`/akuntan/jenis-pekerjaan/${item.id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ aktif: !item.aktif })
+            });
+            if (r.ok) {
+                toast.success(`Jenis pekerjaan berhasil ${!item.aktif ? 'diaktifkan' : 'dinonaktifkan'}.`);
+                loadJenisPekerjaanList();
+                loadActiveJenisPekerjaanOptions();
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal mengubah status jenis pekerjaan' }));
+                toast.error(d.error || 'Gagal mengubah status jenis pekerjaan');
             }
         } catch (err) {
             toast.error(err.message || 'Terjadi kesalahan koneksi');
         }
     };
 
+    const handleSaveGrid = async (rows) => {
+        if (!periodeId) {
+            toast.error('Periode wajib dipilih.');
+            return;
+        }
+        setLoading(true);
+        try {
+            const promises = rows.map(row => {
+                const body = {
+                    jenisPekerjaan: row.jenisPekerjaan,
+                    namaRelawan: row.namaRelawan,
+                    tarifHarian: row.tarifHarian !== '' && row.tarifHarian !== undefined ? parseFloat(row.tarifHarian) : undefined,
+                    danaKesehatan: row.danaKesehatan !== '' && row.danaKesehatan !== undefined ? parseFloat(row.danaKesehatan) : undefined,
+                    tk: row.tk !== '' && row.tk !== undefined ? parseFloat(row.tk) : undefined,
+                    pj: row.pj !== '' && row.pj !== undefined ? parseFloat(row.pj) : undefined,
+                    detailHarian: Object.entries(row.detailHarian)
+                        .filter(([_, v]) => v !== undefined && v !== '' && v !== null)
+                        .map(([tanggal, nominal]) => ({
+                            tanggal,
+                            nominal: parseFloat(nominal)
+                        }))
+                };
+
+                if (row.id) {
+                    // PUT /api/akuntan/daftar-nominatif-upah/:id
+                    return request(`/akuntan/daftar-nominatif-upah/${row.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                } else {
+                    // POST /api/akuntan/daftar-nominatif-upah
+                    body.periodeId = periodeId;
+                    return request('/akuntan/daftar-nominatif-upah', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(body)
+                    });
+                }
+            });
+
+            const responses = await Promise.all(promises);
+            let hasError = false;
+            let errorMsg = '';
+
+            for (const res of responses) {
+                if (!res.ok) {
+                    hasError = true;
+                    const d = await res.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                    errorMsg = d.error || 'Gagal menyimpan salah satu baris data';
+                    break;
+                }
+            }
+
+            if (hasError) {
+                toast.error(errorMsg);
+            } else {
+                toast.success('Semua data Nominatif Upah berhasil disimpan.');
+                await loadUpahList(periodeId);
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const jpColumns = [
+        {
+            key: 'nama',
+            header: 'Nama Pekerjaan',
+            render: (v) => <span style={{ fontWeight: 600, color: 'var(--text)' }}>{v}</span>
+        },
+        {
+            key: 'tarifHarian',
+            header: 'Tarif Harian',
+            render: (v) => <span>{formatRupiah(v)}</span>
+        },
+        {
+            key: 'aktif',
+            header: 'Status',
+            render: (v) => <StatusBadge status={v ? 'AKTIF' : 'DITOLAK'} label={v ? 'Aktif' : 'Nonaktif'} />
+        },
+        {
+            key: 'id',
+            header: 'Aksi',
+            render: (_, row) => (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setEditJpId(row.id);
+                            setEditJpForm({ nama: row.nama, tarifHarian: row.tarifHarian });
+                        }}
+                        style={{
+                            padding: '4px 12px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            border: '1px solid var(--border)',
+                            borderRadius: 'var(--radius-sm)',
+                            backgroundColor: 'var(--bg)',
+                            color: 'var(--text)',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        Edit
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleToggleJpAktif(row)}
+                        style={{
+                            padding: '4px 12px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            border: 'none',
+                            borderRadius: 'var(--radius-sm)',
+                            backgroundColor: row.aktif ? 'var(--color-danger)' : 'var(--color-success)',
+                            color: 'white',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        {row.aktif ? 'Nonaktifkan' : 'Aktifkan'}
+                    </button>
+                </div>
+            )
+        }
+    ];
+
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Daftar Nominatif Upah Relawan</h2>
+            
             {/* Pilihan Periode */}
             <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
                 {/* Pilihan Periode */}
@@ -378,282 +541,121 @@ export const NominatifUpahPage = () => {
                 </div>
             </div>
 
-            {/* Form Nominatif */}
-            <form onSubmit={createNominatifUpah} style={{
+            {/* Setup Jenis Pekerjaan & Tarif Harian */}
+            <div style={{
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',
                 padding: '24px',
                 backgroundColor: 'var(--bg-elevated)',
                 boxShadow: 'var(--shadow)',
-                marginBottom: '30px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px'
+                marginBottom: '30px'
             }}>
-                <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Buat Daftar Nominatif Upah</h3>
+                <h3 style={{ margin: '0 0 16px 0', color: 'var(--text)', fontSize: '16px' }}>Setup Jenis Pekerjaan & Tarif Harian</h3>
                 
-                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                    <div style={{ flex: '1 1 200px' }}>
-                        <label style={{
-                            textTransform: 'uppercase',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            letterSpacing: '0.07em',
-                            color: 'var(--text-muted)',
-                            display: 'block',
-                            marginBottom: '6px'
-                        }}>
-                            Jenis Pekerjaan
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Misal: RELAWAN, TUKANG, STAF"
-                            value={upahForm.jenisPekerjaan}
-                            onChange={e => setUpahForm(prev => ({ ...prev, jenisPekerjaan: e.target.value }))}
-                            required
-                            className="form-field"
-                        />
-                    </div>
-                    <div style={{ flex: '1 1 200px' }}>
-                        <label style={{
-                            textTransform: 'uppercase',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            letterSpacing: '0.07em',
-                            color: 'var(--text-muted)',
-                            display: 'block',
-                            marginBottom: '6px'
-                        }}>
-                            Nama Relawan
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Nama Lengkap"
-                            value={upahForm.namaRelawan}
-                            onChange={e => setUpahForm(prev => ({ ...prev, namaRelawan: e.target.value }))}
-                            required
-                            className="form-field"
-                        />
-                    </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
-                    <div style={{ flex: '1 1 200px' }}>
-                        <label style={{
-                            textTransform: 'uppercase',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            letterSpacing: '0.07em',
-                            color: 'var(--text-muted)',
-                            display: 'block',
-                            marginBottom: '6px'
-                        }}>
-                            Dana Kesehatan (opsional)
-                        </label>
-                        <input
-                            type="number"
-                            placeholder="Dana Kesehatan (Rp)"
-                            value={upahForm.danaKesehatan}
-                            onChange={e => setUpahForm(prev => ({ ...prev, danaKesehatan: e.target.value }))}
-                            className="form-field"
-                        />
-                    </div>
-                    <div style={{ flex: '1 1 200px' }}>
-                        <label style={{
-                            textTransform: 'uppercase',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            letterSpacing: '0.07em',
-                            color: 'var(--text-muted)',
-                            display: 'block',
-                            marginBottom: '6px'
-                        }}>
-                            TK / BPJS Ketenagakerjaan (opsional)
-                        </label>
-                        <input
-                            type="number"
-                            placeholder="Nominal TK (Rp)"
-                            value={upahForm.tk}
-                            onChange={e => setUpahForm(prev => ({ ...prev, tk: e.target.value }))}
-                            className="form-field"
-                        />
-                    </div>
-                    <div style={{ flex: '1 1 200px' }}>
-                        <label style={{
-                            textTransform: 'uppercase',
-                            fontSize: '11px',
-                            fontWeight: 700,
-                            letterSpacing: '0.07em',
-                            color: 'var(--text-muted)',
-                            display: 'block',
-                            marginBottom: '6px'
-                        }}>
-                            PJ / Asuransi Lain (opsional)
-                        </label>
-                        <input
-                            type="number"
-                            placeholder="Nominal PJ (Rp)"
-                            value={upahForm.pj}
-                            onChange={e => setUpahForm(prev => ({ ...prev, pj: e.target.value }))}
-                            className="form-field"
-                        />
-                    </div>
-                </div>
-
-                {/* Sub-form Detail Harian */}
-                <div style={{
-                    border: '1px dashed var(--border)',
-                    borderRadius: 'var(--radius-sm)',
-                    padding: '16px',
-                    marginTop: '10px',
-                    backgroundColor: 'var(--bg-elevated)',
-                    color: 'var(--text)'
-                }}>
-                    <h4 style={{ marginTop: '0', marginBottom: '16px', fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>
-                        Rincian Upah Harian
-                    </h4>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-end', marginBottom: '16px', flexWrap: 'wrap' }}>
-                        <div>
-                            <label style={{
-                                textTransform: 'uppercase',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                letterSpacing: '0.07em',
-                                color: 'var(--text-muted)',
-                                display: 'block',
-                                marginBottom: '6px'
-                            }}>
-                                Tanggal
-                            </label>
-                            <DatePicker
-                                value={tempUpahDetail.tanggal}
-                                onChange={val => setTempUpahDetail(prev => ({ ...prev, tanggal: val }))}
-                                defaultFocusMonth={activePeriod?.tanggalMulai}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label style={{
-                                textTransform: 'uppercase',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                letterSpacing: '0.07em',
-                                color: 'var(--text-muted)',
-                                display: 'block',
-                                marginBottom: '6px'
-                            }}>
-                                Nominal Harian (Rp)
-                            </label>
-                            <input
-                                type="number"
-                                placeholder="Nominal Harian (Rp)"
-                                value={tempUpahDetail.nominal}
-                                onChange={e => setTempUpahDetail(prev => ({ ...prev, nominal: e.target.value }))}
-                                className="form-field"
-                                style={{ width: '180px' }}
-                            />
-                        </div>
-                        <button
-                            type="button"
-                            onClick={addUpahDetail}
-                            style={{
-                                padding: '10px 20px',
-                                backgroundColor: 'var(--btn-primary-bg)',
-                                color: 'var(--btn-primary-text)',
-                                border: 'none',
-                                borderRadius: 'var(--radius-sm)',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                fontSize: '14px',
-                                height: '42px'
-                            }}
-                        >
-                            Tambah Rincian
-                        </button>
-                    </div>
-
-                    {/* List Sementara Rincian Harian */}
-                    <ul style={{ paddingLeft: '20px', margin: '10px 0' }}>
-                        {upahDetailList.map((item, index) => {
-                            const dateObj = new Date(item.tanggal);
-                            const isSunday = dateObj.getDay() === 0;
-                            const isLibur = hariLiburList.some(hl => {
-                                const hlDate = new Date(hl.tanggal);
-                                return hlDate.toISOString().split('T')[0] === item.tanggal;
-                            });
-                            if (isSunday || isLibur) return null;
-
-                            return (
-                                <li key={index} style={{ marginBottom: '5px' }}>
-                                    {item.tanggal} — Rp{Number(item.nominal).toLocaleString('id-ID')}
-                                    {' '}
+                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+                    {/* Form tambah / edit */}
+                    <div style={{ flex: '1 1 300px' }}>
+                        <h4 style={{ margin: '0 0 12px 0', color: 'var(--text-muted)', fontSize: '14px' }}>
+                            {editJpId ? 'Edit Jenis Pekerjaan' : 'Tambah Jenis Pekerjaan Baru'}
+                        </h4>
+                        <form onSubmit={editJpId ? handleUpdateJp : handleCreateJp} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <div>
+                                <label className="form-label" style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Nama Pekerjaan</label>
+                                <input
+                                    type="text"
+                                    placeholder="Misal: RELAWAN, TUKANG, STAF"
+                                    value={editJpId ? editJpForm.nama : jpForm.nama}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (editJpId) {
+                                            setEditJpForm(prev => ({ ...prev, nama: val }));
+                                        } else {
+                                            setJpForm(prev => ({ ...prev, nama: val }));
+                                        }
+                                    }}
+                                    required
+                                    className="form-field"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                            <div>
+                                <label className="form-label" style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Tarif Harian (Rp)</label>
+                                <input
+                                    type="number"
+                                    placeholder="Nominal tarif harian"
+                                    value={editJpId ? editJpForm.tarifHarian : jpForm.tarifHarian}
+                                    onChange={e => {
+                                        const val = e.target.value;
+                                        if (editJpId) {
+                                            setEditJpForm(prev => ({ ...prev, tarifHarian: val }));
+                                        } else {
+                                            setJpForm(prev => ({ ...prev, tarifHarian: val }));
+                                        }
+                                    }}
+                                    required
+                                    className="form-field"
+                                    style={{ width: '100%' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <button
+                                    type="submit"
+                                    disabled={submittingJp}
+                                    style={{
+                                        padding: '8px 16px',
+                                        backgroundColor: 'var(--btn-primary-bg)',
+                                        color: 'var(--btn-primary-text)',
+                                        border: 'none',
+                                        borderRadius: 'var(--radius-sm)',
+                                        fontWeight: 700,
+                                        cursor: submittingJp ? 'not-allowed' : 'pointer'
+                                    }}
+                                >
+                                    {editJpId ? 'Simpan' : 'Tambah'}
+                                </button>
+                                {editJpId && (
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            setUpahDetailList(prev => prev.filter((_, idx) => idx !== index));
+                                        onClick={() => setEditJpId(null)}
+                                        style={{
+                                            padding: '8px 16px',
+                                            backgroundColor: 'transparent',
+                                            color: 'var(--text)',
+                                            border: '1px solid var(--border)',
+                                            borderRadius: 'var(--radius-sm)',
+                                            fontWeight: 600,
+                                            cursor: 'pointer'
                                         }}
-                                        style={{ color: 'var(--color-danger)', border: 'none', background: 'none', cursor: 'pointer', fontWeight: 'bold' }}
                                     >
-                                        [Hapus]
+                                        Batal
                                     </button>
-                                </li>
-                            );
-                        })}
-                        {upahDetailList.length === 0 && (
-                            <li style={{ color: 'var(--text-muted)', fontStyle: 'italic' }}>Belum ada rincian harian ditambahkan.</li>
-                        )}
-                    </ul>
-                </div>
+                                )}
+                            </div>
+                        </form>
+                    </div>
 
-                <div style={{ marginTop: '10px' }}>
-                    <button type="submit" style={{
-                        padding: '10px 20px',
-                        backgroundColor: 'var(--btn-primary-bg)',
-                        color: 'var(--btn-primary-text)',
-                        border: 'none',
-                        borderRadius: 'var(--radius-sm)',
-                        cursor: 'pointer',
-                        fontWeight: 600,
-                        fontSize: '14px'
-                    }}>
-                        Simpan Daftar Nominatif Upah
-                    </button>
+                    {/* Tabel list */}
+                    <div style={{ flex: '2 1 450px' }}>
+                        <Table
+                            columns={jpColumns}
+                            data={jenisPekerjaanList}
+                            emptyText="Belum ada data jenis pekerjaan."
+                        />
+                    </div>
                 </div>
-            </form>
+            </div>
 
-            {/* List Nominatif */}
-            <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Nominatif Upah</h3>
-            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat daftar nominatif upah...</p>}
-            {!loading && (
-                <Table
-                    columns={[
-                        { key: 'jenisPekerjaan', header: 'Jenis Pekerjaan' },
-                        { key: 'namaRelawan', header: 'Nama Relawan' },
-                        {
-                            key: 'totalHonorarium',
-                            header: 'Total Honorarium',
-                            align: 'right',
-                            render: (v) => (
-                                <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
-                                    Rp{Number(v).toLocaleString('id-ID')}
-                                </span>
-                            )
-                        },
-                        {
-                            key: 'totalUpah',
-                            header: 'Total Upah',
-                            align: 'right',
-                            render: (v) => (
-                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'var(--text)' }}>
-                                    Rp{Number(v).toLocaleString('id-ID')}
-                                </strong>
-                            )
-                        }
-                    ]}
-                    data={upahList}
-                    emptyText="Belum ada data Daftar Nominatif Upah untuk periode ini."
+            <div style={{ marginBottom: '40px' }}>
+                <NominatifUpahGrid 
+                    periode={activePeriod} 
+                    hariLiburList={hariLiburList} 
+                    jenisPekerjaanOptions={jenisPekerjaanOptions} 
+                    existingData={upahList} 
+                    onSave={handleSaveGrid} 
                 />
-            )}
+            </div>
+
+
 
             <ConfirmDialog
                 open={confirmOpen}

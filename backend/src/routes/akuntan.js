@@ -1566,6 +1566,7 @@ router.post("/daftar-nominatif-upah", requireAuth, requireRole("AKUNTAN"), async
       danaKesehatan,
       tk,
       pj,
+      tarifHarian,
       detailHarian
     } = req.body || {};
 
@@ -1642,6 +1643,11 @@ router.post("/daftar-nominatif-upah", requireAuth, requireRole("AKUNTAN"), async
         throw new Error("[VALIDASI] pj tidak boleh negatif");
       }
 
+      const parsedTarifHarian = tarifHarian !== undefined ? parseFloat(tarifHarian) : null;
+      if (parsedTarifHarian !== null && (isNaN(parsedTarifHarian) || parsedTarifHarian <= 0)) {
+        throw new Error("[VALIDASI] tarifHarian harus berupa angka positif");
+      }
+
       // 4. Create record
       return await tx.daftarNominatifUpah.create({
         data: {
@@ -1651,6 +1657,7 @@ router.post("/daftar-nominatif-upah", requireAuth, requireRole("AKUNTAN"), async
           danaKesehatan: parsedDanaKesehatan !== null ? Math.round(parsedDanaKesehatan * 100) / 100 : null,
           tk: parsedTk !== null ? Math.round(parsedTk * 100) / 100 : null,
           pj: parsedPj !== null ? Math.round(parsedPj * 100) / 100 : null,
+          tarifHarian: parsedTarifHarian !== null ? Math.round(parsedTarifHarian * 100) / 100 : null,
           detailHarian: {
             createMany: {
               data: normalizedDetails
@@ -1757,6 +1764,7 @@ router.put("/daftar-nominatif-upah/:id", requireAuth, requireRole("AKUNTAN"), as
       danaKesehatan,
       tk,
       pj,
+      tarifHarian,
       detailHarian
     } = req.body || {};
 
@@ -1795,6 +1803,11 @@ router.put("/daftar-nominatif-upah/:id", requireAuth, requireRole("AKUNTAN"), as
       const targetPj = pj !== undefined ? (pj !== null ? parseFloat(pj) : null) : (existing.pj !== null ? parseFloat(existing.pj) : null);
       if (targetPj !== null && (isNaN(targetPj) || targetPj < 0)) {
         throw new Error("[VALIDASI] pj tidak boleh negatif");
+      }
+
+      const targetTarifHarian = tarifHarian !== undefined ? (tarifHarian !== null ? parseFloat(tarifHarian) : null) : (existing.tarifHarian !== null ? parseFloat(existing.tarifHarian) : null);
+      if (targetTarifHarian !== null && (isNaN(targetTarifHarian) || targetTarifHarian <= 0)) {
+        throw new Error("[VALIDASI] tarifHarian harus berupa angka positif");
       }
 
       let normalizedDetails = null;
@@ -1847,7 +1860,8 @@ router.put("/daftar-nominatif-upah/:id", requireAuth, requireRole("AKUNTAN"), as
           namaRelawan: targetNamaRelawan,
           danaKesehatan: targetDanaKesehatan !== null ? Math.round(targetDanaKesehatan * 100) / 100 : null,
           tk: targetTk !== null ? Math.round(targetTk * 100) / 100 : null,
-          pj: targetPj !== null ? Math.round(targetPj * 100) / 100 : null
+          pj: targetPj !== null ? Math.round(targetPj * 100) / 100 : null,
+          tarifHarian: targetTarifHarian !== null ? Math.round(targetTarifHarian * 100) / 100 : null
         }
       });
 
@@ -2462,6 +2476,139 @@ router.post("/periode", requireAuth, requireRole("AKUNTAN"), async (req, res) =>
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat membuat periode baru" });
+  }
+});
+
+// ==========================================
+// CRUD MASTER JENIS PEKERJAAN
+// ==========================================
+
+// GET /api/akuntan/jenis-pekerjaan - List JenisPekerjaan
+router.get("/jenis-pekerjaan", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { all } = req.query;
+    const where = {};
+    if (all !== "true") {
+      where.aktif = true;
+    }
+    const list = await prisma.jenisPekerjaan.findMany({
+      where,
+      orderBy: { nama: "asc" }
+    });
+    res.json(list);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil daftar jenis pekerjaan" });
+  }
+});
+
+// POST /api/akuntan/jenis-pekerjaan - Create JenisPekerjaan
+router.post("/jenis-pekerjaan", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { nama, tarifHarian, aktif } = req.body || {};
+    if (!nama) {
+      return res.status(400).json({ error: "nama wajib diisi" });
+    }
+    if (tarifHarian === undefined || tarifHarian === null) {
+      return res.status(400).json({ error: "tarifHarian wajib diisi" });
+    }
+    const parsedTarif = parseFloat(tarifHarian);
+    if (isNaN(parsedTarif) || parsedTarif <= 0) {
+      return res.status(400).json({ error: "tarifHarian harus berupa angka positif" });
+    }
+
+    const existing = await prisma.jenisPekerjaan.findUnique({
+      where: { nama }
+    });
+    if (existing) {
+      return res.status(400).json({ error: "Jenis pekerjaan dengan nama tersebut sudah terdaftar" });
+    }
+
+    const created = await prisma.jenisPekerjaan.create({
+      data: {
+        nama,
+        tarifHarian: Math.round(parsedTarif * 100) / 100,
+        aktif: aktif !== undefined ? Boolean(aktif) : true
+      }
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2002") {
+      return res.status(400).json({ error: "Jenis pekerjaan dengan nama tersebut sudah terdaftar" });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan jenis pekerjaan" });
+  }
+});
+
+// PUT /api/akuntan/jenis-pekerjaan/:id - Update JenisPekerjaan
+router.put("/jenis-pekerjaan/:id", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nama, tarifHarian, aktif } = req.body || {};
+
+    const existing = await prisma.jenisPekerjaan.findUnique({
+      where: { id }
+    });
+    if (!existing) {
+      return res.status(404).json({ error: "Jenis pekerjaan tidak ditemukan" });
+    }
+
+    const updateData = {};
+    if (nama !== undefined) {
+      if (!nama.trim()) {
+        return res.status(400).json({ error: "nama tidak boleh kosong" });
+      }
+      updateData.nama = nama;
+    }
+    if (tarifHarian !== undefined) {
+      const parsedTarif = parseFloat(tarifHarian);
+      if (isNaN(parsedTarif) || parsedTarif <= 0) {
+        return res.status(400).json({ error: "tarifHarian harus berupa angka positif" });
+      }
+      updateData.tarifHarian = Math.round(parsedTarif * 100) / 100;
+    }
+    if (aktif !== undefined) {
+      updateData.aktif = Boolean(aktif);
+    }
+
+    const updated = await prisma.jenisPekerjaan.update({
+      where: { id },
+      data: updateData
+    });
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2002") {
+      return res.status(400).json({ error: "Jenis pekerjaan dengan nama tersebut sudah terdaftar" });
+    }
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Jenis pekerjaan tidak ditemukan" });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat memperbarui jenis pekerjaan" });
+  }
+});
+
+// DELETE /api/akuntan/jenis-pekerjaan/:id - Delete JenisPekerjaan
+router.delete("/jenis-pekerjaan/:id", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.jenisPekerjaan.findUnique({
+      where: { id }
+    });
+    if (!existing) {
+      return res.status(404).json({ error: "Jenis pekerjaan tidak ditemukan" });
+    }
+    await prisma.jenisPekerjaan.delete({
+      where: { id }
+    });
+    res.json({ success: true, message: "Jenis pekerjaan berhasil dihapus" });
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Jenis pekerjaan tidak ditemukan" });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat menghapus jenis pekerjaan" });
   }
 });
 

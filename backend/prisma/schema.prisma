@@ -990,6 +990,7 @@ model DaftarNominatifUpah {
   danaKesehatan Decimal? @db.Decimal(12, 2)
   tk            Decimal? @db.Decimal(12, 2)
   pj            Decimal? @db.Decimal(12, 2)
+  tarifHarian   Decimal? @db.Decimal(12, 2)
 
   detailHarian DaftarNominatifUpahHarian[]
 
@@ -1112,5 +1113,18 @@ model HariLibur {
   id         String   @id @default(cuid())
   tanggal    DateTime @db.Date @unique
   keterangan String?
+}
+
+// -----------------------------------------------------------------------------
+// MASTER JENIS PEKERJAAN
+// -----------------------------------------------------------------------------
+
+model JenisPekerjaan {
+  id           String   @id @default(cuid())
+  nama         String   @unique
+  tarifHarian  Decimal  @db.Decimal(12, 2)
+  aktif        Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
