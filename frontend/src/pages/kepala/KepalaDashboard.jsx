@@ -6,6 +6,7 @@ import { NotifikasiList } from '../../components/NotifikasiList';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 import Dropdown from '../../components/Dropdown';
 import { Card } from '../../components/Card';
+import { Skeleton } from '../../components/Skeleton';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export const KepalaDashboard = () => {
@@ -136,7 +137,36 @@ export const KepalaDashboard = () => {
     }
   };
 
-  if (loading) return <p>Memuat Ringkasan Beranda Kepala SPPG...</p>;
+  if (loading) {
+    return (
+      <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Banner Skeleton */}
+        <Skeleton height="120px" borderRadius="var(--radius-md)" />
+        
+        {/* Period Selector & Detail Card Row */}
+        <Skeleton height="150px" borderRadius="var(--radius-md)" />
+
+        {/* 3 Summary Cards Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+        </div>
+
+        {/* Chart Card Skeleton */}
+        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <Skeleton height="20px" width="30%" />
+          <Skeleton height="250px" borderRadius="var(--radius-md)" />
+        </div>
+
+        {/* Bottom panels (Quick Actions & Workflow Progress) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+          <Skeleton height="130px" borderRadius="var(--radius-md)" />
+          <Skeleton height="130px" borderRadius="var(--radius-md)" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '10px' }}>
@@ -255,8 +285,9 @@ export const KepalaDashboard = () => {
           <p style={{ color: 'var(--text-muted)' }}>Belum ada data arus kas bulanan untuk periode ini.</p>
         </Card>
       ) : loadingTrend ? (
-        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 350 }}>
-          <p style={{ color: 'var(--text-muted)' }}>Memuat data grafik...</p>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+          <Skeleton height="20px" width="30%" />
+          <Skeleton height="250px" borderRadius="var(--radius-md)" />
         </Card>
       ) : null}
 

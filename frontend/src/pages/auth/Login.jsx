@@ -7,6 +7,7 @@ import { User, Lock, LogIn, Sun, Moon } from 'lucide-react';
 export const Login = () => {
   const { token, login, theme, toggleTheme } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);

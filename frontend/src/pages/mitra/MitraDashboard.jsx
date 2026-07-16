@@ -5,6 +5,8 @@ import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 import Dropdown from '../../components/Dropdown';
 import { Card } from '../../components/Card';
+import { Skeleton } from '../../components/Skeleton';
+
 
 export const MitraDashboard = () => {
   const { request } = useApi();
@@ -128,7 +130,33 @@ export const MitraDashboard = () => {
     }
   };
 
-  if (loading) return <p>Memuat Ringkasan Beranda Mitra...</p>;
+  if (loading) {
+    return (
+      <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Banner Skeleton */}
+        <Skeleton height="120px" borderRadius="var(--radius-md)" />
+        
+        {/* Period Selector & Detail Card Row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: '20px' }}>
+          <Skeleton height="90px" borderRadius="var(--radius-md)" />
+          <Skeleton height="90px" borderRadius="var(--radius-md)" />
+        </div>
+
+        {/* 3 Summary Cards Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+        </div>
+
+        {/* Bottom panels (Quick Actions & Workflow Progress) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+          <Skeleton height="130px" borderRadius="var(--radius-md)" />
+          <Skeleton height="130px" borderRadius="var(--radius-md)" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '10px' }}>

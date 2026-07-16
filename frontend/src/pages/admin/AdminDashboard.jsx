@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/Card';
+import { Skeleton } from '../../components/Skeleton';
 import { Users, Shield, BookOpen, FileSpreadsheet, Home, Settings } from 'lucide-react';
 
 export const AdminDashboard = () => {
@@ -28,7 +29,31 @@ export const AdminDashboard = () => {
     fetchUsers();
   }, []);
 
-  if (loading) return <p style={{ padding: '20px', color: 'var(--text-muted)' }}>Memuat Ringkasan Dashboard Admin...</p>;
+  if (loading) {
+    return (
+      <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Banner Skeleton */}
+        <Skeleton height="120px" borderRadius="var(--radius-md)" />
+        
+        {/* 3 Main Stats Cards Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+        </div>
+
+        {/* 6 Role Cards Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px' }}>
+          {[...Array(6)].map((_, idx) => (
+            <Skeleton key={idx} height="100px" borderRadius="var(--radius-md)" />
+          ))}
+        </div>
+
+        {/* Quick Actions Panel Skeleton */}
+        <Skeleton height="100px" borderRadius="var(--radius-md)" />
+      </div>
+    );
+  }
 
   // Aggregating counts in frontend (YAGNI)
   const totalUsers = users.length;
