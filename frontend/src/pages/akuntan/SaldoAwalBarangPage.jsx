@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { Table, renderCurrency } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
 import { NumberInput } from '../../components/NumberInput';
+import { Skeleton } from '../../components/Skeleton';
 
 export const SaldoAwalBarangPage = () => {
     const { request } = useApi();
@@ -250,8 +251,16 @@ export const SaldoAwalBarangPage = () => {
 
             {/* List Saldo Awal */}
             <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Saldo Awal Barang Terdaftar</h3>
-            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat daftar saldo awal...</p>}
-            <Table
+            {loading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                </div>
+            )}
+            {!loading && <Table
                 columns={[
                     { key: 'bahanPokok', header: 'Nama Bahan Pokok', render: (v) => v ? v.nama : '—' },
                     { key: 'bahanPokokSatuan', header: 'Satuan', align: 'center', width: '100px', render: (_, row) => row.bahanPokok ? row.bahanPokok.satuan : '—' },
@@ -291,7 +300,7 @@ export const SaldoAwalBarangPage = () => {
                 ]}
                 data={saldoAwalList}
                 emptyText="Belum ada data saldo awal barang untuk periode ini."
-            />
+            />}
         </div>
     );
 };

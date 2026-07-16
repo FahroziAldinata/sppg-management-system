@@ -5,6 +5,7 @@ import { Table, renderDate, renderStatus, renderTruncate } from '../../component
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 import { NumberInput } from '../../components/NumberInput';
+import { Skeleton } from '../../components/Skeleton';
 
 export const MutasiStokPage = () => {
     const { request } = useApi();
@@ -438,8 +439,16 @@ export const MutasiStokPage = () => {
 
             {/* List Mutasi */}
             <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Mutasi Stok</h3>
-            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat riwayat mutasi...</p>}
-            <Table
+            {loading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                </div>
+            )}
+            {!loading && <Table
                 columns={[
                     { key: 'tanggal', header: 'Tanggal', render: (v) => renderDate(v) },
                     { key: 'bahanPokok', header: 'Bahan Pokok', render: (v) => v?.nama || '—' },
@@ -477,7 +486,7 @@ export const MutasiStokPage = () => {
                 ]}
                 data={mutasiStokList}
                 emptyText="Belum ada data Mutasi Stok untuk periode ini."
-            />
+            />}
         </div>
     );
 };

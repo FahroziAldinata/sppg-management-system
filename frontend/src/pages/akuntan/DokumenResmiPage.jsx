@@ -3,6 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
+import { Skeleton } from '../../components/Skeleton';
 
 export const DokumenResmiPage = () => {
     const { request } = useApi();
@@ -320,8 +321,16 @@ export const DokumenResmiPage = () => {
 
             {/* Tabel Dokumen Diterbitkan */}
             <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Dokumen Resmi Diterbitkan</h3>
-            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat daftar dokumen...</p>}
-            <Table
+            {loading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                </div>
+            )}
+            {!loading && <Table
                 columns={[
                     {
                         key: 'jenisDokumen',
@@ -338,7 +347,7 @@ export const DokumenResmiPage = () => {
                 ]}
                 data={dokumenList}
                 emptyText="Belum ada dokumen resmi diterbitkan untuk periode ini."
-            />
+            />}
         </div>
     );
 };

@@ -5,6 +5,7 @@ import { Table } from '../../components/Table';
 import { StatusBadge } from '../../components/StatusBadge';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import Dropdown from '../../components/Dropdown';
+import { Skeleton } from '../../components/Skeleton';
 
 const ROLE_OPTIONS = [
   { value: 'ADMIN', label: 'Admin' },
@@ -323,7 +324,15 @@ export const UserManagementPage = () => {
           Daftar Pengguna ({users.length})
         </h3>
         {loading
-          ? <p style={{ color: 'var(--text-muted)' }}>Memuat data pengguna...</p>
+          ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Skeleton height="40px" />
+              <Skeleton height="40px" />
+              <Skeleton height="40px" />
+              <Skeleton height="40px" />
+              <Skeleton height="40px" />
+            </div>
+          )
           : <Table columns={columns} data={users} emptyText="Belum ada pengguna terdaftar." />
         }
       </section>

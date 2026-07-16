@@ -1,10 +1,11 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table, renderDate, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 import { NumberInput } from '../../components/NumberInput';
+import { Skeleton } from '../../components/Skeleton';
 
 export const MitraPoPage = () => {
     const { request } = useApi();
@@ -391,7 +392,13 @@ export const MitraPoPage = () => {
                     </div>
                 )}
 
-                {loading && <p style={{ color: 'var(--text-muted)' }}>Menghitung kebutuhan bahan makanan...</p>}
+                {loading && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', margin: '15px 0' }}>
+                        <Skeleton height="40px" />
+                        <Skeleton height="40px" />
+                        <Skeleton height="40px" />
+                    </div>
+                )}
 
                 {/* Table Items Kebutuhan */}
                 {!loading && poItems.length > 0 && (
@@ -519,8 +526,16 @@ export const MitraPoPage = () => {
 
             {/* Riwayat PO List */}
             <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Riwayat Nota Pesanan (PO) Terdaftar</h3>
-            {listLoading && <p style={{ color: 'var(--text-muted)' }}>Memuat daftar riwayat PO...</p>}
-            <Table
+            {listLoading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                </div>
+            )}
+            {!listLoading && <Table
                 columns={[
                     { key: 'tanggal', header: 'Tanggal Pengiriman', render: (v) => renderDate(v) },
                     { key: 'supplier', header: 'Nama Supplier', render: (v) => v ? v.nama : '—' },
@@ -556,7 +571,7 @@ export const MitraPoPage = () => {
                 ]}
                 data={poList}
                 emptyText="Belum ada data Nota Pesanan (PO) untuk periode ini."
-            />
+            />}
         </div>
     );
 };

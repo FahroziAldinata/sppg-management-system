@@ -5,6 +5,7 @@ import { Table, renderDate, renderStatus } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { Skeleton } from '../../components/Skeleton';
 
 export const RabHarianPage = () => {
     const { request } = useApi();
@@ -201,8 +202,16 @@ export const RabHarianPage = () => {
 
             {/* Tabel Daftar RAB Harian */}
             <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar RAB Harian</h3>
-            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat daftar RAB...</p>}
-            <Table
+            {loading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                </div>
+            )}
+            {!loading && <Table
                 columns={[
                     { key: 'tanggal', header: 'Tanggal', render: (v) => renderDate(v) },
                     { key: 'status', header: 'Status Approval', render: (v) => renderStatus(v) },
@@ -237,7 +246,7 @@ export const RabHarianPage = () => {
                 ]}
                 data={rabList}
                 emptyText="Belum ada data RAB Harian untuk periode ini."
-            />
+            />}
             <ConfirmDialog
                 open={confirmOpen}
                 title="Konfirmasi Pengajuan"

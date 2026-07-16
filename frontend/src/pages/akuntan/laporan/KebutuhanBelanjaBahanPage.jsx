@@ -1,8 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
 import { useToast } from '../../../context/ToastContext';
 import { Table } from '../../../components/Table';
 import { DatePicker } from '../../../components/DatePicker';
+import { Skeleton } from '../../../components/Skeleton';
 
 export const KebutuhanBelanjaBahanPage = () => {
     const { request } = useApi();
@@ -171,7 +172,15 @@ export const KebutuhanBelanjaBahanPage = () => {
             </div>
 
             {/* Loading Indicator */}
-            {loading && <p>Memuat data laporan...</p>}
+            {loading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                </div>
+            )}
 
             {/* Render Table */}
             {!loading && reportData !== null && (

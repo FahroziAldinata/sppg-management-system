@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import { StatusBadge } from '../../components/StatusBadge';
 import Dropdown from '../../components/Dropdown';
+import { Skeleton } from '../../components/Skeleton';
 
 const STATUS_OPTIONS = [
   { value: 'BARU', label: 'Baru' },
@@ -135,7 +136,15 @@ export const LaporanBugPage = () => {
           Semua Laporan ({laporan.length})
         </h3>
         {loading
-          ? <p style={{ color: 'var(--text-muted)' }}>Memuat data laporan...</p>
+          ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <Skeleton height="40px" />
+              <Skeleton height="40px" />
+              <Skeleton height="40px" />
+              <Skeleton height="40px" />
+              <Skeleton height="40px" />
+            </div>
+          )
           : <Table columns={columns} data={laporan} emptyText="Belum ada laporan bug masuk." />
         }
       </section>

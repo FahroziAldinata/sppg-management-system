@@ -5,6 +5,7 @@ import { Table, renderDate, renderCode, renderTruncate, renderCurrency, renderSt
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from "../../components/Dropdown";
 import { NumberInput } from '../../components/NumberInput';
+import { Skeleton } from '../../components/Skeleton';
 
 
 export const JurnalTransaksiPage = () => {
@@ -361,7 +362,15 @@ export const JurnalTransaksiPage = () => {
 
             {/* List Jurnal */}
             <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Jurnal Transaksi</h3>
-            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat riwayat transaksi...</p>}
+            {loading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                </div>
+            )}
             {!loading && (
                 <Table
                     columns={[

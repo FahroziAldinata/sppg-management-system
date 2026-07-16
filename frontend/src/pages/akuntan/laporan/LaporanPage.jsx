@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useApi } from '../../../hooks/useApi';
 import { useToast } from '../../../context/ToastContext';
 import { Table } from '../../../components/Table';
+import { Skeleton } from '../../../components/Skeleton';
 
 export const LaporanPage = () => {
     const { request } = useApi();
@@ -458,7 +459,15 @@ export const LaporanPage = () => {
             </div>
 
             {/* Loading Indicator */}
-            {loading && <p>Memuat data laporan...</p>}
+            {loading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                    <Skeleton height="40px" />
+                </div>
+            )}
 
             {/* Render Tabel BKU & BP */}
             {!loading && (jenisLaporan === 'BKU' || jenisLaporan === 'BP') && (
