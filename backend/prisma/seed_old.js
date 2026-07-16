@@ -146,6 +146,7 @@ async function main() {
   // 6. USER — 1 akun per role. GANTI PASSWORD INI SEBELUM DIPAKAI DI PROD.
   // ---------------------------------------------------------------------
   const userData = [
+    { username: "admin", nama: "Administrator", role: "ADMIN" },
     { username: "aslap", nama: "Aslap Contoh", role: "ASLAP" },
     { username: "mitra", nama: "Mitra Contoh", role: "MITRA" },
     { username: "ahligizi", nama: "Ahli Gizi Contoh", role: "AHLI_GIZI" },
