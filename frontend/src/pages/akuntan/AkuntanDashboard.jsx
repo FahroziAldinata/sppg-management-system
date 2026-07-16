@@ -5,6 +5,7 @@ import { WorkflowStepper } from '../../components/WorkflowStepper';
 import { DashboardSummaryCards } from '../../components/DashboardSummaryCards';
 import Dropdown from '../../components/Dropdown';
 import { Card } from '../../components/Card';
+import { Skeleton } from '../../components/Skeleton';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export const AkuntanDashboard = () => {
@@ -156,7 +157,37 @@ export const AkuntanDashboard = () => {
     }
   };
 
-  if (loading) return <p>Memuat Ringkasan Beranda Akuntan...</p>;
+  if (loading) {
+    return (
+      <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '25px' }}>
+        {/* Welcome Banner Skeleton */}
+        <Skeleton height="120px" borderRadius="var(--radius-md)" />
+        
+        {/* Period Selector Skeleton */}
+        <Skeleton height="90px" width="320px" borderRadius="var(--radius-md)" />
+
+        {/* DashboardSummaryCards Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+        </div>
+
+        {/* 3 Financial Cards Skeleton */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+          <Skeleton height="110px" borderRadius="var(--radius-md)" />
+        </div>
+
+        {/* Chart Skeleton */}
+        <Skeleton height="350px" borderRadius="var(--radius-md)" />
+
+        {/* Progress Tracker Skeleton */}
+        <Skeleton height="150px" borderRadius="var(--radius-md)" />
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '10px' }}>
@@ -251,8 +282,8 @@ export const AkuntanDashboard = () => {
           </div>
         </Card>
       ) : loadingRealisasi ? (
-        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 350 }}>
-          <p style={{ color: 'var(--text-muted)' }}>Memuat data grafik...</p>
+        <Card style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '24px', backgroundColor: 'var(--bg-elevated)', marginBottom: '30px' }}>
+          <Skeleton height="302px" />
         </Card>
       ) : null}
 

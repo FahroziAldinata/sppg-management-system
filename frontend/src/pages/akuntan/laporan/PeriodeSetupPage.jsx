@@ -5,6 +5,7 @@ import { RangeCalendar } from "@heroui/react";
 import { today, getLocalTimeZone } from "@internationalized/date";
 import { parseDate } from "@internationalized/date";
 import { DatePicker } from '../../../components/DatePicker';
+import { Skeleton } from '../../../components/Skeleton';
 
 export const PeriodeSetupPage = () => {
     const { request } = useApi();
@@ -189,7 +190,14 @@ export const PeriodeSetupPage = () => {
                 Halaman ini digunakan untuk memulai periode operasional dan keuangan baru. Data lembaga di-autofill otomatis dari periode sebelumnya untuk menghemat waktu Anda.
             </p>
 
-            {loading && <p style={{ color: 'var(--text-muted)' }}>Memuat konfigurasi default...</p>}
+            {loading && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    <Skeleton height="150px" borderRadius="var(--radius-md)" />
+                    <Skeleton height="180px" borderRadius="var(--radius-md)" />
+                    <Skeleton height="120px" borderRadius="var(--radius-md)" />
+                    <Skeleton height="40px" width="180px" borderRadius="var(--radius-md)" />
+                </div>
+            )}
 
             {!loading && (
                 <form onSubmit={handleSubmit} style={{
