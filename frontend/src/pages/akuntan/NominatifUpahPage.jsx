@@ -7,6 +7,7 @@ import Dropdown from '../../components/Dropdown';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { StatusBadge } from '../../components/StatusBadge';
 import { NominatifUpahGrid } from '../../components/NominatifUpahGrid';
+import { NumberInput } from '../../components/NumberInput';
 
 export const NominatifUpahPage = () => {
     const { request } = useApi();
@@ -393,6 +394,8 @@ export const NominatifUpahPage = () => {
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Daftar Nominatif Upah Relawan</h2>
             
+
+
             {/* Pilihan Periode */}
             <div style={{ display: 'flex', gap: '20px', marginBottom: '30px', flexWrap: 'wrap' }}>
                 {/* Pilihan Periode */}
@@ -580,12 +583,10 @@ export const NominatifUpahPage = () => {
                             </div>
                             <div>
                                 <label className="form-label" style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>Tarif Harian (Rp)</label>
-                                <input
-                                    type="number"
+                                <NumberInput
                                     placeholder="Nominal tarif harian"
                                     value={editJpId ? editJpForm.tarifHarian : jpForm.tarifHarian}
-                                    onChange={e => {
-                                        const val = e.target.value;
+                                    onChange={val => {
                                         if (editJpId) {
                                             setEditJpForm(prev => ({ ...prev, tarifHarian: val }));
                                         } else {

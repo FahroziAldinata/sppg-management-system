@@ -4,6 +4,7 @@ import { useToast } from '../../context/ToastContext';
 import { Table, renderDate, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
+import { NumberInput } from '../../components/NumberInput';
 
 export const MitraPoPage = () => {
     const { request } = useApi();
@@ -443,13 +444,11 @@ export const MitraPoPage = () => {
                                     width: '140px',
                                     align: 'right',
                                     render: (v, row, idx) => (
-                                        <input
-                                            type="number"
-                                            step="0.01"
+                                        <NumberInput
                                             className="form-field"
                                             style={{ textAlign: 'right' }}
-                                            value={v}
-                                            onChange={e => handleItemChange(idx, 'hargaSatuan', e.target.value)}
+                                            value={v === '' ? '' : Number(v)}
+                                            onChange={val => handleItemChange(idx, 'hargaSatuan', val)}
                                             required
                                         />
                                     )

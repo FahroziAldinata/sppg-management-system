@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table, renderDate, renderCode, renderTruncate, renderCurrency, renderStatus } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from "../../components/Dropdown";
+import { NumberInput } from '../../components/NumberInput';
 
 
 export const JurnalTransaksiPage = () => {
@@ -278,12 +279,12 @@ export const JurnalTransaksiPage = () => {
                         }}>
                             Nominal
                         </label>
-                        <input
-                            type="number"
+                        <NumberInput
+
                             className="form-field"
                             placeholder="Nominal (Rp)"
                             value={jurnalForm.nominal}
-                            onChange={e => setJurnalForm(prev => ({ ...prev, nominal: e.target.value }))}
+                            onChange={val => setJurnalForm(prev => ({ ...prev, nominal: val }))}
                             required
                         />
                     </div>

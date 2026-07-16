@@ -1,8 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table, renderCurrency } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
+import { NumberInput } from '../../components/NumberInput';
 
 export const SaldoAwalBarangPage = () => {
     const { request } = useApi();
@@ -220,12 +221,12 @@ export const SaldoAwalBarangPage = () => {
                         }}>
                             Harga Beli Awal (Rp)
                         </label>
-                        <input
-                            type="number"
-                            step="0.01"
+                        <NumberInput
+
+
                             placeholder="Harga Beli Awal"
                             value={saldoAwalForm.hargaBeliAwal}
-                            onChange={e => setSaldoAwalForm(prev => ({ ...prev, hargaBeliAwal: e.target.value }))}
+                            onChange={val => setSaldoAwalForm(prev => ({ ...prev, hargaBeliAwal: val }))}
                             required
                             className="form-field"
                         />

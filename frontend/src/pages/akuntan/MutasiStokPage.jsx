@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table, renderDate, renderStatus, renderTruncate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
+import { NumberInput } from '../../components/NumberInput';
 
 export const MutasiStokPage = () => {
     const { request } = useApi();
@@ -367,11 +368,11 @@ export const MutasiStokPage = () => {
                                 }}>
                                     Harga Beli (Rp)
                                 </label>
-                                <input
-                                    type="number"
+                                <NumberInput
+
                                     placeholder="Harga Beli"
                                     value={mutasiForm.hargaBeli}
-                                    onChange={e => setMutasiForm(prev => ({ ...prev, hargaBeli: e.target.value }))}
+                                    onChange={val => setMutasiForm(prev => ({ ...prev, hargaBeli: val }))}
                                     required
                                     className="form-field"
                                 />

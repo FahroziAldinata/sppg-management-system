@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table, renderDate } from '../../components/Table';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
+import { NumberInput } from '../../components/NumberInput';
 
 export const AnggaranHarianPage = () => {
     const { request } = useApi();
@@ -253,11 +254,11 @@ export const AnggaranHarianPage = () => {
                         }}>
                             Jumlah Paket (Total)
                         </label>
-                        <input
-                            type="number"
+                        <NumberInput
+
                             placeholder="Jumlah Paket"
                             value={anggaranForm.jumlahPaket}
-                            onChange={e => setAnggaranForm(prev => ({ ...prev, jumlahPaket: e.target.value }))}
+                            onChange={val => setAnggaranForm(prev => ({ ...prev, jumlahPaket: val }))}
                             className="form-field"
                             required
                         />
@@ -298,11 +299,11 @@ export const AnggaranHarianPage = () => {
                         }}>
                             Harga Satuan
                         </label>
-                        <input
-                            type="number"
+                        <NumberInput
+
                             placeholder="Harga Satuan (Rp)"
                             value={anggaranForm.hargaSatuan}
-                            onChange={e => setAnggaranForm(prev => ({ ...prev, hargaSatuan: e.target.value }))}
+                            onChange={val => setAnggaranForm(prev => ({ ...prev, hargaSatuan: val }))}
                             className="form-field"
                             required
                         />
@@ -330,19 +331,19 @@ export const AnggaranHarianPage = () => {
                                     ...categories.map(cat => ({ value: cat.id, label: `${cat.nama} (${cat.jenisPorsi})` }))
                                 ]}
                             />
-                            <input
-                                type="number"
+                            <NumberInput
+
                                 placeholder="Jumlah Paket"
                                 value={tempDetail.jumlahPaket}
-                                onChange={e => setTempDetail(prev => ({ ...prev, jumlahPaket: e.target.value }))}
+                                onChange={val => setTempDetail(prev => ({ ...prev, jumlahPaket: val }))}
                                 className="form-field"
                                 style={{ width: '120px' }}
                             />
-                            <input
-                                type="number"
+                            <NumberInput
+
                                 placeholder="Harga Satuan"
                                 value={tempDetail.hargaSatuan}
-                                onChange={e => setTempDetail(prev => ({ ...prev, hargaSatuan: e.target.value }))}
+                                onChange={val => setTempDetail(prev => ({ ...prev, hargaSatuan: val }))}
                                 className="form-field"
                                 style={{ width: '120px' }}
                             />

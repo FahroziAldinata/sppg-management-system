@@ -4,6 +4,7 @@ import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { DatePicker } from '../../components/DatePicker';
 import Dropdown from '../../components/Dropdown';
+import { NumberInput } from '../../components/NumberInput';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Table, renderStatus, renderDate } from '../../components/Table';
 import { FieldButton } from '../../components/FieldButton';
@@ -583,7 +584,7 @@ export const MenuHarianPage = () => {
             {editable && (
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 160px 1fr auto', gap: 10, alignItems: 'end' }}>
                     <div>{fieldLabel('Jenis alergi')}<input className="form-field" value={alergiForm[blok.id]?.jenisAlergi || ''} onChange={e => setAlergiField(blok.id, 'jenisAlergi', e.target.value)} /></div>
-                    <div>{fieldLabel('Jumlah siswa')}<input className="form-field" type="number" value={alergiForm[blok.id]?.jumlahSiswa || ''} onChange={e => setAlergiField(blok.id, 'jumlahSiswa', e.target.value)} /></div>
+                    <div>{fieldLabel('Jumlah siswa')}<NumberInput className="form-field" value={alergiForm[blok.id]?.jumlahSiswa === '' || alergiForm[blok.id]?.jumlahSiswa === undefined ? '' : Number(alergiForm[blok.id]?.jumlahSiswa)} onChange={val => setAlergiField(blok.id, 'jumlahSiswa', val)} /></div>
                     <div>{fieldLabel('Bahan pengganti')}<input className="form-field" value={alergiForm[blok.id]?.bahanPengganti || ''} onChange={e => setAlergiField(blok.id, 'bahanPengganti', e.target.value)} /></div>
                     <button type="button" onClick={() => addAlergi(blok.id)} style={buttonStyle('primary')}>Tambah</button>
                 </div>
