@@ -1,58 +1,53 @@
-## Code-splitting bundle size (belum urgent)
+# Daftar Tugas SPPG (Juli 2026)
 
-- Vite build warning: ada chunk >500kB minified (pre-existing sejak awal,
-  bukan dari cleanup unused-files 2026-07-15).
-- Fix: `React.lazy` per halaman role (Aslap/Mitra/Gizi/Akuntan/Kepala) atau
-  `manualChunks` di `vite.config.js`.
-- Prioritas: rendah. Kerjakan kalau ada bukti nyata loading lambat di
-  lapangan (terutama Aslap pakai koneksi HP), bukan preventif.
-- Scope: refactor import/routing, BUKAN bagian audit file gak kepake.
+## A. Batch Lanjutan (Instruksi Demo & Audit Keuangan)
 
----
+### 1. [ ] Tugas 1 — AUDIT & Fix Kode Akun COA (Kritis, Prioritas Utama)
+- **Deskripsi**: Menyesuaikan mapping chart of accounts (COA) agar selaras dengan kebutuhan akuntan:
+  - `2120` = Dana Operasional (DANA)
+  - `2121` = Biaya Insentif Fasilitas (BIAYA) - *Sudah benar, jangan diubah*
+  - `2122` = Biaya Lainnya (BIAYA, kategori baru)
+  - Kode baru (misal `2123`) = Biaya Operasional (BIAYA)
+- **Tugas Audit**: Laporkan apakah penambahan value baru ke enum `KategoriDana` di `schema.prisma` memerlukan migrasi database/schema terpisah, atau bisa langsung ditambahkan secara aman. *JANGAN jalankan migrasi/seed sebelum disetujui.*
 
-## Revisi Sistem — Feedback Demo
+### 2. [ ] Tugas 2 — Audit field "Catatan Pengeluaran" di Jurnal Transaksi
+- **Deskripsi**: Periksa model `JurnalTransaksi` di `schema.prisma` untuk melihat apakah ada field catatan/keterangan tambahan di luar field `uraian` yang sudah ada.
+- **Tugas Audit**: Laporkan ketersediaan field ini untuk menentukan langkah penyesuaian formulir ke depannya.
 
-### A. Fix UI Cepat (langsung kerjain, ga perlu diskusi)
+### 3. [x] Tugas 3 — Fix judul & layout PDF BKU
+- **Deskripsi**: Mengganti judul dokumen PDF BKU dari `"Catatan Pengeluaran Bulanan"` menjadi `"BUKU KAS UMUM"` agar sesuai dengan laporan resmi.
+- **Status**: Selesai. Aturan `@page` di `shared.js` juga telah diselaraskan agar menghilangkan margin ganda yang menyebabkan layout pecah.
 
-- [x] **DatePicker: format DD/MM/YYYY**
-  - Cek `DatePicker.jsx`, ganti format display ke locale `id-ID`.
+### 4. [ ] Tugas 4 — Audit BP per kategoriDana vs per akunId tunggal
+- **Deskripsi**: Periksa halaman dan endpoint `/laporan/bp` (Buku Pembantu) untuk mengetahui apakah filter pencarian/kalkulasi saat ini hanya mengambil satu akun secara spesifik (`akunId` tunggal), atau apakah ada mekanisme untuk menampilkan gabungan akun DANA + BIAYA sekaligus (seperti format Excel yang menggabungkan Dana Bahan Baku & Biaya Bahan Baku).
+- **Tugas Audit**: Laporkan alur behavior saat ini sebelum melakukan perubahan logika apa pun.
 
-- [x] **Format Rupiah di Setup Periode** — `anggaranAlokasi` & `totalDanaDiterima`
-  - Pakai helper `formatRupiah` dari `shared.js` (udah ada).
-  - Reuse ke form input sebagai mask input (bukan cuma display).
-
-- [x] **Fitur Delete di tabel Jurnal Transaksi**
-  - Tambah tombol Hapus + dialog konfirmasi.
-  - Panggil endpoint `DELETE /jurnal-transaksi/:id` (cek dulu di backend, kemungkinan udah ada).
-  - ⚠️ **Wajib**: setelah delete, panggil ulang `recalcAktualAnggaran` biar `AnggaranHarian.aktual` ga nyangkut angka lama.
-
-- [x] **Tooltip/label "Turunan Periode" → ganti copy**
-  - Teks baru: `"Periode aktif yang dipilih (tanggal transaksi harus dalam rentang ini)"`
-  - Cari di komponen dropdown periode shared, ganti copy-nya.
+### 5. Catatan Desain (Referensi Masa Depan)
+> [!NOTE]
+> Struktur menu/sidebar navigasi tidak perlu menduplikasi struktur sheet Excel secara 1:1. Yang paling penting adalah alur kerja (workflow) terasa familier dan intuitif bagi Akuntan, sehingga pengelompokan menu yang serumpun/berhubungan lebih diprioritaskan dibandingkan sekadar kesamaan nama sheet.
 
 ---
 
-- [x] **Dana Operasional gabung 1 akun (2120)?**
-  - Pemecahan selesai: Akun 2120 diubah menjadi "Biaya Operasional" (BIAYA) dan Akun 2122 baru ditambahkan sebagai "Dana Operasional" (DANA).
+## B. Tugas Lainnya / Terbuka
 
-- [x] **`totalDanaDiterima` di Setup Periode — snapshot manual atau auto-link ke Jurnal?**
-  - Auto-SUM selesai: Field dihapus dari setup form frontend, dan diganti kalkulasi live SUM JurnalTransaksi tipe DANA di BKU.
+### 1. [ ] Transaksi Jurnal gagal "ga sesuai periode"
+- **Deskripsi**: Validasi tanggal jurnal transaksi wajib berada dalam rentang tanggal `Periode` aktif. 
+- **Langkah**: Cek nilai `tanggalMulai` dan `tanggalSelesai` pada data Setup Periode yang digunakan saat pengujian (ada kemungkinan data periode salah setup saat demo).
+
+### 2. [ ] Code-splitting bundle size (Belum Urgent)
+- **Deskripsi**: Vite build warning mengenai chunk size >500kB.
+- **Langkah**: Implementasikan `React.lazy` per halaman role atau konfigurasikan `manualChunks` di `vite.config.js` jika performa memburuk.
 
 ---
 
-### C. Perlu Audit Dulu (agent cek, sebelum eksekusi)
+## C. Arsip Tugas Selesai (Completed)
 
-- [x] **RAB Harian kosong, ga bisa input transaksi**
-  - Penambahan banner penjelasan di halaman RabHarianPage sudah selesai (transaksi PO Bahan Makanan diinput oleh Mitra).
-
-- [ ] **Transaksi Jurnal gagal "ga sesuai periode"**
-  - Validasi v5.8/v5.11 jalan sesuai desain (tanggal jurnal wajib dalam rentang Periode).
-  - Cek dulu `tanggalMulai`/`tanggalSelesai` di Periode yang dipakai testing — kemungkinan besar bukan bug, Setup Periode-nya salah isi pas demo.
-  - Perbaiki data Setup Periode dulu, baru test ulang Jurnal.
-
-- [x] **"Bantuan Pemerintah" sebagai kategori dana masuk terpisah**
-  - Penyelesaian selesai: Shortcut shortcut "Isi Cepat BanPer" telah ditambahkan ke JurnalTransaksiPage.
-
-- [x] **Laporan Resume Penerimaan-Pengeluaran (LR)**
-  - Pembuatan laporan LR selesai dengan menggunakan reuse endpoint LPA (tanpa field input Nomor Dokumen).
-
+- [x] **Laporan Resume Penerimaan-Pengeluaran (LR)**: Integrasi dropdown baru, reuse endpoint LPA dengan parameter `isLr=true`, dan penyesuaian layout PDF (menyembunyikan nomor dokumen).
+- [x] **DatePicker format DD/MM/YYYY**: Update display format ke locale `id-ID`.
+- [x] **Format Rupiah di Setup Periode**: Masking nominal rupiah pada form input `anggaranAlokasi` & `totalDanaDiterima` di frontend.
+- [x] **Fitur Delete di Jurnal Transaksi**: Penambahan tombol hapus transaksi ledger beserta pemicu otomatis untuk fungsi recalculate anggaran harian (`recalcAktualAnggaran`).
+- [x] **Tooltip "Turunan Periode"**: Penggantian copy teks tooltip penjelas periode aktif.
+- [x] **Dana Operasional gabung 1 akun (2120)**: Pemecahan akun menjadi 2120 (Biaya Operasional - BIAYA) dan 2122 (Dana Operasional - DANA).
+- [x] **`totalDanaDiterima` Setup Periode**: Pembersihan input manual dari form setup periode, beralih ke kalkulasi live aggregate SUM transaksi masuk (DANA) di BKU.
+- [x] **RAB Harian Kosong**: Penambahan banner informatif yang menerangkan bahwa transaksi bahan makanan diinput langsung oleh Mitra melalui Purchase Order.
+- [x] **Isi Cepat Bantuan Pemerintah (BanPer)**: Implementasi shortcut otomatis pengisian formulir jurnal masuk untuk ketiga kategori dana utama.
