@@ -140,7 +140,7 @@ function formatNumberTabel(val) {
  * Shared <style> block untuk semua dokumen resmi (injected ke <head>).
  */
 const SHARED_CSS = `
-  @page { size: A4; margin: 15mm 15mm 15mm 20mm; }
+  @page { size: A4; margin: 0; }
   * { box-sizing: border-box; }
   body {
     font-family: 'Times New Roman', Times, serif;
