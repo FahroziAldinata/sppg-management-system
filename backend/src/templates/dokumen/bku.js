@@ -83,7 +83,7 @@ function renderBkuHtml(data) {
 </head>
 <body>
 
-  <h2 class="judul-dok" style="margin-top: 20px; text-align: center;">Catatan Pengeluaran Bulanan</h2>
+  <h2 class="judul-dok" style="margin-top: 20px; text-align: center;">BUKU KAS UMUM</h2>
   <div style="text-align: center; font-size: 11pt; margin-bottom: 15px; font-weight: bold;">
     ${escapeHtml(formattedPeriode)}
   </div>
