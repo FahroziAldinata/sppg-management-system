@@ -7,6 +7,18 @@ import { parseDate } from "@internationalized/date";
 import { DatePicker } from '../../../components/DatePicker';
 import { Skeleton } from '../../../components/Skeleton';
 
+const formatInputRupiah = (valueStr) => {
+    if (valueStr === null || valueStr === undefined || valueStr === '') return '';
+    const clean = valueStr.toString().replace(/\D/g, '');
+    if (!clean) return '';
+    return `Rp ${Number(clean).toLocaleString('id-ID')}`;
+};
+
+const parseInputRupiah = (valueStr) => {
+    if (!valueStr) return '';
+    return valueStr.toString().replace(/\D/g, '');
+};
+
 export const PeriodeSetupPage = () => {
     const { request } = useApi();
     const toast = useToast();
@@ -18,7 +30,6 @@ export const PeriodeSetupPage = () => {
     const [tanggalSelesai, setTanggalSelesai] = useState('');
     const [selectedRange, setSelectedRange] = useState(null);
     const [anggaranAlokasi, setAnggaranAlokasi] = useState('');
-    const [totalDanaDiterima, setTotalDanaDiterima] = useState('');
     const [namaLembaga, setNamaLembaga] = useState('');
     const [alamat, setAlamat] = useState('');
     const [namaKepalaSPPG, setNamaKepalaSPPG] = useState('');
@@ -145,7 +156,6 @@ export const PeriodeSetupPage = () => {
                 tanggalMulai,
                 tanggalSelesai,
                 anggaranAlokasi: parseFloat(anggaranAlokasi),
-                totalDanaDiterima: totalDanaDiterima ? parseFloat(totalDanaDiterima) : null,
                 namaLembaga,
                 alamat,
                 namaKepalaSPPG,
@@ -170,7 +180,6 @@ export const PeriodeSetupPage = () => {
                 // Reload to reset the defaults based on the newly created period
                 await fetchLatestSetup();
                 setAnggaranAlokasi('');
-                setTotalDanaDiterima('');
             } else {
                 const d = await r.json().catch(() => ({ error: 'Gagal membuat periode baru' }));
                 toast.error(d.error);
@@ -283,36 +292,13 @@ export const PeriodeSetupPage = () => {
                                         Anggaran Alokasi (Pagu BGN) *
                                     </label>
                                     <input
-                                        type="number"
-                                        step="0.01"
+                                        type="text"
                                         placeholder="Masukkan Pagu Dana"
-                                        value={anggaranAlokasi}
-                                        onChange={e => setAnggaranAlokasi(e.target.value)}
+                                        value={formatInputRupiah(anggaranAlokasi)}
+                                        onChange={e => setAnggaranAlokasi(parseInputRupiah(e.target.value))}
                                         className="form-field"
                                         style={{ width: '90%' }}
                                         required
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{
-                                        textTransform: 'uppercase',
-                                        fontSize: '11px',
-                                        fontWeight: 700,
-                                        letterSpacing: '0.07em',
-                                        color: 'var(--text-muted)',
-                                        display: 'block',
-                                        marginBottom: '6px'
-                                    }}>
-                                        Total Dana Diterima (Opsional)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Diisi jika dana sudah cair ke VA"
-                                        value={totalDanaDiterima}
-                                        onChange={e => setTotalDanaDiterima(e.target.value)}
-                                        className="form-field"
-                                        style={{ width: '90%' }}
                                     />
                                 </div>
                             </div>

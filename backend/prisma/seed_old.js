@@ -88,7 +88,8 @@ async function main() {
     { kode: "1101", nama: "Petty Cash/Cash in Hand", tipe: "KAS", kategoriDana: null },
     { kode: "1102", nama: "Kas di Bank", tipe: "KAS", kategoriDana: null },
     { kode: "2110", nama: "Dana Bahan Baku", tipe: "DANA", kategoriDana: "BAHAN_MAKANAN" },
-    { kode: "2120", nama: "Operasional", tipe: "BIAYA", kategoriDana: "OPERASIONAL" }, // 1 akun gabungan, lihat catatan v5.5
+    { kode: "2120", nama: "Biaya Operasional", tipe: "BIAYA", kategoriDana: "OPERASIONAL" },
+    { kode: "2122", nama: "Dana Operasional", tipe: "DANA", kategoriDana: "OPERASIONAL" },
     { kode: "2130", nama: "Dana Insentif Fasilitas", tipe: "DANA", kategoriDana: "INSENTIF_FASILITAS" },
     { kode: "2140", nama: "Pungutan/Setoran PPN", tipe: "PAJAK", kategoriDana: null },
     { kode: "2150", nama: "Pungutan/Setoran PPh 21", tipe: "PAJAK", kategoriDana: null },
@@ -102,7 +103,7 @@ async function main() {
   for (const a of akunData) {
     await prisma.akun.upsert({
       where: { kode: a.kode },
-      update: {},
+      update: { nama: a.nama, tipe: a.tipe, kategoriDana: a.kategoriDana },
       create: a,
     });
   }

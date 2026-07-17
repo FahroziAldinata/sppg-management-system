@@ -151,6 +151,24 @@ export const JurnalTransaksiPage = () => {
         }
     };
 
+    const handleDelete = async (id) => {
+        if (!window.confirm('Apakah Anda yakin ingin menghapus jurnal transaksi ini? Tindakan ini tidak dapat dibatalkan.')) return;
+        try {
+            const r = await request(`/akuntan/jurnal-transaksi/${id}`, {
+                method: 'DELETE'
+            });
+            if (r.ok) {
+                toast.success('Jurnal Transaksi berhasil dihapus.');
+                loadJurnal(periodeId);
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal menghapus jurnal transaksi' }));
+                toast.error(d.error);
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pencatatan Jurnal Transaksi Ledger</h2>
@@ -174,7 +192,35 @@ export const JurnalTransaksiPage = () => {
                     display: 'block',
                     marginBottom: '6px'
                 }}>
-                    Pilih Periode Aktif
+                    Periode aktif (transaksi harus dalam rentang tanggal periode ini)
+                </label>
+                <Dropdown
+                    style={{ width: '100%' }}
+                    value={periodeId}
+                    onChange={setPeriodeId}
+                    options={periods.map(p => ({
+                        value: p.id,
+            {/* Filter Periode */}
+            <div style={{
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)',
+                padding: '24px',
+                backgroundColor: 'var(--bg-elevated)',
+                boxShadow: 'var(--shadow)',
+                marginBottom: '30px',
+                width: '26%',
+                minWidth: '320px'
+            }}>
+                <label style={{
+                    textTransform: 'uppercase',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    letterSpacing: '0.07em',
+                    color: 'var(--text-muted)',
+                    display: 'block',
+                    marginBottom: '6px'
+                }}>
+                    Periode aktif (transaksi harus dalam rentang tanggal periode ini)
                 </label>
                 <Dropdown
                     style={{ width: '100%' }}
@@ -200,6 +246,48 @@ export const JurnalTransaksiPage = () => {
                 gap: '16px'
             }}>
                 <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Buat Jurnal Transaksi</h3>
+
+                {/* Quick-fill: Bantuan Pemerintah */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', marginRight: '4px' }}>
+                        Isi Cepat BanPer:
+                    </span>
+                    {[
+                        { label: 'Bahan Baku', uraian: 'Diterima Dana BanPer untuk Bahan Baku', kategori: 'BAHAN_MAKANAN' },
+                        { label: 'Operasional', uraian: 'Diterima Dana BanPer untuk Operasional', kategori: 'OPERASIONAL' },
+                        { label: 'Insentif Fasilitas', uraian: 'Diterima Dana BanPer untuk Insentif Fasilitas', kategori: 'INSENTIF_FASILITAS' },
+                    ].map(({ label, uraian, kategori }) => {
+                        const akunDana = akunList.find(a => a.tipe === 'DANA' && a.kategoriDana === kategori);
+                        return (
+                            <button
+                                key={kategori}
+                                type="button"
+                                disabled={!akunDana}
+                                title={akunDana ? `Auto-isi: ${uraian} → Akun [${akunDana?.kode}]` : 'Akun Dana untuk kategori ini tidak ditemukan'}
+                                onClick={() => setJurnalForm(prev => ({
+                                    ...prev,
+                                    uraian,
+                                    jenis: 'MASUK',
+                                    akunDanaBiayaId: akunDana?.id || prev.akunDanaBiayaId
+                                }))}
+                                style={{
+                                    padding: '4px 10px',
+                                    fontSize: '12px',
+                                    fontWeight: 600,
+                                    border: '1px solid var(--color-primary, #4f46e5)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--color-primary, #4f46e5)',
+                                    cursor: akunDana ? 'pointer' : 'not-allowed',
+                                    opacity: akunDana ? 1 : 0.45,
+                                }}
+                            >
+                                + {label}
+                            </button>
+                        );
+                    })}
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>(masih bisa edit manual)</span>
+                </div>
 
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                     <div style={{ flex: '1 1 200px' }}>
@@ -389,7 +477,30 @@ export const JurnalTransaksiPage = () => {
                             )
                         },
                         { key: 'akunKas', header: 'Akun Kas', render: (v) => v ? `[${v.kode}] ${v.nama}` : '—' },
-                        { key: 'akunDanaBiaya', header: 'Akun Dana / Biaya', render: (v) => v ? `[${v.kode}] ${v.nama}` : '—' }
+                        { key: 'akunDanaBiaya', header: 'Akun Dana / Biaya', render: (v) => v ? `[${v.kode}] ${v.nama}` : '—' },
+                        {
+                            key: 'id',
+                            header: 'Aksi',
+                            align: 'center',
+                            render: (id) => (
+                                <button
+                                    type="button"
+                                    onClick={() => handleDelete(id)}
+                                    style={{
+                                        padding: '6px 12px',
+                                        backgroundColor: '#ef4444',
+                                        color: '#ffffff',
+                                        border: 'none',
+                                        borderRadius: 'var(--radius-sm)',
+                                        cursor: 'pointer',
+                                        fontSize: '12px',
+                                        fontWeight: 600
+                                    }}
+                                >
+                                    Hapus
+                                </button>
+                            )
+                        }
                     ]}
                     data={jurnalList}
                     emptyText="Belum ada data Jurnal Transaksi untuk periode ini."

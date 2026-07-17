@@ -41,12 +41,17 @@ const HARI_MAP = {
 };
 
 async function getBkuData(periodeId) {
-  const [lembaga, periode, saldoAwalAgg, realisasiBahan, realisasiOperasional, realisasiSewa] = await Promise.all([
+  const [lembaga, periode, saldoAwalAgg, danaMasukAggResult, realisasiBahan, realisasiOperasional, realisasiSewa] = await Promise.all([
     prisma.setupLembaga.findFirst({ where: { periodeId } }),
     prisma.periode.findUnique({ where: { id: periodeId } }),
     prisma.saldoAwalPeriode.aggregate({
       where: { periodeId, akun: { tipe: "KAS" } },
       _sum: { saldoAwal: true },
+    }),
+    // SUM live dana masuk (BanPer) — filter jenis MASUK ke akun DANA, exclude BIAYA/KAS/PAJAK
+    prisma.jurnalTransaksi.aggregate({
+      where: { periodeId, jenis: "MASUK", akunDanaBiaya: { tipe: "DANA" } },
+      _sum: { nominal: true },
     }),
     getRealisasiPeriode(periodeId, "BAHAN_MAKANAN"),
     getRealisasiPeriode(periodeId, "OPERASIONAL"),
@@ -58,6 +63,7 @@ async function getBkuData(periodeId) {
   }
 
   const sisaDanaLalu = Number(saldoAwalAgg._sum.saldoAwal || 0);
+  const danaDiterimaSaatIni = Number(danaMasukAggResult._sum.nominal || 0);
   let saldo = sisaDanaLalu;
 
   const jurnal = await prisma.jurnalTransaksi.findMany({
@@ -89,13 +95,13 @@ async function getBkuData(periodeId) {
       alamat: lembaga.alamat,
       periodeLabel: `${periode.tanggalMulai.toISOString().split("T")[0]} - ${periode.tanggalSelesai.toISOString().split("T")[0]}`,
       sisaDanaLalu,
-      danaDiterimaSaatIni: Number(periode.totalDanaDiterima || 0),
-      danaTersedia: sisaDanaLalu + Number(periode.totalDanaDiterima || 0),
+      danaDiterimaSaatIni,
+      danaTersedia: sisaDanaLalu + danaDiterimaSaatIni,
       biayaBahanBaku: Number(realisasiBahan.terealisasi),
       biayaOperasional: Number(realisasiOperasional.terealisasi),
       biayaInsentifFasilitas: Number(realisasiSewa.terealisasi),
       totalPengeluaran: Number(realisasiBahan.terealisasi) + Number(realisasiOperasional.terealisasi) + Number(realisasiSewa.terealisasi),
-      sisaDanaSaatIni: (sisaDanaLalu + Number(periode.totalDanaDiterima || 0)) - (Number(realisasiBahan.terealisasi) + Number(realisasiOperasional.terealisasi) + Number(realisasiSewa.terealisasi)),
+      sisaDanaSaatIni: (sisaDanaLalu + danaDiterimaSaatIni) - (Number(realisasiBahan.terealisasi) + Number(realisasiOperasional.terealisasi) + Number(realisasiSewa.terealisasi)),
     },
     transaksi
   };

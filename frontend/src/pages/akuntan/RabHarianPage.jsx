@@ -142,7 +142,7 @@ export const RabHarianPage = () => {
                     display: 'block',
                     marginBottom: '6px'
                 }}>
-                    Pilih Periode Aktif
+                    Periode aktif (transaksi harus dalam rentang tanggal periode ini)
                 </label>
                 <Dropdown
                     style={{ width: '100%' }}
@@ -153,6 +153,21 @@ export const RabHarianPage = () => {
             </div>
 
             {/* Form Buat RAB Harian */}
+            <div style={{
+                padding: '12px 16px',
+                backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                borderRadius: 'var(--radius-sm)',
+                marginBottom: '16px',
+                fontSize: '13px',
+                color: 'var(--text)',
+                lineHeight: '1.6'
+            }}>
+                ℹ️ <strong>Halaman ini hanya menetapkan tanggal RAB.</strong>{' '}
+                Item belanja / nota pesanan (PO) diinput oleh <strong>Mitra</strong> di halaman{' '}
+                <em>Nota Pesanan (PO Bahan Makanan)</em>. Setelah Mitra menyimpan PO untuk tanggal tertentu,
+                data transaksi pembelian akan otomatis terhubung ke RAB Harian pada tanggal yang sama.
+            </div>
             <form onSubmit={createRabHarian} style={{
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',

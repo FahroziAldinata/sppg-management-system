@@ -172,7 +172,7 @@ export const AnggaranHarianPage = () => {
                     display: 'block',
                     marginBottom: '6px'
                 }}>
-                    Pilih Periode Aktif
+                    Periode aktif (transaksi harus dalam rentang tanggal periode ini)
                 </label>
                 <Dropdown
                     style={{ width: '100%' }}

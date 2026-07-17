@@ -85,7 +85,11 @@ export function DatePicker({
                 }}
                 onKeyDown={onKeyDown}
             >
-                <span>{value || placeholder}</span>
+                <span>{(() => {
+                    if (!value) return placeholder;
+                    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                    return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
+                })()}</span>
                 <span aria-hidden style={{ marginLeft: 8, opacity: 0.6 }}>▾</span>
             </button>
             {required && (
