@@ -88,8 +88,10 @@ async function main() {
     { kode: "1101", nama: "Petty Cash/Cash in Hand", tipe: "KAS", kategoriDana: null },
     { kode: "1102", nama: "Kas di Bank", tipe: "KAS", kategoriDana: null },
     { kode: "2110", nama: "Dana Bahan Baku", tipe: "DANA", kategoriDana: "BAHAN_MAKANAN" },
-    { kode: "2120", nama: "Biaya Operasional", tipe: "BIAYA", kategoriDana: "OPERASIONAL" },
-    { kode: "2122", nama: "Dana Operasional", tipe: "DANA", kategoriDana: "OPERASIONAL" },
+    { kode: "2120", nama: "Dana Operasional", tipe: "DANA", kategoriDana: "OPERASIONAL" },
+    { kode: "2121", nama: "Biaya Insentif Fasilitas", tipe: "BIAYA", kategoriDana: "INSENTIF_FASILITAS" },
+    { kode: "2122", nama: "Biaya Lainnya", tipe: "BIAYA", kategoriDana: null },
+    { kode: "2123", nama: "Biaya Operasional", tipe: "BIAYA", kategoriDana: "OPERASIONAL" },
     { kode: "2130", nama: "Dana Insentif Fasilitas", tipe: "DANA", kategoriDana: "INSENTIF_FASILITAS" },
     { kode: "2140", nama: "Pungutan/Setoran PPN", tipe: "PAJAK", kategoriDana: null },
     { kode: "2150", nama: "Pungutan/Setoran PPh 21", tipe: "PAJAK", kategoriDana: null },
@@ -97,7 +99,6 @@ async function main() {
     { kode: "2170", nama: "Pungutan/Setoran PPh 23", tipe: "PAJAK", kategoriDana: null },
     { kode: "2180", nama: "Pungutan/Setoran PPh pasal 4 ayat (2)", tipe: "PAJAK", kategoriDana: null },
     { kode: "2190", nama: "Biaya Bahan Baku", tipe: "BIAYA", kategoriDana: "BAHAN_MAKANAN" },
-    { kode: "2121", nama: "Biaya Insentif Fasilitas", tipe: "BIAYA", kategoriDana: "INSENTIF_FASILITAS" },
   ];
 
   for (const a of akunData) {
