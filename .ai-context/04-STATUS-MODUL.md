@@ -20,6 +20,7 @@ Legenda: ✅ selesai · 🟡 sebagian/ada gap · ⬜ belum mulai
 | Ledger (Akun, Jurnal, SaldoAwal) | ✅ | ✅ (Akun) | ✅ | ✅ | ✅ | Frontend: form + dropdown akun aktif + tabel list. Backend GET `/akun` & GET `/supplier` ditambahkan. |
 | Dokumen Resmi (LPA/SPTJ/BAPSD) | ✅ | — | ✅ | ✅ | ✅ | PDF generation via puppeteer-core + @sparticuz/chromium, layout sesuai format asli BGN (LPA/SPTJ/BAPSD/BKU seluruhnya closed). |
 | Daftar Nominatif Upah | ✅ | — | ✅ | — | ✅ | Frontend: form + sub-form rincian harian + tabel list. |
+| PO 2-Tahap (Akuntan→Mitra→Aslap) | ✅ | ✅ (contoh) | ✅ | — | ✅ | Alur: `POST /akuntan/po` (DIAJUKAN) → `PUT /mitra/po/:id/realisasi` (DIREALISASI) → `PUT /aslap/po/:id/approve` (DITERIMA). `POST /mitra/po` deprecated (410). `GET /mitra/po/list` diakses MITRA/AKUNTAN/ASLAP. Approve 1-tombol (pemeriksaan fisik di kertas). Field `qtyDiterima` nullable/unused (YAGNI). E2E full cycle teruji 2026-07-17. |
 | Approval | ✅ | — | ✅ | — | ✅ | Level: per hari (MenuHarian) & RabHarian. Akses eksklusif KEPALA_SPPG, mandatory periodeId, limit/offset pagination, status transition matrix & concurrency lock teruji. Halaman KepalaDashboard.jsx selesai. |
 | Validasi Stok | ✅ | — | ✅ | ✅ | ✅ | Pelaksana: Akuntan. Endpoint POST (reconciliation), GET (list), dan GET preview kalkulator (agregasi MutasiStok masuk vs keluar) serta UI teruji. |
 | Audit Log & Notifikasi | ✅ | — | ✅ | — | ✅ | Notifikasi selesai (terintegrasi dengan trigger POST approval & GET API user sendiri). Audit Log ditunda atas keputusan bisnis (YAGNI). |

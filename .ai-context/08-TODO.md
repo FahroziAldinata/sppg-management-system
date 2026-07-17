@@ -28,18 +28,37 @@ _Tidak ada tugas aktif saat ini._
 - **Langkah**: Cek konfigurasi `tanggalMulai` dan `tanggalSelesai` pada Setup Periode saat pengetesan.
 - **Status**: Belum dikerjakan.
 
-### 5. [ ] Deploy schema migration ke Supabase production (PO 2-Tahap)
+### 5. [x] Deploy schema migration ke Supabase production (PO 2-Tahap)
 - **Deskripsi**: Migrasi schema PO 2-tahap (enum `StatusPO`, field realisasi, field `diterimaOlehId`/`diterimaAt`) sudah verified di lokal, belum deploy ke prod.
 - **Langkah**:
   1. Backup data prod: `SELECT COUNT(*) FROM "TransaksiPembelian";`
   2. Buat backfill SQL untuk `createdById` jika ada data lama (set ke userId akuntan pertama).
   3. Jalankan `npx prisma migrate deploy` ke Supabase prod dengan `DATABASE_URL` pooler.
-- **Status**: Belum dikerjakan. ⚠️ Wajib dikerjakan sebelum go-live.
+- **Status**: ✅ **SELESAI 2026-07-17** — Migrasi deploy ke Supabase prod berhasil. Data test dummy (8 TransaksiPembelian + Supplier) dibersihkan manual. CATATAN: `DATABASE_URL` runtime (Railway) WAJIB port 6543 + `?pgbouncer=true`, migration WAJIB port 5432 tanpa pgbouncer.
 
 ### 6. [ ] Code-splitting bundle size (Belum Urgent)
 - **Deskripsi**: Peringatan build size di Vite (>500kB).
 - **Langkah**: Optimalkan bundle size dengan `React.lazy` atau penataan `manualChunks`.
 - **Status**: Belum dikerjakan.
+
+### 7. [ ] PO 2-Tahap: Tutup Gap Partial-Realisasi (tempel, bukan rebuild)
+- Deskripsi: hasil audit ulang alur PO — flip-status prematur, tidak ada
+  audit trail update Mitra, belum ada link quick-fill PO→Jurnal, FE belum
+  ada grouping+checklist tahan/beli.
+- Sub-tugas:
+  a. [ ] Migration: tambah `updatedAt DateTime?` + `updatedById String?`
+     (relasi User) di `TransaksiPembelianItem`.
+  b. [ ] Fix PUT `/api/mitra/po/:id/realisasi` — flip status `DIREALISASI`
+     HANYA jika SEMUA item `qtyRealisasi != null`. Isi `updatedAt`/
+     `updatedById` tiap kali item di-PATCH (termasuk partial save).
+  c. [ ] Audit endpoint Jurnal — cek ada/belum jalur baca
+     `TransaksiPembelianItem.subtotalRealisasi` buat prefill form Jurnal.
+  d. [ ] FE `AkuntanPoPage`/`MitraPoPage` — redesign grouping
+     tanggal→supplier, checklist tahan/beli per item, tombol "Simpan"
+     (bukan submit-sekali-final).
+  e. [ ] FE `AslapPoPage` — re-verify tombol approve cuma aktif kalau
+     status PO = `DIREALISASI` (cross-check belum ke-bypass di kode lama).
+- Status: Belum dikerjakan.
 
 ---
 

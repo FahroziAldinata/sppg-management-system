@@ -123,10 +123,30 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Tugas 2 & 4 (Audit Modul Akuntan)** — Melakukan audit data untuk Jurnal Transaksi (tidak memerlukan field catatan tambahan di luar `uraian`) dan Buku Pembantu (terkonfirmasi menyaring data strictly satu `akunId` secara spesifik).
 - [x] **Keputusan Database Produksi & Deployment** — Menggunakan Supabase production database dengan Transaction Pooler baru. Frontend berhasil dikonfigurasi & dideploy ke Vercel.
 - [x] **Redesign Alur PO 2-Tahap (Migrasi Skema Selesai)** — Menyelesaikan migrasi skema database lokal untuk alur PO 2-tahap. Menambahkan enum `StatusPO` (`DIAJUKAN`, `DIREALISASI`, `DITERIMA`), status pelacakan, field pembuat PO `createdById` (relasi `AkuntanBuatPO` ke model `User`), field penerima PO `diterimaOlehId`/`diterimaAt` (relasi `AslapTerimaPO` ke model `User`), serta field realisasi harian pada item PO (`qtyRealisasi`, `hargaSatuanRealisasi`, `subtotalRealisasi`, `qtyDiterima`).
+- [x] **Alur PO 2-Tahap Full Stack (Backend + Frontend + Deploy) — SELESAI 2026-07-17**:
+  - Backend 3 endpoint: `POST /api/akuntan/po` (create PO dengan row lock Periode + RabHarian + validasi rentang tanggal), `PUT /api/mitra/po/:id/realisasi` (input realisasi belanja + validasi ownership item), `PUT /api/aslap/po/:id/approve` (approval penerimaan fisik). Deprecate `POST /api/mitra/po` lama return 410.
+  - Fix 3 bug: race condition RabHarian (SELECT FOR UPDATE atomic find-or-create pakai dateStr::date cast), validasi rentang tanggal periode, ownership check item realisasi. 6/6 E2E test pass.
+   - Migrasi schema (`20260717063319_po_2tahap_realisasi`, `20260717065441_po_aslap_approval`) di-deploy ke Supabase prod. DATABASE_URL password direset & diupdate di Railway Variables — format pooler port 6543 + `?pgbouncer=true` untuk runtime, port 5432 tanpa pgbouncer untuk migrate/schema engine.
+   - Frontend: `AkuntanPoPage` (inisiasi + cetak PO/realisasi), `MitraPoPage` (redesign list + modal realisasi), `AslapPoPage` (list + modal approve) — deploy ke Vercel, visual approved user.
+   - Commit: `2c8e432`, push ke `origin/main`.
+- [x] **Sesi 2026-07-17 — Redesign List PO: Card Grouping per Tanggal→Supplier + Inline Editing**:
+   - AkuntanPoPage: Riwayat PO di-group per tanggal→supplier dalam card (bukan flat table). Tabel detail per PO di dalam card. Cetak/Detail tetap per PO.
+   - MitraPoPage: Flat table + modal realisasi dihapus. Card grouping per tanggal→supplier. Checkbox "Beli" per item toggle input qty+harga. Tombol "Simpan Realisasi" per PO — PATCH hanya item yang dicentang, bukan submit-final (status tetap DIAJUKAN selama masih ada item belum direalisasi sesuai flip-logic backend). Detail modal tetap.
+- [x] **Sesi 2026-07-17 — Migration Flip-Logic Realisasi + Audit Trail**:
+   - Migration `po_item_audit_trail`: tambah kolom `updatedAt`/`updatedById` di `TransaksiPembelianItem` + relasi `MitraUpdatePOItem` di model `User`.
+   - Fix flip-logic: status `DIREALISASI` hanya jika SEMUA item PO sudah `qtyRealisasi != null`. Partial realisasi → status tetap `DIAJUKAN`.
+   - Set `updatedById` tiap item yang di-PATCH.
+   - Test: partial realisasi (1/2 item) → DIAJUKAN, semua item → DIREALISASI, `updatedAt`/`updatedById` terisi.
+- [x] **Sesi Final 2026-07-17 — Simplifikasi Approve + Verifikasi E2E**:
+   - Endpoint `PUT /api/aslap/po/:id/approve` sempat di-redesign menjadi granular per-item (terima body items/finalize) — lalu dikembalikan ke 1-tombol sesuai keputusan FINAL user. Body tidak diproses. Pemeriksaan fisik tetap di kertas (PEMERIKSAAN_BAHAN_P12).
+   - Field `qtyDiterima` di schema tetap nullable/unused (YAGNI — bukan bug/gap).
+   - Frontend `AslapPoPage.jsx` sudah benar sejak awal (1 tombol tanpa form granular) — tidak perlu perubahan.
+   - E2E test full cycle via Invoke-RestMethod: login 3 role → POST Akuntan → POST Mitra (410) → PUT realisasi → GET list Aslap → PUT approve. Semua pass.
+   - 3 file integration test manual nyangkut di repo (`gizi_temp.js`, `aslap.js`, `mitra.js` di `__tests__/`) dihapus.
+   - Catatan: data test historis di DB (~14 PO) masih tersisa, tidak dibersihkan sesi ini.
 
 ## Sedang jalan / berikutnya
-- Implementasi endpoint backend untuk alur PO 2-tahap (pembuatan PO oleh Akuntan, pengisian realisasi belanja oleh Mitra, dan approval penerimaan barang oleh Aslap).
+- Belum ada — lihat `08-TODO.md` untuk task terbuka.
 
 ## Belum dikerjakan sama sekali
-- Integrasi frontend untuk alur PO 2-tahap.
 - Audit visual menu harian dan layout historis Ahli Gizi.
