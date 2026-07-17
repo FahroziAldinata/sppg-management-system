@@ -405,7 +405,7 @@ router.get("/lpa/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async
 
     res.set({
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="LPA-${nomorDokumen.replace(/\//g, '-')}.pdf"`,
+      "Content-Disposition": `inline; filename="${isLrBool ? 'LR-Resume' : `LPA-${nomorDokumen.replace(/\//g, '-')}`}.pdf"`,
       "Content-Length": pdfBuffer.length,
     });
     res.end(pdfBuffer);
