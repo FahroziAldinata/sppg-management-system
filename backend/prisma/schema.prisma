@@ -279,6 +279,12 @@ enum StatusLaporanBug {
   SELESAI
 }
 
+enum StatusPO {
+  DIAJUKAN
+  DIREALISASI
+  DITERIMA
+}
+
 enum JenjangSekolah {
   TK
   SD
@@ -314,6 +320,8 @@ model User {
   auditLogs             AuditLog[]
   notifikasi            Notifikasi[]
   laporanBug            LaporanBug[]           @relation("PelaporBug")
+  poDibuat              TransaksiPembelian[]   @relation("AkuntanBuatPO")
+  poDiterima            TransaksiPembelian[]   @relation("AslapTerimaPO")
 
   @@index([role])
 }
@@ -816,6 +824,14 @@ model TransaksiPembelian {
   catatan     String?
   createdAt   DateTime  @default(now())
 
+  status      StatusPO @default(DIAJUKAN)
+  createdById String
+  createdBy   User     @relation("AkuntanBuatPO", fields: [createdById], references: [id])
+
+  diterimaOlehId String?
+  diterimaOleh   User?     @relation("AslapTerimaPO", fields: [diterimaOlehId], references: [id])
+  diterimaAt     DateTime?
+
   items         TransaksiPembelianItem[]
   jurnalTerkait JurnalTransaksi[] // referensi opsional manual, lihat catatan di JurnalTransaksi
 }
@@ -829,6 +845,11 @@ model TransaksiPembelianItem {
   qty          Decimal            @db.Decimal(10, 3)
   hargaSatuan  Decimal            @db.Decimal(12, 2)
   subtotal     Decimal            @db.Decimal(14, 2)
+
+  qtyRealisasi         Decimal? @db.Decimal(10, 3)
+  hargaSatuanRealisasi Decimal? @db.Decimal(12, 2)
+  subtotalRealisasi    Decimal? @db.Decimal(14, 2)
+  qtyDiterima          Decimal? @db.Decimal(10, 3)
 }
 
 // -----------------------------------------------------------------------------

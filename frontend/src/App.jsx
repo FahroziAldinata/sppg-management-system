@@ -18,6 +18,7 @@ import { LaporanBugPage } from './pages/admin/LaporanBugPage';
 
 // Sub-pages / CRUD Pages
 import { PenerimaManfaatPage } from './pages/aslap/PenerimaManfaatPage';
+import { AslapPoPage } from './pages/aslap/AslapPoPage';
 import { HargaBahanPage } from './pages/mitra/HargaBahanPage';
 import { MitraPoPage } from './pages/mitra/MitraPoPage';
 import { KendaraanPage } from './pages/mitra/KendaraanPage';
@@ -27,6 +28,7 @@ import { SettingPage } from './pages/shared/SettingPage';
 
 // Akuntan — Halaman Terpisah
 import { JurnalTransaksiPage } from './pages/akuntan/JurnalTransaksiPage';
+import { AkuntanPoPage } from './pages/akuntan/AkuntanPoPage';
 import { ValidasiStokPage } from './pages/akuntan/ValidasiStokPage';
 import { RabHarianPage } from './pages/akuntan/RabHarianPage';
 import { AnggaranHarianPage } from './pages/akuntan/AnggaranHarianPage';
@@ -87,6 +89,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['ASLAP']}>
                   <PenerimaManfaatPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="aslap/po"
+              element={
+                <ProtectedRoute allowedRoles={['ASLAP']}>
+                  <AslapPoPage />
                 </ProtectedRoute>
               }
             />
@@ -165,6 +175,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
                   <JurnalTransaksiPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="akuntan/po"
+              element={
+                <ProtectedRoute allowedRoles={['AKUNTAN']}>
+                  <AkuntanPoPage />
                 </ProtectedRoute>
               }
             />

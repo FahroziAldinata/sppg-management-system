@@ -150,6 +150,8 @@ export const Layout = () => {
     '/mitra': 'Beranda Mitra',
     '/mitra/harga-bahan': 'Harga Bahan',
     '/mitra/po': 'Nota Pesanan',
+    '/akuntan/po': 'Nota Pesanan (PO)',
+    '/aslap/po': 'Verifikasi PO',
     '/mitra/kendaraan': 'Kendaraan Operasional',
     '/gizi': 'Beranda Gizi',
     '/gizi/menu-harian': 'Menu Harian',
@@ -487,6 +489,7 @@ export const Layout = () => {
                 </li>
                 {renderLink('/aslap', 'Beranda / Dashboard', Home)}
                 {renderLink('/aslap/penerima-manfaat', 'Penerima Manfaat', Users)}
+                {renderLink('/aslap/po', 'Verifikasi PO', ClipboardCheck)}
               </>
             )}
 
@@ -522,6 +525,7 @@ export const Layout = () => {
                 </li>
                 {renderLink('/akuntan/laporan/periode-setup', 'Setup Periode', Calendar)}
                 {renderLink('/akuntan/jurnal', 'Jurnal Transaksi', BookOpen)}
+                {renderLink('/akuntan/po', 'Nota Pesanan (PO)', ShoppingCart)}
                 {renderLink('/akuntan/rab-harian', 'RAB Harian', FileSpreadsheet)}
                 {renderLink('/akuntan/anggaran-harian', 'Anggaran Harian', TrendingUp)}
                 {renderLink('/akuntan/dokumen-resmi', 'Dokumen Resmi', Award)}

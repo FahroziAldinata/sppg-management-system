@@ -929,4 +929,47 @@ router.delete("/sekolah-kelas-detail/:id", requireAuth, requireRole("ASLAP"), as
   }
 });
 
+// ==========================================
+// PO APPROVAL — Aslap validates physical receipt
+// ==========================================
+
+// PUT /api/aslap/po/:id/approve - Aslap menyetujui penerimaan fisik
+router.put("/po/:id/approve", requireAuth, requireRole("ASLAP"), async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. Ambil PO, pastikan ada
+    const po = await prisma.transaksiPembelian.findUnique({ where: { id } });
+    if (!po) return res.status(404).json({ error: "PO tidak ditemukan" });
+
+    // 2. Validasi status harus DIREALISASI
+    if (po.status !== "DIREALISASI") {
+      return res.status(409).json({
+        error: "Realisasi belanja dari Mitra belum diinput"
+      });
+    }
+
+    // 3. Update status, diterimaOlehId, dan diterimaAt
+    const updated = await prisma.transaksiPembelian.update({
+      where: { id },
+      data: {
+        status: "DITERIMA",
+        diterimaOlehId: req.user.sub,
+        diterimaAt: new Date()
+      },
+      include: {
+        items: { include: { bahanPokok: true } },
+        supplier: true,
+        diterimaOleh: { select: { id: true, nama: true, role: true } }
+      }
+    });
+
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyetujui PO" });
+  }
+});
+
 module.exports = router;
+

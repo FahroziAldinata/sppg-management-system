@@ -3,10 +3,9 @@ import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table, renderDate } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
-import { NumberInput } from '../../components/NumberInput';
 import { Skeleton } from '../../components/Skeleton';
 
-export const MitraPoPage = () => {
+export const AslapPoPage = () => {
     const { request } = useApi();
     const toast = useToast();
     const [periods, setPeriods] = useState([]);
@@ -14,10 +13,9 @@ export const MitraPoPage = () => {
     const [poList, setPoList] = useState([]);
     const [listLoading, setListLoading] = useState(false);
 
-    // Modal & Realization States
+    // Detail & Approval States
     const [detailPoData, setDetailPoData] = useState(null);
-    const [realizePoData, setRealizePoData] = useState(null);
-    const [realizeItems, setRealizeItems] = useState([]);
+    const [approvePoData, setApprovePoData] = useState(null);
     const [submitting, setSubmitting] = useState(false);
 
     // Fetch periods on mount
@@ -54,68 +52,20 @@ export const MitraPoPage = () => {
         }
     }, [selectedPeriodId]);
 
-    // Open Realization Form
-    const handleOpenRealize = (po) => {
-        setRealizePoData(po);
-        // Pre-fill realization quantities and prices with requested ones as default
-        setRealizeItems(po.items.map(item => ({
-            itemId: item.id,
-            nama: item.bahanPokok?.nama,
-            satuan: item.bahanPokok?.satuan,
-            qtyDiminta: item.qty,
-            hargaDiminta: item.hargaSatuan,
-            qtyRealisasi: item.qtyRealisasi !== null ? item.qtyRealisasi : item.qty,
-            hargaSatuanRealisasi: item.hargaSatuanRealisasi !== null ? item.hargaSatuanRealisasi : item.hargaSatuan,
-            subtotalRealisasi: item.subtotalRealisasi !== null ? item.subtotalRealisasi : item.subtotal
-        })));
-    };
-
-    // Update Realization Item in State
-    const handleRealizeItemChange = (idx, field, val) => {
-        const parsed = parseFloat(val) || 0;
-        setRealizeItems(prev => prev.map((item, i) => {
-            if (i !== idx) return item;
-            const updated = { ...item, [field]: val };
-            const q = field === 'qtyRealisasi' ? parsed : parseFloat(item.qtyRealisasi) || 0;
-            const p = field === 'hargaSatuanRealisasi' ? parsed : parseFloat(item.hargaSatuanRealisasi) || 0;
-            updated.subtotalRealisasi = Math.round((q * p) * 100) / 100;
-            return updated;
-        }));
-    };
-
-    // Submit Realization
-    const handleSubmitRealize = async (e) => {
-        e.preventDefault();
-        if (!realizePoData) return;
-
-        // Basic validations
-        for (const item of realizeItems) {
-            const q = parseFloat(item.qtyRealisasi);
-            const p = parseFloat(item.hargaSatuanRealisasi);
-            if (isNaN(q) || q < 0) return toast.error(`Jumlah realisasi untuk ${item.nama} tidak valid.`);
-            if (isNaN(p) || p < 0) return toast.error(`Harga realisasi untuk ${item.nama} tidak valid.`);
-        }
-
+    const handleApprove = async () => {
+        if (!approvePoData) return;
         setSubmitting(true);
         try {
-            const r = await request(`/mitra/po/${realizePoData.id}/realisasi`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    items: realizeItems.map(item => ({
-                        itemId: item.itemId,
-                        qtyRealisasi: parseFloat(item.qtyRealisasi),
-                        hargaSatuanRealisasi: parseFloat(item.hargaSatuanRealisasi)
-                    }))
-                })
+            const r = await request(`/aslap/po/${approvePoData.id}/approve`, {
+                method: 'PUT'
             });
 
             if (r.ok) {
-                toast.success('Realisasi belanja PO berhasil disimpan.');
-                setRealizePoData(null);
+                toast.success('Penerimaan fisik barang berhasil disetujui (PO Diterima).');
+                setApprovePoData(null);
                 loadPoList(selectedPeriodId);
             } else {
-                const d = await r.json().catch(() => ({ error: 'Gagal memproses realisasi' }));
+                const d = await r.json().catch(() => ({ error: 'Gagal menyetujui PO' }));
                 toast.error(d.error);
             }
         } catch (err) {
@@ -140,7 +90,7 @@ export const MitraPoPage = () => {
 
     return (
         <div>
-            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Realisasi Belanja &amp; Nota Pesanan (Mitra)</h2>
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Pemeriksaan Fisik &amp; Verifikasi PO (Asisten Lapangan)</h2>
             
             {/* Filter Periode */}
             <div style={{
@@ -176,7 +126,7 @@ export const MitraPoPage = () => {
             </div>
 
             {/* Riwayat PO List */}
-            <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Riwayat Nota Pesanan (PO) Terdaftar</h3>
+            <h3 style={{ color: 'var(--text)', marginBottom: '15px' }}>Daftar Nota Pesanan (PO) &amp; Belanja</h3>
             {listLoading && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <Skeleton height="40px" />
@@ -192,7 +142,7 @@ export const MitraPoPage = () => {
                     { key: 'items', header: 'Jumlah Item', align: 'right', render: (v) => `${(v || []).length} jenis bahan` },
                     {
                         key: 'id',
-                        header: 'Total Nilai PO',
+                        header: 'Total Nilai Rencana',
                         align: 'right',
                         render: (_, row) => {
                             const totalNilai = row.items.reduce((sum, item) => sum + Number(item.subtotal), 0);
@@ -205,7 +155,7 @@ export const MitraPoPage = () => {
                     },
                     {
                         key: 'id',
-                        header: 'Total Realisasi Belanja',
+                        header: 'Total Realisasi Mitra',
                         align: 'right',
                         render: (_, row) => {
                             if (row.status === 'DIAJUKAN') return <span style={{ color: 'var(--text-muted)' }}>Belum Belanja</span>;
@@ -246,12 +196,12 @@ export const MitraPoPage = () => {
                                 >
                                     Detail
                                 </button>
-                                {row.status === 'DIAJUKAN' && (
+                                {row.status === 'DIREALISASI' && (
                                     <button
-                                        onClick={() => handleOpenRealize(row)}
-                                        style={{ padding: '4px 10px', backgroundColor: '#007bff', color: '#fff', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)', fontSize: '12px', fontWeight: 'bold' }}
+                                        onClick={() => setApprovePoData(row)}
+                                        style={{ padding: '4px 10px', backgroundColor: '#28a745', color: '#fff', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)', fontSize: '12px', fontWeight: 'bold' }}
                                     >
-                                        Belanja &amp; Realisasi
+                                        Verifikasi Fisik
                                     </button>
                                 )}
                             </div>
@@ -347,8 +297,8 @@ export const MitraPoPage = () => {
                 </div>
             )}
 
-            {/* Modal Input Realisasi */}
-            {realizePoData && (
+            {/* Modal Approval Confirmation */}
+            {approvePoData && (
                 <div style={{
                     position: 'fixed',
                     top: 0, left: 0, right: 0, bottom: 0,
@@ -359,94 +309,49 @@ export const MitraPoPage = () => {
                     zIndex: 1000,
                     padding: '20px'
                 }}>
-                    <form onSubmit={handleSubmitRealize} style={{
+                    <div style={{
                         backgroundColor: 'var(--bg-elevated)',
                         borderRadius: 'var(--radius-md)',
                         width: '100%',
-                        maxWidth: '850px',
-                        maxHeight: '90vh',
-                        overflowY: 'auto',
+                        maxWidth: '550px',
                         padding: '24px',
                         border: '1px solid var(--border)',
                         boxShadow: 'var(--shadow-hover)'
                     }}>
-                        <h3 style={{ margin: '0 0 15px 0' }}>Input Realisasi Belanja PO</h3>
+                        <h3 style={{ margin: '0 0 15px 0' }}>Persetujuan Penerimaan Fisik Barang</h3>
                         
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px', fontSize: '13px' }}>
-                            <div>Supplier: <strong>{realizePoData.supplier?.nama}</strong></div>
-                            <div>Tanggal PO: <strong>{renderDate(realizePoData.tanggal)}</strong></div>
+                        <p style={{ fontSize: '14px', lineHeight: '1.5', marginBottom: '15px' }}>
+                            Apakah Anda sudah memeriksa fisik barang belanjaan dari Supplier <strong>{approvePoData.supplier?.nama}</strong> untuk pengiriman tanggal <strong>{renderDate(approvePoData.tanggal)}</strong>?
+                        </p>
+
+                        <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '12px', marginBottom: '20px', backgroundColor: 'var(--bg)', fontSize: '13px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <span>Total Nilai Rencana (PO):</span>
+                                <strong>Rp{approvePoData.items.reduce((sum, item) => sum + Number(item.subtotal), 0).toLocaleString('id-ID')}</strong>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                                <span>Total Realisasi Belanja:</span>
+                                <strong style={{ color: 'var(--color-primary)' }}>Rp{approvePoData.items.reduce((sum, item) => sum + Number(item.subtotalRealisasi || 0), 0).toLocaleString('id-ID')}</strong>
+                            </div>
                         </div>
 
-                        <Table
-                            columns={[
-                                { key: 'nama', header: 'Bahan Pokok' },
-                                { key: 'satuan', header: 'Satuan', align: 'center' },
-                                { key: 'qtyDiminta', header: 'Qty Diminta', align: 'right', render: (v) => Number(v).toLocaleString('id-ID') },
-                                { key: 'hargaDiminta', header: 'Harga Diminta', align: 'right', render: (v) => `Rp${Number(v).toLocaleString('id-ID')}` },
-                                {
-                                    key: 'qtyRealisasi',
-                                    header: 'Qty Realisasi',
-                                    align: 'right',
-                                    width: '120px',
-                                    render: (v, row, idx) => (
-                                        <input
-                                            type="number"
-                                            step="0.001"
-                                            className="form-field"
-                                            style={{ textAlign: 'right' }}
-                                            value={v}
-                                            onChange={e => handleRealizeItemChange(idx, 'qtyRealisasi', e.target.value)}
-                                            required
-                                        />
-                                    )
-                                },
-                                {
-                                    key: 'hargaSatuanRealisasi',
-                                    header: 'Harga Realisasi (Rp)',
-                                    align: 'right',
-                                    width: '140px',
-                                    render: (v, row, idx) => (
-                                        <NumberInput
-                                            className="form-field"
-                                            style={{ textAlign: 'right' }}
-                                            value={v === '' ? '' : Number(v)}
-                                            onChange={val => handleRealizeItemChange(idx, 'hargaSatuanRealisasi', val)}
-                                            required
-                                        />
-                                    )
-                                },
-                                {
-                                    key: 'subtotalRealisasi',
-                                    header: 'Subtotal Realisasi',
-                                    align: 'right',
-                                    render: (v) => (
-                                        <strong style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                            Rp{Number(v).toLocaleString('id-ID')}
-                                        </strong>
-                                    )
-                                }
-                            ]}
-                            data={realizeItems}
-                        />
-
-                        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
                             <button
-                                type="button"
-                                onClick={() => setRealizePoData(null)}
+                                onClick={() => setApprovePoData(null)}
                                 disabled={submitting}
                                 style={{ padding: '8px 16px', backgroundColor: 'var(--border)', color: 'var(--text)', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)' }}
                             >
                                 Batal
                             </button>
                             <button
-                                type="submit"
+                                onClick={handleApprove}
                                 disabled={submitting}
-                                style={{ padding: '8px 16px', backgroundColor: '#007bff', color: '#fff', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)', fontWeight: 'bold' }}
+                                style={{ padding: '8px 16px', backgroundColor: '#28a745', color: '#fff', border: 'none', cursor: 'pointer', borderRadius: 'var(--radius-sm)', fontWeight: 'bold' }}
                             >
-                                {submitting ? 'Menyimpan...' : 'Simpan Realisasi'}
+                                {submitting ? 'Memproses...' : 'Setujui & Terima'}
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             )}
         </div>

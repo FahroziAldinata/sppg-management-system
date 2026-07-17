@@ -122,9 +122,11 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Tugas 3 (Redesign & Perbaikan Layout PDF BKU)** — Mengubah judul PDF BKU menjadi `"BUKU KAS UMUM"` dan memperbaiki conflict margin ganda secara global melalui shared CSS (`shared.js` -> `@page { margin: 0; }`).
 - [x] **Tugas 2 & 4 (Audit Modul Akuntan)** — Melakukan audit data untuk Jurnal Transaksi (tidak memerlukan field catatan tambahan di luar `uraian`) dan Buku Pembantu (terkonfirmasi menyaring data strictly satu `akunId` secara spesifik).
 - [x] **Keputusan Database Produksi & Deployment** — Menggunakan Supabase production database dengan Transaction Pooler baru. Frontend berhasil dikonfigurasi & dideploy ke Vercel.
+- [x] **Redesign Alur PO 2-Tahap (Migrasi Skema Selesai)** — Menyelesaikan migrasi skema database lokal untuk alur PO 2-tahap. Menambahkan enum `StatusPO` (`DIAJUKAN`, `DIREALISASI`, `DITERIMA`), status pelacakan, field pembuat PO `createdById` (relasi `AkuntanBuatPO` ke model `User`), field penerima PO `diterimaOlehId`/`diterimaAt` (relasi `AslapTerimaPO` ke model `User`), serta field realisasi harian pada item PO (`qtyRealisasi`, `hargaSatuanRealisasi`, `subtotalRealisasi`, `qtyDiterima`).
 
 ## Sedang jalan / berikutnya
-- Verifikasi visual dan perhitungan nominal laporan keuangan pasca pembaruan COA baru di frontend.
+- Implementasi endpoint backend untuk alur PO 2-tahap (pembuatan PO oleh Akuntan, pengisian realisasi belanja oleh Mitra, dan approval penerimaan barang oleh Aslap).
 
 ## Belum dikerjakan sama sekali
-- Tidak ada backlog mendesak. Skenario pelaporan dan operasional modul Akuntan telah stabil.
+- Integrasi frontend untuk alur PO 2-tahap.
+- Audit visual menu harian dan layout historis Ahli Gizi.

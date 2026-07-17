@@ -522,100 +522,85 @@ router.get("/po/kebutuhan", requireAuth, requireRole("MITRA", "AKUNTAN"), async 
   }
 });
 
-// POST /api/mitra/po - Create a new TransaksiPembelian (PO)
-router.post("/po", requireAuth, requireRole("MITRA"), async (req, res) => {
+// POST /api/mitra/po - DEPRECATED: PO sekarang dibuat oleh Akuntan
+router.post("/po", requireAuth, requireRole("MITRA"), (req, res) => {
+  res.status(410).json({
+    error: "PO sekarang dibuat oleh Akuntan. Gunakan endpoint POST /api/akuntan/po."
+  });
+});
+
+// PUT /api/mitra/po/:id/realisasi - Mitra menginput realisasi belanja
+router.put("/po/:id/realisasi", requireAuth, requireRole("MITRA"), async (req, res) => {
   try {
-    const { periodeId, tanggal, supplierId, items, catatan } = req.body || {};
+    const { id } = req.params;
+    const { items } = req.body || {};
 
-    if (!periodeId) return res.status(400).json({ error: "periodeId wajib diisi" });
-    if (!tanggal) return res.status(400).json({ error: "tanggal wajib diisi" });
-    if (!supplierId) return res.status(400).json({ error: "supplierId wajib diisi" });
     if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ error: "items PO tidak boleh kosong" });
+      return res.status(400).json({ error: "items realisasi tidak boleh kosong" });
     }
 
-    const targetDate = normalizeDateUTC(tanggal);
-    if (isNaN(targetDate.getTime())) {
-      return res.status(400).json({ error: "Format tanggal tidak valid" });
-    }
+    const po = await prisma.transaksiPembelian.findUnique({ where: { id } });
+    if (!po) return res.status(404).json({ error: "PO tidak ditemukan" });
 
-    // 1. Get or create RabHarian for this date & period
-    let rabHarian = await prisma.rabHarian.findUnique({
-      where: {
-        periodeId_tanggal: {
-          periodeId,
-          tanggal: targetDate
-        }
-      }
-    });
-
-    if (!rabHarian) {
-      // Create RabHarian auto in DRAFT state
-      rabHarian = await prisma.rabHarian.create({
-        data: {
-          periodeId,
-          tanggal: targetDate,
-          status: "DRAFT",
-          createdById: req.user.id
-        }
+    if (po.status !== "DIAJUKAN") {
+      return res.status(409).json({
+        error: "PO sudah direalisasi atau diterima, tidak bisa diubah lagi"
       });
     }
 
-    // 2. Create the TransaksiPembelian under RabHarian inside transaction
     const result = await prisma.$transaction(async (tx) => {
-      const tp = await tx.transaksiPembelian.create({
-        data: {
-          rabHarianId: rabHarian.id,
-          supplierId,
-          tanggal: targetDate,
-          catatan: catatan || null
-        }
-      });
-
       for (const item of items) {
-        const qty = parseFloat(item.qtyTotal);
-        const harga = parseFloat(item.hargaSatuan);
-        if (isNaN(qty) || qty <= 0) {
-          throw new Error(`[VALIDASI] Qty untuk bahan pokok ID ${item.bahanPokokId} tidak valid`);
+        const { itemId, qtyRealisasi, hargaSatuanRealisasi } = item;
+
+        if (!itemId) throw new Error("[VALIDASI] itemId wajib ada di setiap item realisasi");
+
+        // Validate item ownership — item must belong to this PO
+        const dbItem = await tx.transaksiPembelianItem.findUnique({ where: { id: itemId } });
+        if (!dbItem || dbItem.transaksiId !== po.id) {
+          throw new Error("[VALIDASI] Item tidak ditemukan pada PO ini");
+        }
+
+        const qty = parseFloat(qtyRealisasi);
+        const harga = parseFloat(hargaSatuanRealisasi);
+        if (isNaN(qty) || qty < 0) {
+          throw new Error(`[VALIDASI] qtyRealisasi untuk item ${itemId} tidak valid`);
         }
         if (isNaN(harga) || harga < 0) {
-          throw new Error(`[VALIDASI] Harga untuk bahan pokok ID ${item.bahanPokokId} tidak valid`);
+          throw new Error(`[VALIDASI] hargaSatuanRealisasi untuk item ${itemId} tidak valid`);
         }
 
-        await tx.transaksiPembelianItem.create({
+        await tx.transaksiPembelianItem.update({
+          where: { id: itemId },
           data: {
-            transaksiId: tp.id,
-            bahanPokokId: item.bahanPokokId,
-            qty: Math.round(qty * 1000) / 1000,
-            hargaSatuan: Math.round(harga * 100) / 100,
-            subtotal: Math.round((qty * harga) * 100) / 100
+            qtyRealisasi: Math.round(qty * 1000) / 1000,
+            hargaSatuanRealisasi: Math.round(harga * 100) / 100,
+            subtotalRealisasi: Math.round((qty * harga) * 100) / 100
           }
         });
       }
 
-      return await tx.transaksiPembelian.findUnique({
-        where: { id: tp.id },
+      return await tx.transaksiPembelian.update({
+        where: { id },
+        data: { status: "DIREALISASI" },
         include: {
-          items: {
-            include: { bahanPokok: true }
-          },
+          items: { include: { bahanPokok: true } },
           supplier: true
         }
       });
     });
 
-    res.status(201).json({ success: true, data: result });
+    res.json({ success: true, data: result });
   } catch (error) {
     console.error(error);
     if (error.message && error.message.startsWith("[VALIDASI]")) {
       return res.status(400).json({ error: error.message.replace("[VALIDASI] ", "") });
     }
-    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan PO" });
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan realisasi PO" });
   }
 });
 
 // GET /api/mitra/po/list - List all TransaksiPembelian (POs) for a period
-router.get("/po/list", requireAuth, requireRole("MITRA", "AKUNTAN"), async (req, res) => {
+router.get("/po/list", requireAuth, requireRole("MITRA", "AKUNTAN", "ASLAP"), async (req, res) => {
   try {
     const { periodeId } = req.query;
     if (!periodeId) {

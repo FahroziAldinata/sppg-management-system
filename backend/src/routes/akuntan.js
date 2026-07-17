@@ -2688,5 +2688,128 @@ router.delete("/hari-libur/:id", requireAuth, requireRole("AKUNTAN"), async (req
   }
 });
 
+// ==========================================
+// PURCHASE ORDER (PO) — Akuntan initiates
+// ==========================================
+
+// POST /api/akuntan/po - Akuntan membuat PO baru
+router.post("/po", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { periodeId, tanggal, supplierId, items, catatan } = req.body || {};
+
+    if (!periodeId) return res.status(400).json({ error: "periodeId wajib diisi" });
+    if (!tanggal) return res.status(400).json({ error: "tanggal wajib diisi" });
+    if (!supplierId) return res.status(400).json({ error: "supplierId wajib diisi" });
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: "items PO tidak boleh kosong" });
+    }
+
+    const targetDate = normalizeDateUTC(tanggal);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 0. Validate targetDate within periode range (lock periode row)
+      const periode = await tx.$queryRaw`
+        SELECT id, "tanggalMulai", "tanggalSelesai" FROM "Periode" WHERE id = ${periodeId} FOR UPDATE
+      `;
+      if (periode.length === 0) {
+        throw new Error("[VALIDASI] Periode tidak ditemukan");
+      }
+      const p = periode[0];
+      if (targetDate < p.tanggalMulai || targetDate > p.tanggalSelesai) {
+        throw new Error("[VALIDASI] Tanggal PO harus dalam rentang periode aktif");
+      }
+
+      // 1. Find-or-create RabHarian with row lock (prevent race condition)
+      const dateStr = targetDate.toISOString().split("T")[0]; // "2026-01-10"
+      const existing = await tx.$queryRaw`
+        SELECT id FROM "RabHarian"
+        WHERE "periodeId" = ${periodeId} AND "tanggal" = ${dateStr}::date
+        FOR UPDATE
+      `;
+      let rabHarianId;
+      if (existing.length > 0) {
+        rabHarianId = existing[0].id;
+      } else {
+        try {
+          const created = await tx.rabHarian.create({
+            data: {
+              periodeId,
+              tanggal: targetDate,
+              status: "DRAFT",
+              createdById: req.user.sub
+            }
+          });
+          rabHarianId = created.id;
+        } catch (createErr) {
+          if (createErr.code === "P2002") {
+            const retry = await tx.$queryRaw`
+              SELECT id FROM "RabHarian"
+              WHERE "periodeId" = ${periodeId} AND "tanggal" = ${dateStr}::date
+              FOR UPDATE
+            `;
+            if (retry.length === 0) throw createErr;
+            rabHarianId = retry[0].id;
+          } else {
+            throw createErr;
+          }
+        }
+      }
+
+      // 2. Create TransaksiPembelian + items
+      const tp = await tx.transaksiPembelian.create({
+        data: {
+          rabHarianId,
+          supplierId,
+          tanggal: targetDate,
+          catatan: catatan || null,
+          createdById: req.user.sub
+          // status defaults to DIAJUKAN via schema default
+        }
+      });
+
+      for (const item of items) {
+        const qty = parseFloat(item.qtyTotal);
+        const harga = parseFloat(item.hargaSatuan);
+        if (isNaN(qty) || qty <= 0) {
+          throw new Error(`[VALIDASI] Qty untuk bahan pokok ID ${item.bahanPokokId} tidak valid`);
+        }
+        if (isNaN(harga) || harga < 0) {
+          throw new Error(`[VALIDASI] Harga untuk bahan pokok ID ${item.bahanPokokId} tidak valid`);
+        }
+
+        await tx.transaksiPembelianItem.create({
+          data: {
+            transaksiId: tp.id,
+            bahanPokokId: item.bahanPokokId,
+            qty: Math.round(qty * 1000) / 1000,
+            hargaSatuan: Math.round(harga * 100) / 100,
+            subtotal: Math.round((qty * harga) * 100) / 100
+          }
+        });
+      }
+
+      return await tx.transaksiPembelian.findUnique({
+        where: { id: tp.id },
+        include: {
+          items: { include: { bahanPokok: true } },
+          supplier: true,
+          createdBy: { select: { id: true, nama: true, role: true } }
+        }
+      });
+    });
+
+    res.status(201).json({ success: true, data: result });
+  } catch (error) {
+    console.error(error);
+    if (error.message && error.message.startsWith("[VALIDASI]")) {
+      return res.status(400).json({ error: error.message.replace("[VALIDASI] ", "") });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan PO" });
+  }
+});
+
 module.exports = router;
 
