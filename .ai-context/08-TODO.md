@@ -32,32 +32,27 @@
 
 ---
 
-### B. Perlu Klarifikasi ke Akuntan Asli (jangan diubah dulu sebelum dikonfirmasi)
+- [x] **Dana Operasional gabung 1 akun (2120)?**
+  - Pemecahan selesai: Akun 2120 diubah menjadi "Biaya Operasional" (BIAYA) dan Akun 2122 baru ditambahkan sebagai "Dana Operasional" (DANA).
 
-- [ ] **Dana Operasional gabung 1 akun (2120)?**
-  - Ini keputusan FINAL v5.5, udah dikonfirmasi. Tapi user demo protes ulang.
-  - Tanya akuntan: "mau tetep 1 akun gabungan Operasional, atau dipisah Dana vs Biaya kayak Bahan Baku (2110/2190)?"
-  - Kalau jawabannya berubah → catat sebagai revisi v5.23 di `03-DECISIONS.md`, bukan bug.
-
-- [ ] **`totalDanaDiterima` di Setup Periode — snapshot manual atau auto-link ke Jurnal?**
-  - Tanya akuntan: mau field ini dihapus dari form Setup (kosongin di awal periode) dan auto-terhitung dari `SUM` jurnal transaksi kategori dana masuk?
-  - Kalau ya → perubahan schema/logic, bukan UI — perlu direncanain terpisah, jangan buru-buru.
+- [x] **`totalDanaDiterima` di Setup Periode — snapshot manual atau auto-link ke Jurnal?**
+  - Auto-SUM selesai: Field dihapus dari setup form frontend, dan diganti kalkulasi live SUM JurnalTransaksi tipe DANA di BKU.
 
 ---
 
 ### C. Perlu Audit Dulu (agent cek, sebelum eksekusi)
 
-- [ ] **RAB Harian kosong, ga bisa input transaksi**
-  - Kemungkinan: user bingung RAB Harian (RENCANA harian → approval Kepala) vs Jurnal Transaksi (REALISASI/pembelian aktual). Dua hal beda.
-  - Agent audit dulu: apakah form RAB Harian render field lengkap tapi user ga paham, atau ada field yang ke-skip/gagal muncul?
-  - Laporkan screenshot/struktur form sebelum disimpulkan bug atau UX-confusion.
+- [x] **RAB Harian kosong, ga bisa input transaksi**
+  - Penambahan banner penjelasan di halaman RabHarianPage sudah selesai (transaksi PO Bahan Makanan diinput oleh Mitra).
 
 - [ ] **Transaksi Jurnal gagal "ga sesuai periode"**
   - Validasi v5.8/v5.11 jalan sesuai desain (tanggal jurnal wajib dalam rentang Periode).
   - Cek dulu `tanggalMulai`/`tanggalSelesai` di Periode yang dipakai testing — kemungkinan besar bukan bug, Setup Periode-nya salah isi pas demo.
   - Perbaiki data Setup Periode dulu, baru test ulang Jurnal.
 
-- [ ] **"Bantuan Pemerintah" sebagai kategori dana masuk terpisah**
-  - Audit dulu: cek Akun tipe DANA yang ada (kode 2110/2130/2120 dst).
-  - Tanya akuntan: "Bantuan Pemerintah" itu satu-satunya sumber dana masuk, atau perlu tag/kategori sendiri?
-  - Kalau perlu akun baru di COA → nambah kode akun, butuh approval akuntan sebelum di-seed.
+- [x] **"Bantuan Pemerintah" sebagai kategori dana masuk terpisah**
+  - Penyelesaian selesai: Shortcut shortcut "Isi Cepat BanPer" telah ditambahkan ke JurnalTransaksiPage.
+
+- [x] **Laporan Resume Penerimaan-Pengeluaran (LR)**
+  - Pembuatan laporan LR selesai dengan menggunakan reuse endpoint LPA (tanpa field input Nomor Dokumen).
+
