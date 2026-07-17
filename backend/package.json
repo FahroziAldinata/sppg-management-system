@@ -23,6 +23,6 @@
     "puppeteer-core": "^25.3.0"
   },
   "prisma": {
-    "seed": "node prisma/seed_old.js"
+    "seed": "node prisma/seed.js"
   }
 }

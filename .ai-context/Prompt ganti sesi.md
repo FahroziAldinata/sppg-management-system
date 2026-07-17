@@ -3,8 +3,9 @@
 Berikut adalah status pekerjaan dan instruksi sinkronisasi untuk sesi berikutnya:
 
 ## 1. Pekerjaan yang Selesai di Sesi Ini:
-* **Tugas 1 (Fix COA Seed)**: 
-  - Mengubah pemetaan COA pada `seed_old.js` (kode `2120` jadi Dana Operasional, `2122` jadi Biaya Lainnya dengan `kategoriDana: null`, dan menambah `2123` untuk Biaya Operasional).
+* **Tugas 1 (Fix COA Seed & Rename)**: 
+  - Mengubah pemetaan COA pada `seed.js` (kode `2120` jadi Dana Operasional, `2122` jadi Biaya Lainnya dengan `kategoriDana: null`, dan menambah `2123` untuk Biaya Operasional).
+  - Mengubah nama file dari `seed_old.js` menjadi `seed.js` dan menyesuaikan `"prisma.seed"` di `package.json`.
   - Berhasil men-seed data terbaru ke database Supabase menggunakan `npx prisma db seed`.
 * **Tugas 3 (Fix PDF BKU)**:
   - Mengubah judul PDF BKU menjadi `"BUKU KAS UMUM"`.
