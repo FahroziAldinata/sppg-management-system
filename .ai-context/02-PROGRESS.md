@@ -118,8 +118,13 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Perbaikan Bug Toast di Login.jsx** - Menambahkan deklarasi `const toast = useToast();` yang terlewat di dalam komponen `Login` untuk mencegah ReferenceError ketika verifikasi login gagal.
 - [x] **Standardisasi Skeleton Loading di Halaman Tabel, Laporan & Setup (15 Halaman) Selesai** - Mengganti semua sisa loading teks polos menjadi komponen `<Skeleton />` terstruktur pada 15 halaman tabel, list transaksi, laporan, dan Setup Periode (`PeriodeSetupPage.jsx`) di seluruh sistem, lengkap dengan pembungkusan kondisional `!loading` untuk kelancaran rendering tanpa layout shift.
 - [x] **Penyelesaian Batch A: Perbaikan Cepat UI Jurnal & Label Periode** - Menyelesaikan perbaikan input rupiah Setup Periode (`anggaranAlokasi` dan `totalDanaDiterima` menggunakan mask rupiah `formatInputRupiah`), penyesuaian format tanggal `DD/MM/YYYY` pada `DatePicker`, implementasi fitur Hapus Jurnal Transaksi (dengan konfirmasi UI dan pemicu recalculation anggaran di backend), serta pembaruan label copy pilihan periode di seluruh modul transaksi Akuntan (`JurnalTransaksiPage`, `AnggaranHarianPage`, `RabHarianPage`) menjadi `"Periode aktif (transaksi harus dalam rentang tanggal periode ini)"`.
+- [x] **Tugas 1 (Pembaruan & Seeding COA Baru)** — Memperbarui Chart of Accounts (COA) pada script seed utama (`seed.js`), termasuk relokasi/pemetaan kode `2120` sebagai Dana Operasional (DANA), `2122` sebagai Biaya Lainnya (BIAYA, `kategoriDana: null`), dan penambahan kode baru `2123` untuk Biaya Operasional (BIAYA, `kategoriDana: OPERASIONAL`). Perubahan berhasil di-seed langsung ke database produksi Supabase.
+- [x] **Tugas 3 (Redesign & Perbaikan Layout PDF BKU)** — Mengubah judul PDF BKU menjadi `"BUKU KAS UMUM"` dan memperbaiki conflict margin ganda secara global melalui shared CSS (`shared.js` -> `@page { margin: 0; }`).
+- [x] **Tugas 2 & 4 (Audit Modul Akuntan)** — Melakukan audit data untuk Jurnal Transaksi (tidak memerlukan field catatan tambahan di luar `uraian`) dan Buku Pembantu (terkonfirmasi menyaring data strictly satu `akunId` secara spesifik).
+- [x] **Keputusan Database Produksi & Deployment** — Menggunakan Supabase production database dengan Transaction Pooler baru. Frontend berhasil dikonfigurasi & dideploy ke Vercel.
 
 ## Sedang jalan / berikutnya
-## Belum dikerjakan sama sekali
+- Verifikasi visual dan perhitungan nominal laporan keuangan pasca pembaruan COA baru di frontend.
 
-- Deployment (Render/Vercel) + keputusan final DB prod (lokal vs Supabase).
+## Belum dikerjakan sama sekali
+- Tidak ada backlog mendesak. Skenario pelaporan dan operasional modul Akuntan telah stabil.
