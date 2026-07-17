@@ -237,9 +237,10 @@ router.get("/bp", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req
 // GET /api/laporan/lpa - Laporan Penggunaan Anggaran
 router.get("/lpa", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req, res) => {
   try {
-    const { periodeId, nomorDokumen } = req.query;
-    if (!periodeId || !nomorDokumen) {
-      return res.status(400).json({ error: "periodeId dan nomorDokumen wajib disertakan pada query parameter" });
+    const { periodeId, nomorDokumen, isLr } = req.query;
+    const isLrBool = isLr === 'true';
+    if (!periodeId || (!isLrBool && !nomorDokumen)) {
+      return res.status(400).json({ error: isLrBool ? "periodeId wajib disertakan pada query parameter" : "periodeId dan nomorDokumen wajib disertakan pada query parameter" });
     }
 
     const periode = await prisma.periode.findUnique({ where: { id: periodeId } });
@@ -299,7 +300,8 @@ router.get("/lpa", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (re
     res.json({
       success: true,
       data: {
-        nomorDokumen,
+        isLr: isLrBool,
+        nomorDokumen: isLrBool ? null : nomorDokumen,
         periodeLabel: `${periode.tanggalMulai.toISOString().split("T")[0]} - ${periode.tanggalSelesai.toISOString().split("T")[0]}`,
         namaPejabat: lembaga.namaKepalaSPPG,
         jabatan: JABATAN_KEPALA_SPPG,
@@ -325,9 +327,10 @@ router.get("/lpa", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (re
 router.get("/lpa/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req, res) => {
   let browser;
   try {
-    const { periodeId, nomorDokumen } = req.query;
-    if (!periodeId || !nomorDokumen) {
-      return res.status(400).json({ error: "periodeId dan nomorDokumen wajib disertakan" });
+    const { periodeId, nomorDokumen, isLr } = req.query;
+    const isLrBool = isLr === 'true';
+    if (!periodeId || (!isLrBool && !nomorDokumen)) {
+      return res.status(400).json({ error: isLrBool ? "periodeId wajib disertakan" : "periodeId dan nomorDokumen wajib disertakan" });
     }
 
     // === Ambil data (logika identik dengan GET /lpa) ===
@@ -355,7 +358,8 @@ router.get("/lpa/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async
     );
 
     const data = {
-      nomorDokumen,
+      isLr: isLrBool,
+      nomorDokumen: isLrBool ? null : nomorDokumen,
       periodeLabel: `${periode.tanggalMulai.toISOString().split("T")[0]} - ${periode.tanggalSelesai.toISOString().split("T")[0]}`,
       namaPejabat: lembaga.namaKepalaSPPG,
       jabatan: JABATAN_KEPALA_SPPG,

@@ -42,7 +42,7 @@ export const LaporanPage = () => {
 
     // Preview LPA sebagai PDF: fetch dengan header auth, buka blob di tab baru
     const previewLpaPdf = async () => {
-        if (!nomorDokumen || !nomorDokumen.trim()) {
+        if (jenisLaporan !== 'LR' && (!nomorDokumen || !nomorDokumen.trim())) {
             toast.error('Isi Nomor Dokumen dulu sebelum preview PDF');
             return;
         }
@@ -52,9 +52,10 @@ export const LaporanPage = () => {
         }
         setPdfLoading(true);
         try {
-            const r = await request(
-                `/laporan/lpa/pdf?periodeId=${periodeId}&nomorDokumen=${encodeURIComponent(nomorDokumen.trim())}`
-            );
+            const url = jenisLaporan === 'LR'
+                ? `/laporan/lpa/pdf?periodeId=${periodeId}&isLr=true`
+                : `/laporan/lpa/pdf?periodeId=${periodeId}&nomorDokumen=${encodeURIComponent(nomorDokumen.trim())}`;
+            const r = await request(url);
             if (!r.ok) {
                 // Error response dari server adalah JSON, bukan PDF
                 const errData = await r.json().catch(() => ({ error: 'Gagal membuat PDF LPA' }));
@@ -157,7 +158,7 @@ export const LaporanPage = () => {
 
     // Load LPA Laporan
     const loadLPA = async (pid, nomorDok) => {
-        if (!nomorDok || !nomorDok.trim()) {
+        if (jenisLaporan !== 'LR' && (!nomorDok || !nomorDok.trim())) {
             toast.error('Isi Nomor Dokumen dulu');
             setLpaData(null);
             return;
@@ -166,7 +167,10 @@ export const LaporanPage = () => {
 
         setLoading(true);
         try {
-            const r = await request(`/laporan/lpa?periodeId=${pid}&nomorDokumen=${encodeURIComponent(nomorDok.trim())}`);
+            const url = jenisLaporan === 'LR'
+                ? `/laporan/lpa?periodeId=${pid}&isLr=true`
+                : `/laporan/lpa?periodeId=${pid}&nomorDokumen=${encodeURIComponent(nomorDok.trim())}`;
+            const r = await request(url);
             if (r.ok) {
                 const resJson = await r.json();
                 setLpaData(resJson.data || null);
@@ -195,7 +199,7 @@ export const LaporanPage = () => {
             setLpaData(null);
             setSptjData(null);
             setBapsdData(null);
-        } else if (jenisLaporan === 'LPA') {
+        } else if (jenisLaporan === 'LPA' || jenisLaporan === 'LR') {
             setReportData([]);
             setLpaData(null);
             setSptjData(null);
@@ -308,6 +312,7 @@ export const LaporanPage = () => {
                         <option value="BKU">Buku Kas Umum (BKU)</option>
                         <option value="BP">Buku Pembantu per Akun (BP)</option>
                         <option value="LPA">Laporan Penggunaan Anggaran (LPA)</option>
+                        <option value="LR">Laporan Resume Penerimaan-Pengeluaran (LR)</option>
                         <option value="SPTJ">Surat Pernyataan Tanggung Jawab (SPTJ)</option>
                         <option value="BAPSD">Berita Acara Pengalihan Sisa Dana (BAPSD)</option>
                     </select>
@@ -377,44 +382,48 @@ export const LaporanPage = () => {
                     </div>
                 )}
 
-                {/* Conditional LPA / BAPSD Document Filter */}
-                {(jenisLaporan === 'LPA' || jenisLaporan === 'BAPSD') && (
+                {/* Conditional LPA / BAPSD / LR Document Filter */}
+                {(jenisLaporan === 'LPA' || jenisLaporan === 'BAPSD' || jenisLaporan === 'LR') && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        <div>
-                            <label style={{
-                                textTransform: 'uppercase',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                letterSpacing: '0.07em',
-                                color: 'var(--text-muted)',
-                                display: 'block',
-                                marginBottom: '6px'
-                            }}>
-                                Nomor Dokumen
-                            </label>
-                            <input
-                                type="text"
-                                placeholder="Nomor Dokumen"
-                                value={nomorDokumen}
-                                onChange={e => setNomorDokumen(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    borderRadius: 'var(--radius-sm)',
-                                    border: '1px solid var(--input-border)',
-                                    backgroundColor: 'var(--bg)',
-                                    color: 'var(--text)',
-                                    fontSize: '14px',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
+                        {jenisLaporan !== 'LR' && (
+                            <div>
+                                <label style={{
+                                    textTransform: 'uppercase',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    letterSpacing: '0.07em',
+                                    color: 'var(--text-muted)',
+                                    display: 'block',
+                                    marginBottom: '6px'
+                                }}>
+                                    Nomor Dokumen
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Nomor Dokumen"
+                                    value={nomorDokumen}
+                                    onChange={e => setNomorDokumen(e.target.value)}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        borderRadius: 'var(--radius-sm)',
+                                        border: '1px solid var(--input-border)',
+                                        backgroundColor: 'var(--bg)',
+                                        color: 'var(--text)',
+                                        fontSize: '14px',
+                                        boxSizing: 'border-box'
+                                    }}
+                                />
+                            </div>
+                        )}
                         <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
                             <button
                                 type="button"
                                 onClick={() => {
                                     if (jenisLaporan === 'LPA') {
                                         loadLPA(periodeId, nomorDokumen);
+                                    } else if (jenisLaporan === 'LR') {
+                                        loadLPA(periodeId, '');
                                     } else if (jenisLaporan === 'BAPSD') {
                                         loadBAPSD(periodeId, nomorDokumen);
                                     }
@@ -432,7 +441,7 @@ export const LaporanPage = () => {
                             >
                                 Tampilkan Laporan
                             </button>
-                            {jenisLaporan === 'LPA' && (
+                            {(jenisLaporan === 'LPA' || jenisLaporan === 'LR') && (
                                 <button
                                     type="button"
                                     id="btn-preview-pdf-lpa"
@@ -537,21 +546,27 @@ export const LaporanPage = () => {
                 </div>
             )}
 
-            {/* Render Laporan LPA */}
-            {!loading && jenisLaporan === 'LPA' && (
+            {/* Render Laporan LPA / LR */}
+            {!loading && (jenisLaporan === 'LPA' || jenisLaporan === 'LR') && (
                 <div>
                     {!lpaData ? (
                         <p style={{ fontStyle: 'italic', color: '#666' }}>
-                            {!nomorDokumen.trim() 
-                                ? 'Silakan masukkan Nomor Dokumen terlebih dahulu, lalu klik Tampilkan Laporan.' 
-                                : 'Silakan klik tombol Tampilkan Laporan.'
+                            {jenisLaporan === 'LR'
+                                ? 'Silakan klik tombol Tampilkan Laporan.'
+                                : (!nomorDokumen.trim() 
+                                    ? 'Silakan masukkan Nomor Dokumen terlebih dahulu, lalu klik Tampilkan Laporan.' 
+                                    : 'Silakan klik tombol Tampilkan Laporan.'
+                                  )
                             }
                         </p>
                     ) : (
                         <div style={{ border: '1px solid var(--border)', padding: '15px', backgroundColor: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
                             {/* ponytail: unify shade pastel to bg-elevated */}
                             <h4 style={{ textAlign: 'center', marginBottom: '20px' }}>
-                                LAPORAN PERTANGGUNGJAWABAN PENGGUNAAN DANA
+                                {jenisLaporan === 'LR' 
+                                    ? 'LAPORAN/RESUME PENERIMAAN DAN PENGELUARAN'
+                                    : 'LAPORAN PERTANGGUNGJAWABAN PENGGUNAAN DANA'
+                                }
                             </h4>
                             
                             <table style={{ marginBottom: '20px', fontSize: '14px' }} cellPadding="3">
@@ -564,10 +579,12 @@ export const LaporanPage = () => {
                                         <td><strong>Pejabat/Kepala</strong></td>
                                         <td>: {lpaData.namaPejabat} ({lpaData.jabatan})</td>
                                     </tr>
-                                    <tr>
-                                        <td><strong>Nomor Dokumen</strong></td>
-                                        <td>: {lpaData.nomorDokumen}</td>
-                                    </tr>
+                                    {jenisLaporan !== 'LR' && (
+                                        <tr>
+                                            <td><strong>Nomor Dokumen</strong></td>
+                                            <td>: {lpaData.nomorDokumen}</td>
+                                        </tr>
+                                    )}
                                     <tr>
                                         <td><strong>Periode</strong></td>
                                         <td>: {lpaData.periodeLabel}</td>

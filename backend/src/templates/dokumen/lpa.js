@@ -36,6 +36,7 @@ function renderLpaHtml(data) {
     ketuaYayasan,
     namaAkuntan,
     alamat,
+    isLr,
   } = data;
 
   // Format tanggal pelaporan
@@ -81,7 +82,7 @@ function renderLpaHtml(data) {
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>LPA — ${escapeHtml(nomorDokumen)}</title>
+  <title>${isLr ? 'Laporan Resume Penerimaan dan Pengeluaran' : `LPA — ${escapeHtml(nomorDokumen)}`}</title>
   <style>
     ${SHARED_CSS}
     /* LPA-specific */
@@ -91,8 +92,8 @@ function renderLpaHtml(data) {
 <body>
   ${renderKopSurat({ namaLembaga, alamat })}
 
-  <h2 class="judul-dok">Laporan Penggunaan Anggaran</h2>
-  <div class="nomor-dok">Nomor: <span class="highlight">${escapeHtml(nomorDokumen)}</span></div>
+  <h2 class="judul-dok">${isLr ? 'Laporan/Resume Penerimaan dan Pengeluaran' : 'Laporan Penggunaan Anggaran'}</h2>
+  ${isLr ? '' : `<div class="nomor-dok">Nomor: <span class="highlight">${escapeHtml(nomorDokumen)}</span></div>`}
   <div class="periode-label" style="text-align: left; font-weight: bold; margin-bottom: 8px;">Periode: ${escapeHtml(periodeLabel)}</div>
   <p style="margin: 0 0 6px 0; font-size: 11pt;">Yang bertanda tangan di bawah ini:</p>
 
