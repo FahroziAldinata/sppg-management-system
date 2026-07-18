@@ -4,10 +4,12 @@ import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table, renderStatus } from '../../components/Table';
 import { FieldButton } from '../../components/FieldButton';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 export const KendaraanPage = () => {
   const { request } = useApi();
   const toast = useToast();
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
@@ -73,17 +75,24 @@ export const KendaraanPage = () => {
   };
 
   const remove = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus kendaraan ini?')) return;
-    setError('');
-    const res = await request(`/mitra/kendaraan/${id}`, { method: 'DELETE' });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: 'Gagal menghapus kendaraan' }));
-      setError(data.error || 'Gagal menghapus kendaraan');
-      return;
-    }
-    toast.success('Kendaraan berhasil dihapus.');
-    if (editing?.id === id) resetForm();
-    load();
+    setConfirmModal({
+      open: true,
+      title: 'Konfirmasi Hapus',
+      message: 'Apakah Anda yakin ingin menghapus kendaraan ini?',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, open: false }));
+        setError('');
+        const res = await request(`/mitra/kendaraan/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({ error: 'Gagal menghapus kendaraan' }));
+          setError(data.error || 'Gagal menghapus kendaraan');
+          return;
+        }
+        toast.success('Kendaraan berhasil dihapus.');
+        if (editing?.id === id) resetForm();
+        load();
+      }
+    });
   };
 
   const columns = [
@@ -179,6 +188,14 @@ export const KendaraanPage = () => {
       </section>
 
       <Table columns={columns} data={items} emptyText="Belum ada kendaraan operasional." />
+
+      <ConfirmDialog
+        open={confirmModal.open}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm || (() => {})}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+      />
     </div>
   );
 };

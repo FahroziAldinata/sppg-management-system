@@ -1,13 +1,15 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
 import { NumberInput } from '../../components/NumberInput';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 export const PenerimaManfaatPage = () => {
   const { request } = useApi();
   const toast = useToast();
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
 
   // Master data
   const [periods, setPeriods] = useState([]);
@@ -166,23 +168,31 @@ export const PenerimaManfaatPage = () => {
   };
 
   const handleDeleteClick = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus data ini?')) return;    try {
-      const res = await request(`/aslap/penerima-manfaat/${id}`, {
-        method: 'DELETE'
-      });
-      if (res.ok) {
-        toast.success('Data berhasil dihapus.');
-        const listRes = await request(`/aslap/penerima-manfaat?periodeId=${selectedPeriodId}`);
-        const data = await listRes.json();
-        setItems(data);
-      } else {
-        const errData = await res.json();
-        toast.error(errData.error || 'Gagal menghapus data.');
+    setConfirmModal({
+      open: true,
+      title: 'Konfirmasi Hapus',
+      message: 'Apakah Anda yakin ingin menghapus data ini?',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, open: false }));
+        try {
+          const res = await request(`/aslap/penerima-manfaat/${id}`, {
+            method: 'DELETE'
+          });
+          if (res.ok) {
+            toast.success('Data berhasil dihapus.');
+            const listRes = await request(`/aslap/penerima-manfaat?periodeId=${selectedPeriodId}`);
+            const data = await listRes.json();
+            setItems(data);
+          } else {
+            const errData = await res.json();
+            toast.error(errData.error || 'Gagal menghapus data.');
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error('Koneksi ke server gagal.');
+        }
       }
-    } catch (err) {
-      console.error(err);
-      toast.error('Koneksi ke server gagal.');
-    }
+    });
   };
 
   const handleDayCheckboxChange = (day) => {
@@ -988,6 +998,14 @@ export const PenerimaManfaatPage = () => {
         ]}
         data={items}
         emptyText="Belum ada data penerima manfaat untuk periode ini."
+      />
+
+      <ConfirmDialog
+        open={confirmModal.open}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm || (() => {})}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, open: false }))}
       />
     </div>
   );

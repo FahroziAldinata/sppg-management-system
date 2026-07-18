@@ -4,10 +4,12 @@ import { useToast } from '../../context/ToastContext';
 import { Table } from '../../components/Table';
 import Dropdown from '../../components/Dropdown';
 import { NumberInput } from '../../components/NumberInput';
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 export const HargaBahanPage = () => {
   const { request } = useApi();
   const toast = useToast();
+  const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
 
   const [periods, setPeriods] = useState([]);
   const [bahanList, setBahanList] = useState([]);
@@ -83,19 +85,27 @@ export const HargaBahanPage = () => {
     setFormIsFallback(row.isFallback);  };
 
   const handleDeleteClick = async (id) => {
-    if (!window.confirm('Yakin hapus harga bahan ini?')) return;    try {
-      const res = await request(`/mitra/harga-bahan/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        toast.success('Data berhasil dihapus.');
-        fetchList(selectedPeriodId);
-      } else {
-        const errData = await res.json();
-        toast.error(errData.error || 'Gagal menghapus data.');
+    setConfirmModal({
+      open: true,
+      title: 'Konfirmasi Hapus',
+      message: 'Yakin hapus harga bahan ini?',
+      onConfirm: async () => {
+        setConfirmModal(prev => ({ ...prev, open: false }));
+        try {
+          const res = await request(`/mitra/harga-bahan/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            toast.success('Data berhasil dihapus.');
+            fetchList(selectedPeriodId);
+          } else {
+            const errData = await res.json();
+            toast.error(errData.error || 'Gagal menghapus data.');
+          }
+        } catch (err) {
+          console.error(err);
+          toast.error('Koneksi ke server gagal.');
+        }
       }
-    } catch (err) {
-      console.error(err);
-      toast.error('Koneksi ke server gagal.');
-    }
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -312,6 +322,14 @@ export const HargaBahanPage = () => {
         ]}
         data={items}
         emptyText="Belum ada data harga bahan untuk periode ini."
+      />
+
+      <ConfirmDialog
+        open={confirmModal.open}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm || (() => {})}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, open: false }))}
       />
     </div>
   );

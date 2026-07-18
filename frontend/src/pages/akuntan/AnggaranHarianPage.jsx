@@ -352,7 +352,7 @@ export const AnggaranHarianPage = () => {
                                 type="button"
                                 onClick={() => {
                                     if (!tempDetail.kategoriId || !tempDetail.jumlahPaket || !tempDetail.hargaSatuan) {
-                                        alert('Mohon lengkapi semua input rincian.');
+                                        toast.error('Mohon lengkapi semua input rincian.');
                                         return;
                                     }
                                     setAnggaranDetailBahan(prev => [...prev, { ...tempDetail }]);

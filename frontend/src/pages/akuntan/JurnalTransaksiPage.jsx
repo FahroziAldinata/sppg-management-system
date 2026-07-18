@@ -6,13 +6,14 @@ import { DatePicker } from '../../components/DatePicker';
 import Dropdown from "../../components/Dropdown";
 import { NumberInput } from '../../components/NumberInput';
 import { Skeleton } from '../../components/Skeleton';
-
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 
 export const JurnalTransaksiPage = () => {
     const { request } = useApi();
   const toast = useToast();
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
+    const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
     const [akunList, setAkunList] = useState([]);
     const [jurnalList, setJurnalList] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -175,21 +176,28 @@ export const JurnalTransaksiPage = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Apakah Anda yakin ingin menghapus jurnal transaksi ini? Tindakan ini tidak dapat dibatalkan.')) return;
-        try {
-            const r = await request(`/akuntan/jurnal-transaksi/${id}`, {
-                method: 'DELETE'
-            });
-            if (r.ok) {
-                toast.success('Jurnal Transaksi berhasil dihapus.');
-                loadJurnal(periodeId);
-            } else {
-                const d = await r.json().catch(() => ({ error: 'Gagal menghapus jurnal transaksi' }));
-                toast.error(d.error);
+        setConfirmModal({
+            open: true,
+            title: 'Konfirmasi Hapus',
+            message: 'Apakah Anda yakin ingin menghapus jurnal transaksi ini? Tindakan ini tidak dapat dibatalkan.',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                try {
+                    const r = await request(`/akuntan/jurnal-transaksi/${id}`, {
+                        method: 'DELETE'
+                    });
+                    if (r.ok) {
+                        toast.success('Jurnal Transaksi berhasil dihapus.');
+                        loadJurnal(periodeId);
+                    } else {
+                        const d = await r.json().catch(() => ({ error: 'Gagal menghapus jurnal transaksi' }));
+                        toast.error(d.error);
+                    }
+                } catch (err) {
+                    toast.error(err.message || 'Terjadi kesalahan koneksi');
+                }
             }
-        } catch (err) {
-            toast.error(err.message || 'Terjadi kesalahan koneksi');
-        }
+        });
     };
 
     const handlePrefillFromPo = async () => {
@@ -562,6 +570,14 @@ export const JurnalTransaksiPage = () => {
                     emptyText="Belum ada data Jurnal Transaksi untuk periode ini."
                 />
             )}
+
+            <ConfirmDialog
+                open={confirmModal.open}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm || (() => {})}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, open: false }))}
+            />
         </div>
     );
 };

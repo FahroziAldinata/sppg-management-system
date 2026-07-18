@@ -19,6 +19,7 @@ export const MenuHarianPage = () => {
     const [items, setItems] = useState([]);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [pendingMenuId, setPendingMenuId] = useState(null);
+    const [confirmModal, setConfirmModal] = useState({ open: false, title: '', message: '', onConfirm: null });
     const [tanggal, setTanggal] = useState('');
     const [error, setError] = useState('');
 
@@ -181,33 +182,40 @@ export const MenuHarianPage = () => {
 
     const deleteMasterMenu = async (id) => {
         if (!id) return;
-        if (!window.confirm('Apakah Anda yakin ingin menghapus master menu ini?')) return;
-        try {
-            const r = await request(`/gizi/master-menu/${id}`, { method: 'DELETE' });
-            if (r.ok) {
-                toast.success('Master Menu berhasil dihapus.');
-                setMasterForm(prev => ({
-                    id: '',
-                    jalur: prev.jalur,
-                    hari: prev.hari,
-                    menuKarbohidrat: '',
-                    menuLaukHewani: '',
-                    menuLaukNabati: '',
-                    menuSayur: '',
-                    menuBuah: ''
-                }));
-                request(`/gizi/master-menu?periodeId=${periodeId}`)
-                    .then(res => res.ok ? res.json() : [])
-                    .then(d => setMasterMenuList(d));
-                loadActualMasterMenu(periodeId);
-                setShowMasterModal(false);
-            } else {
-                const d = await r.json();
-                toast.error(d.error || 'Gagal menghapus master menu.');
+        setConfirmModal({
+            open: true,
+            title: 'Konfirmasi Hapus',
+            message: 'Apakah Anda yakin ingin menghapus master menu ini?',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                try {
+                    const r = await request(`/gizi/master-menu/${id}`, { method: 'DELETE' });
+                    if (r.ok) {
+                        toast.success('Master Menu berhasil dihapus.');
+                        setMasterForm(prev => ({
+                            id: '',
+                            jalur: prev.jalur,
+                            hari: prev.hari,
+                            menuKarbohidrat: '',
+                            menuLaukHewani: '',
+                            menuLaukNabati: '',
+                            menuSayur: '',
+                            menuBuah: ''
+                        }));
+                        request(`/gizi/master-menu?periodeId=${periodeId}`)
+                            .then(res => res.ok ? res.json() : [])
+                            .then(d => setMasterMenuList(d));
+                        loadActualMasterMenu(periodeId);
+                        setShowMasterModal(false);
+                    } else {
+                        const d = await r.json();
+                        toast.error(d.error || 'Gagal menghapus master menu.');
+                    }
+                } catch (err) {
+                    toast.error(err.message || 'Terjadi kesalahan koneksi');
+                }
             }
-        } catch (err) {
-            toast.error(err.message || 'Terjadi kesalahan koneksi');
-        }
+        });
     };
 
     const applyMasterMenu = async (blok, menu) => {
@@ -700,13 +708,20 @@ export const MenuHarianPage = () => {
     };
 
     const deletePengiriman = async (id) => {
-        if (!window.confirm('Apakah Anda yakin ingin menghapus pengiriman ini?')) return;
-        const r = await request(`/gizi/pengiriman/${id}`, { method: 'DELETE' });
-        if (r.ok) load(periodeId);
-        else {
-            const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
-            setError(d.error || 'Terjadi kesalahan server saat menghapus pengiriman');
-        }
+        setConfirmModal({
+            open: true,
+            title: 'Konfirmasi Hapus',
+            message: 'Apakah Anda yakin ingin menghapus pengiriman ini?',
+            onConfirm: async () => {
+                setConfirmModal(prev => ({ ...prev, open: false }));
+                const r = await request(`/gizi/pengiriman/${id}`, { method: 'DELETE' });
+                if (r.ok) load(periodeId);
+                else {
+                    const d = await r.json().catch(() => ({ error: 'Terjadi kesalahan format response' }));
+                    setError(d.error || 'Terjadi kesalahan server saat menghapus pengiriman');
+                }
+            }
+        });
     };
 
     const getBlokStatus = (blok) => {
@@ -1829,6 +1844,14 @@ export const MenuHarianPage = () => {
                     setConfirmOpen(false);
                     setPendingMenuId(null);
                 }}
+            />
+
+            <ConfirmDialog
+                open={confirmModal.open}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm || (() => {})}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, open: false }))}
             />
         </div>
     );
