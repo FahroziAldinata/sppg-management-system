@@ -153,7 +153,7 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Jalur 3B PengirimanHarian dikonfirmasi opsional** (relasi 0..*, tidak ada validasi wajib di approval/input).
 - [x] **Validasi tanggal JurnalTransaksi vs rentang periode dikonfirmasi berjalan benar** sesuai desain (bukan bug).
 - [x] **Migration 20260717164456_po_item_audit_trail dikonfirmasi ter-deploy** ke Supabase prod (migrate status sinkron).
-- [x] **Penyelarasan Backend untuk Guardrail Harga Porsi** — Registrasi endpoint `/api/gizi/batas-harga-porsi` (akses multi-role) dan perluasan parameter `include` di `GET /menu-harian` & `GET /menu-harian/:id` untuk menyertakan `kategoriPenerima` (khususnya field `jenisPorsi`) pada `kelompokUmurMenu` untuk kebutuhan validasi real-time di frontend.
+- [x] **Guardrail Harga Porsi Real-time di Menu Harian (Ahli Gizi)** — Implementasi full stack. Backend: Registrasi endpoint `/api/gizi/batas-harga-porsi` (akses multi-role) dan perluasan `include` `kategoriPenerima` di `/menu-harian`. Frontend: integrasi batas harga porsi, live aggregate cost per block, budget alert badge, accordion sidebar kelompok umur, collapse empty menu components, dan sticky workspace header di `MenuHarianPage.jsx`.
 
 ## Sedang jalan / berikutnya
 - Belum ada — lihat `08-TODO.md` untuk task terbuka.

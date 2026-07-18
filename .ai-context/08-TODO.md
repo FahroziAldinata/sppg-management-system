@@ -27,15 +27,11 @@ _Tidak ada tugas aktif saat ini._
 - **Deskripsi**: Layout tabel cetak PO gabungan multi-tanggal saat ini belum 100% sesuai format Excel asli (referensi: sheet "12-13 SISWA B3"). Perlu audit ulang penyesuaian kop surat, urutan kolom, dan styling cetak.
 - **Status**: Belum dikerjakan.
 
-### 5. [ ] Guardrail Harga Porsi Real-time di Menu Harian (Ahli Gizi)
-- **Deskripsi**: Excel asli (`MENU_..xlsx`) selalu tampilkan header "ANGGARAN PORSI KECIL 8.000, BESAR 10.000" + baris "Total Anggaran" per blok menu, sebagai pembanding real-time. Sistem sekarang tidak punya ini — jadi akar penyebab sering miss antara Ahli Gizi (nyusun tanpa liat batas) & Akuntan (baru ketauan kelebihan pas hitung RAB).
-- **Rencana**: Tampilkan total biaya per blok (SUM MenuItemBahan.totalHargaBahan) real-time dibanding `BatasHargaPorsi` sesuai `jenisPorsi` blok. Read-only info, tidak block submit.
-- **Status**: Implementasi backend selesai (endpoint `/batas-harga-porsi` & penambahan include `kategoriPenerima` di `/menu-harian` dkk). Pekerjaan frontend (rendering guardrail real-time di UI `MenuHarianPage.jsx`) belum dikerjakan.
-
 ---
 
 ## C. Arsip Tugas Selesai (Completed)
 
+- [x] **Guardrail Harga Porsi Real-time di Menu Harian (Ahli Gizi)**: Integrasi backend-frontend untuk membatasi anggaran porsi (KECIL/BESAR) real-time di UI `MenuHarianPage.jsx` beserta optimasi visual accordion kelompok umur, collapse empty menu components, dan sticky workspace header.
 - [x] **PO 2-Tahap (Akuntan→Mitra→Aslap)**: Inisiasi PO oleh Akuntan, partial-save realisasi oleh Mitra (auto-flip DIREALISASI), approval Aslap, modal tambah supplier baru, dan prefill jurnal transaksi.
 - [x] **Jalur 3B PengirimanHarian Opsional**: Mengonfirmasi bahwa model pengiriman bersifat opsional secara teknis di database dan API (relasi 0..*).
 - [x] **Validasi Periode JurnalTransaksi**: Tanggal transaksi divalidasi strictly masuk ke dalam rentang periode aktif.
