@@ -1028,7 +1028,7 @@ router.post("/jurnal-transaksi", requireAuth, requireRole("AKUNTAN"), async (req
       }
 
       return jurnal;
-    });
+    }, { timeout: 15000 });
 
     res.status(201).json(created);
   } catch (error) {
@@ -1260,7 +1260,7 @@ router.put("/jurnal-transaksi/:id", requireAuth, requireRole("AKUNTAN"), async (
       }
 
       return result;
-    });
+    }, { timeout: 15000 });
 
     res.json(updated);
   } catch (error) {
@@ -1304,7 +1304,7 @@ router.delete("/jurnal-transaksi/:id", requireAuth, requireRole("AKUNTAN"), asyn
       }
 
       return result;
-    });
+    }, { timeout: 15000 });
 
     res.json({ success: true, message: "Jurnal transaksi berhasil dihapus", data: deleted });
   } catch (error) {
