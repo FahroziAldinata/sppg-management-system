@@ -150,6 +150,9 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
    - NON-FITUR: qtyDiterima tetap nullable/unused (YAGNI) — Aslap approve per-dokumen.
    - BUG FIX: Transaction timeout jurnal POST/PUT/DELETE dinaikkan ke 15s.
 - [x] **Cetak PO Gabungan Multi-Tanggal** — Endpoint `/mitra/po/kebutuhan` extend terima multi-tanggal (comma-separated), breakdown SISWA/B3 per-tanggal via `perTanggal`. Frontend `AkuntanPoPage.jsx` tambah modal pilih tanggal + tabel print gabungan kolom dinamis. Fix bundling: P2028 transaction timeout (`aslap.js` & `akuntan.js` POST PO, timeout 5000ms→15000ms), migration `20260717164456_po_item_audit_trail` deployed ke Supabase prod.
+- [x] **Jalur 3B PengirimanHarian dikonfirmasi opsional** (relasi 0..*, tidak ada validasi wajib di approval/input).
+- [x] **Validasi tanggal JurnalTransaksi vs rentang periode dikonfirmasi berjalan benar** sesuai desain (bukan bug).
+- [x] **Migration 20260717164456_po_item_audit_trail dikonfirmasi ter-deploy** ke Supabase prod (migrate status sinkron).
 
 ## Sedang jalan / berikutnya
 - Belum ada — lihat `08-TODO.md` untuk task terbuka.

@@ -18,56 +18,28 @@ _Tidak ada tugas aktif saat ini._
 - **Tugas Audit**: Tanyakan kepada user apakah butuh pengiriman per Mobil custom atau tetap per porsi sudah cukup.
 - **Status**: Belum dikerjakan.
 
-### 3. [ ] Audit Ahli Gizi: Jalur 3B - Apakah Butuh PengirimanHarian?
-- **Deskripsi**: Jalur 3B (Balita/Bumil/Busui) tidak memiliki mobil pengantaran di Excel (diambil langsung di posyandu).
-- **Tugas Audit**: Cek apakah logic `PengirimanHarian` mewajibkan pengiriman untuk semua jenis menu. Jika iya, buat opsional untuk jalur TIGA_B.
-- **Status**: Belum dikerjakan.
-
-### 4. [ ] Transaksi Jurnal gagal "ga sesuai periode"
-- **Deskripsi**: Validasi tanggal transaksi harus masuk ke dalam rentang periode aktif.
-- **Langkah**: Cek konfigurasi `tanggalMulai` dan `tanggalSelesai` pada Setup Periode saat pengetesan.
-- **Status**: Belum dikerjakan.
-
-### 5. [x] Deploy schema migration ke Supabase production (PO 2-Tahap)
-- **Deskripsi**: Migrasi schema PO 2-tahap (enum `StatusPO`, field realisasi, field `diterimaOlehId`/`diterimaAt`) sudah verified di lokal, belum deploy ke prod.
-- **Langkah**:
-  1. Backup data prod: `SELECT COUNT(*) FROM "TransaksiPembelian";`
-  2. Buat backfill SQL untuk `createdById` jika ada data lama (set ke userId akuntan pertama).
-  3. Jalankan `npx prisma migrate deploy` ke Supabase prod dengan `DATABASE_URL` pooler.
-- **Status**: ✅ **SELESAI 2026-07-17** — Migrasi deploy ke Supabase prod berhasil. Data test dummy (8 TransaksiPembelian + Supplier) dibersihkan manual. CATATAN: `DATABASE_URL` runtime (Railway) WAJIB port 6543 + `?pgbouncer=true`, migration WAJIB port 5432 tanpa pgbouncer.
-
-### 6. [ ] Code-splitting bundle size (Belum Urgent)
+### 3. [ ] Code-splitting bundle size (Belum Urgent)
 - **Deskripsi**: Peringatan build size di Vite (>500kB).
 - **Langkah**: Optimalkan bundle size dengan `React.lazy` atau penataan `manualChunks`.
 - **Status**: Belum dikerjakan.
 
-### 7. [x] PO 2-Tahap: Akuntan Inisiasi → Mitra Realisasi → Verifikasi Aslap ✅
-- **Mekanisme**: Akuntan bikin PO → Mitra checklist Tahan/Beli per item
-  (partial-save, auto-flip DIREALISASI kalau semua item terisi) →
-  Aslap verifikasi fisik (gate status DIREALISASI, no partial).
-- **Tambah Supplier On-the-fly**: Modal "+ Baru" di AkuntanPoPage.jsx
-  — POST /api/akuntan/supplier → auto-refresh dropdown + auto-select
-  supplier baru.
-- **Prefill Jurnal dari PO**: Dropdown "Isi dari PO" di
-  JurnalTransaksiPage.jsx — GET /api/akuntan/jurnal-transaksi/prefill/:id
-  — isi draft nominal dari subtotalRealisasi PO, Akuntan submit manual
-  setelah cek nota fisik.
-- **qtyDiterima**: Field di schema tetap ada tapi tidak dipakai (YAGNI)
-  — Aslap approve per-dokumen, bukan per-item.
-- **Fix tambahan**: Transaction timeout dinaikkan ke 15000ms di 3 endpoint
-  jurnal (POST/PUT/DELETE) — bug lama ketemu pas testing.
-- **Status**: ✅ **SELESAI 2026-07-18** — Seluruh sub-tugas (migration
-  audit trail, flip-logic, prefill jurnal, FE grouping, gate Aslap)
-  sudah diimplementasi, dites via production endpoint, dan diclose.
-
-### 8. [ ] Layout Cetak PO Gabungan Belum Sesuai Format Asli
+### 4. [ ] Layout Cetak PO Gabungan Belum Sesuai Format Asli
 - **Deskripsi**: Layout tabel cetak PO gabungan multi-tanggal saat ini belum 100% sesuai format Excel asli (referensi: sheet "12-13 SISWA B3"). Perlu audit ulang penyesuaian kop surat, urutan kolom, dan styling cetak.
 - **Status**: Belum dikerjakan.
+
+### 5. [ ] Guardrail Harga Porsi Real-time di Menu Harian (Ahli Gizi)
+- **Deskripsi**: Excel asli (`MENU_..xlsx`) selalu tampilkan header "ANGGARAN PORSI KECIL 8.000, BESAR 10.000" + baris "Total Anggaran" per blok menu, sebagai pembanding real-time. Sistem sekarang tidak punya ini — jadi akar penyebab sering miss antara Ahli Gizi (nyusun tanpa liat batas) & Akuntan (baru ketauan kelebihan pas hitung RAB).
+- **Rencana**: Tampilkan total biaya per blok (SUM MenuItemBahan.totalHargaBahan) real-time dibanding `BatasHargaPorsi` sesuai `jenisPorsi` blok. Read-only info, tidak block submit.
+- **Status**: Belum dikerjakan, belum diaudit endpoint existing.
 
 ---
 
 ## C. Arsip Tugas Selesai (Completed)
 
+- [x] **PO 2-Tahap (Akuntan→Mitra→Aslap)**: Inisiasi PO oleh Akuntan, partial-save realisasi oleh Mitra (auto-flip DIREALISASI), approval Aslap, modal tambah supplier baru, dan prefill jurnal transaksi.
+- [x] **Jalur 3B PengirimanHarian Opsional**: Mengonfirmasi bahwa model pengiriman bersifat opsional secara teknis di database dan API (relasi 0..*).
+- [x] **Validasi Periode JurnalTransaksi**: Tanggal transaksi divalidasi strictly masuk ke dalam rentang periode aktif.
+- [x] **Deploy Schema Migration PO 2-Tahap**: Migrasi schema PO 2-tahap (`20260717164456_po_item_audit_trail` dkk) berhasil di-deploy ke Supabase prod.
 - [x] **Redesign Alur PO 2-Tahap (Full Stack)**: Implementasi lengkap alur DIAJUKAN → DIREALISASI → DITERIMA.
   - Schema: enum `StatusPO`, field `qtyRealisasi/hargaSatuanRealisasi/subtotalRealisasi`, field `diterimaOlehId/diterimaAt`, relasi `AkuntanBuatPO` & `AslapTerimaPO` pada model `User`.
   - Backend: `POST /api/akuntan/po`, `PUT /api/mitra/po/:id/realisasi`, `PUT /api/aslap/po/:id/approve`, `GET /mitra/po/list` (multi-role), deprecated `POST /api/mitra/po` → 410 Gone.
