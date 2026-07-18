@@ -2862,7 +2862,7 @@ router.post("/po", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
           createdBy: { select: { id: true, nama: true, role: true } }
         }
       });
-    });
+    }, { timeout: 15000 });
 
     res.status(201).json({ success: true, data: result });
   } catch (error) {
