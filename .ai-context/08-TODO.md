@@ -60,6 +60,10 @@ _Tidak ada tugas aktif saat ini._
   audit trail, flip-logic, prefill jurnal, FE grouping, gate Aslap)
   sudah diimplementasi, dites via production endpoint, dan diclose.
 
+### 8. [ ] Layout Cetak PO Gabungan Belum Sesuai Format Asli
+- **Deskripsi**: Layout tabel cetak PO gabungan multi-tanggal saat ini belum 100% sesuai format Excel asli (referensi: sheet "12-13 SISWA B3"). Perlu audit ulang penyesuaian kop surat, urutan kolom, dan styling cetak.
+- **Status**: Belum dikerjakan.
+
 ---
 
 ## C. Arsip Tugas Selesai (Completed)

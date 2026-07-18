@@ -149,6 +149,7 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
    - FITUR BARU: Modal "+ Baru" tambah supplier on-the-fly di AkuntanPoPage (POST /api/akuntan/supplier). Dropdown "Isi dari PO" di JurnalTransaksiPage (GET /api/akuntan/jurnal-transaksi/prefill/:id) — prefill nominal dari realisasi, Akuntan submit manual.
    - NON-FITUR: qtyDiterima tetap nullable/unused (YAGNI) — Aslap approve per-dokumen.
    - BUG FIX: Transaction timeout jurnal POST/PUT/DELETE dinaikkan ke 15s.
+- [x] **Cetak PO Gabungan Multi-Tanggal** — Endpoint `/mitra/po/kebutuhan` extend terima multi-tanggal (comma-separated), breakdown SISWA/B3 per-tanggal via `perTanggal`. Frontend `AkuntanPoPage.jsx` tambah modal pilih tanggal + tabel print gabungan kolom dinamis. Fix bundling: P2028 transaction timeout (`aslap.js` & `akuntan.js` POST PO, timeout 5000ms→15000ms), migration `20260717164456_po_item_audit_trail` deployed ke Supabase prod.
 
 ## Sedang jalan / berikutnya
 - Belum ada — lihat `08-TODO.md` untuk task terbuka.
