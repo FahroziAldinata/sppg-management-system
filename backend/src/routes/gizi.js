@@ -17,6 +17,16 @@ router.get("/kelompok-umur-menu", requireAuth, requireRole("ASLAP", "KEPALA_SPPG
   }
 });
 
+// GET /api/gizi/batas-harga-porsi - Get all batas harga porsi limits
+router.get("/batas-harga-porsi", requireAuth, requireRole("AHLI_GIZI", "AKUNTAN", "KEPALA_SPPG", "ASLAP"), async (req, res) => {
+  try {
+    const data = await prisma.batasHargaPorsi.findMany();
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ error: "Gagal mengambil data batas harga porsi" });
+  }
+});
+
 // ==========================================
 // CRUD MENU HARIAN
 // ==========================================
@@ -34,7 +44,11 @@ router.get("/menu-harian", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPAL
       include: {
         blok: {
           include: {
-            kelompokUmurMenu: true,
+            kelompokUmurMenu: {
+              include: {
+                kategoriPenerima: { select: { id: true, kode: true, nama: true, jenisPorsi: true } }
+              }
+            },
             organoleptik: true,
             alergi: true,
             menuItem: { include: { bahan: true } }
@@ -59,7 +73,11 @@ router.get("/menu-harian/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "K
       include: {
         blok: {
           include: {
-            kelompokUmurMenu: true,
+            kelompokUmurMenu: {
+              include: {
+                kategoriPenerima: { select: { id: true, kode: true, nama: true, jenisPorsi: true } }
+              }
+            },
             organoleptik: true,
             alergi: true,
             menuItem: { include: { bahan: true } }
