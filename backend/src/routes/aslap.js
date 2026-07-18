@@ -358,7 +358,7 @@ router.post("/penerima-manfaat", requireAuth, requireRole("ASLAP"), async (req, 
           }
         }
       });
-    });
+    }, { timeout: 15000 });
 
     res.status(201).json(created);
   } catch (error) {
