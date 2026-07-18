@@ -16,13 +16,16 @@ export const JurnalTransaksiPage = () => {
     const [akunList, setAkunList] = useState([]);
     const [jurnalList, setJurnalList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [realizedPoList, setRealizedPoList] = useState([]);
+    const [selectedPrefillPoId, setSelectedPrefillPoId] = useState('');
     const [jurnalForm, setJurnalForm] = useState({
         tanggal: '',
         uraian: '',
         jenis: '',
         nominal: '',
         akunDanaBiayaId: '',
-        akunKasId: ''
+        akunKasId: '',
+        transaksiPembelianId: ''
     });
 
     // Load periods & accounts on mount
@@ -59,10 +62,26 @@ export const JurnalTransaksiPage = () => {
         }
     };
 
+    const loadRealizedPos = async (pid) => {
+        if (!pid) return;
+        try {
+            const r = await request(`/mitra/po/list?periodeId=${pid}`);
+            if (r.ok) {
+                const resJson = await r.json();
+                const pos = resJson.data || [];
+                setRealizedPoList(pos.filter(po => po.status === 'DIREALISASI'));
+            }
+        } catch (err) {
+            console.error('Gagal memuat daftar PO realisasi:', err);
+        }
+    };
+
     // Load journal list when period changes
     useEffect(() => {
         if (periodeId) {
             loadJurnal(periodeId);
+            loadRealizedPos(periodeId);
+            setSelectedPrefillPoId('');
         }
     }, [periodeId]);
 
@@ -76,7 +95,8 @@ export const JurnalTransaksiPage = () => {
             jenis,
             nominal,
             akunDanaBiayaId,
-            akunKasId
+            akunKasId,
+            transaksiPembelianId
         } = jurnalForm;
 
         if (!periodeId) {
@@ -124,7 +144,8 @@ export const JurnalTransaksiPage = () => {
                     jenis,
                     nominal: valNominal,
                     akunDanaBiayaId,
-                    akunKasId
+                    akunKasId,
+                    transaksiPembelianId: transaksiPembelianId || undefined
                 })
             });
 
@@ -137,8 +158,10 @@ export const JurnalTransaksiPage = () => {
                     jenis: '',
                     nominal: '',
                     akunDanaBiayaId: '',
-                    akunKasId: ''
+                    akunKasId: '',
+                    transaksiPembelianId: ''
                 });
+                setSelectedPrefillPoId('');
 
                 // Refresh list jurnal
                 loadJurnal(periodeId);
@@ -166,6 +189,30 @@ export const JurnalTransaksiPage = () => {
             }
         } catch (err) {
             toast.error(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    const handlePrefillFromPo = async () => {
+        if (!selectedPrefillPoId) return;
+        try {
+            const r = await request(`/akuntan/jurnal-transaksi/prefill/${selectedPrefillPoId}`);
+            if (r.ok) {
+                const data = await r.json();
+                setJurnalForm(prev => ({
+                    ...prev,
+                    tanggal: data.tanggal,
+                    uraian: data.uraian,
+                    nominal: data.nominal,
+                    jenis: 'KELUAR',
+                    transaksiPembelianId: data.transaksiPembelianId
+                }));
+                toast.success('Form berhasil diisi dari data PO.');
+            } else {
+                const errData = await r.json().catch(() => ({ error: 'Gagal prefill data dari PO.' }));
+                toast.error(errData.error);
+            }
+        } catch (err) {
+            toast.error('Terjadi kesalahan koneksi.');
         }
     };
 
@@ -259,6 +306,43 @@ export const JurnalTransaksiPage = () => {
                         );
                     })}
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontStyle: 'italic' }}>(masih bisa edit manual)</span>
+                </div>
+
+                {/* Quick-fill: Dari Purchase Order */}
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center', marginTop: '-4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-muted)', marginRight: '4px' }}>
+                        Isi dari PO:
+                    </span>
+                    <Dropdown
+                        style={{ minWidth: '220px' }}
+                        value={selectedPrefillPoId}
+                        onChange={setSelectedPrefillPoId}
+                        options={[
+                            { value: '', label: '-- Pilih PO Direalisasi --' },
+                            ...realizedPoList.map(po => ({
+                                value: po.id,
+                                label: `${po.tanggal.split('T')[0]} - ${po.supplier?.nama} (Rp${po.items.reduce((s, i) => s + Number(i.subtotalRealisasi || 0), 0).toLocaleString('id-ID')})`
+                            }))
+                        ]}
+                    />
+                    <button
+                        type="button"
+                        disabled={!selectedPrefillPoId}
+                        onClick={handlePrefillFromPo}
+                        style={{
+                            padding: '6px 12px',
+                            fontSize: '12px',
+                            fontWeight: 600,
+                            border: '1px solid var(--color-primary, #4f46e5)',
+                            borderRadius: 'var(--radius-sm)',
+                            backgroundColor: selectedPrefillPoId ? 'var(--color-primary, #4f46e5)' : 'transparent',
+                            color: selectedPrefillPoId ? '#ffffff' : 'var(--color-primary, #4f46e5)',
+                            cursor: selectedPrefillPoId ? 'pointer' : 'not-allowed',
+                            opacity: selectedPrefillPoId ? 1 : 0.45,
+                        }}
+                    >
+                        Isi dari PO
+                    </button>
                 </div>
 
                 <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
