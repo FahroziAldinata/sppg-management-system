@@ -8,27 +8,17 @@ _Tidak ada tugas aktif saat ini._
 
 ## B. Tugas Terbuka (Todo)
 
-### 1. [ ] Buka Kembali CRUD MasterMenuMingguan + Prefill ke Menu Harian
-- **Deskripsi**: CRUD MasterMenuMingguan sebelumnya ditutup (410, read-only historis). Keputusan dibalik — dikonfirmasi via audit Excel asli (`MENU_..xlsx`, sheet "MENU PENDIDIKAN"/"MENU 3B") bahwa Ahli Gizi memang isi master 1x per periode (5 komponen menu × 6 hari × jalur SISWA/TIGA_B), lalu detail harian (bahan+gizi+harga) di-generate per hari dengan menu ditarik dari master itu (dibuktikan cocok 1:1 antara sheet detail hari SENIN vs kolom SENIN master).
-- **Rencana**: (1) Buka lagi endpoint POST/PUT/DELETE `/gizi/master-menu` (field sudah ada di schema: menuKarbohidrat/menuLaukHewani/menuLaukNabati/menuSayur/menuBuah per jalur+hari). (2) Tombol "Isi dari Master" di form Menu Harian — prefill 5 `MenuItem.namaMenu` sesuai hari+jalur blok aktif. (3) Tetap bebas diedit setelah prefill, TIDAK dikunci/divalidasi ke master (sesuai keputusan FINAL v5.3 — master bukan template wajib).
-- **Status**: Belum dikerjakan.
-
-### 2. [ ] Auto-Harga MenuItemBahan dari HargaBahanPeriode (Bukan Manual Lagi)
-- **Deskripsi**: Dikonfirmasi via chat Akuntan-user: `MenuItemBahan.hargaSatuan` seharusnya TIDAK diinput manual oleh Ahli Gizi, melainkan otomatis mengambil dari `HargaBahanPeriode` (data Mitra) sesuai periode aktif. Ahli Gizi cukup pilih `bahanPokokId`, harga muncul read-only. Nilai gizi (energi/protein/lemak/karbo/serat) TETAP manual dari TKPI — tidak berubah, beda axis dari harga.
-- **Rencana**: Ubah form input MenuItemBahan — field harga jadi read-only/auto-fill saat bahan dipilih. Perlu didiskusikan: kalau bahan belum ada harga di HargaBahanPeriode periode itu, gimana behavior-nya (block, atau submit dgn 0 + warning).
-- **Status**: Belum dikerjakan, belum diaudit endpoint existing.
-
-### 3. [ ] Audit Ahli Gizi: Granularitas Kendaraan/Mobil vs Realita Excel
+### 1. [ ] Audit Ahli Gizi: Granularitas Kendaraan/Mobil vs Realita Excel
 - **Deskripsi**: Excel membagi kebutuhan per "Mobil 1/2/3" (grouping custom). Sistem saat ini hanya mendukung `PengirimanHarian` per `jenisPorsi` (Kecil/Besar, max 2 mobil).
 - **Tugas Audit**: Tanyakan kepada user apakah butuh pengiriman per Mobil custom atau tetap per porsi sudah cukup.
 - **Status**: Belum dikerjakan.
 
-### 4. [ ] Code-splitting bundle size (Belum Urgent)
+### 2. [ ] Code-splitting bundle size (Belum Urgent)
 - **Deskripsi**: Peringatan build size di Vite (>500kB).
 - **Langkah**: Optimalkan bundle size dengan `React.lazy` atau penataan `manualChunks`.
 - **Status**: Belum dikerjakan.
 
-### 5. [ ] Layout Cetak PO Gabungan Belum Sesuai Format Asli
+### 3. [ ] Layout Cetak PO Gabungan Belum Sesuai Format Asli
 - **Deskripsi**: Layout tabel cetak PO gabungan multi-tanggal saat ini belum 100% sesuai format Excel asli (referensi: sheet "12-13 SISWA B3"). Perlu audit ulang penyesuaian kop surat, urutan kolom, dan styling cetak.
 - **Status**: Belum dikerjakan.
 
