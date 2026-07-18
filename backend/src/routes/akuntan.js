@@ -985,6 +985,9 @@ router.post("/jurnal-transaksi", requireAuth, requireRole("AKUNTAN"), async (req
         if (!tp) {
           throw new Error("[NOT_FOUND] Transaksi pembelian tidak ditemukan");
         }
+        if (tp.status !== "DIREALISASI") {
+          throw new Error("[VALIDASI] PO belum direalisasi penuh, tidak bisa dilink ke jurnal");
+        }
       }
 
       // 5. Calculate nomorBukti (auto-increment manual per periode)
@@ -1066,6 +1069,45 @@ router.get("/jurnal-transaksi", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil daftar jurnal transaksi" });
+  }
+});
+
+// GET /api/akuntan/jurnal-transaksi/prefill/:transaksiPembelianId - Akuntan prefill jurnal data dari PO
+router.get("/jurnal-transaksi/prefill/:transaksiPembelianId", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { transaksiPembelianId } = req.params;
+    const po = await prisma.transaksiPembelian.findUnique({
+      where: { id: transaksiPembelianId },
+      include: {
+        supplier: true,
+        items: true
+      }
+    });
+
+    if (!po) {
+      return res.status(404).json({ error: "PO tidak ditemukan" });
+    }
+
+    if (po.status !== "DIREALISASI") {
+      return res.status(409).json({ error: "PO belum lengkap direalisasi" });
+    }
+
+    const totalRealisasi = po.items.reduce((sum, item) => {
+      const subtotal = item.subtotalRealisasi ? parseFloat(item.subtotalRealisasi.toString()) : 0;
+      return sum + subtotal;
+    }, 0);
+
+    const formattedTanggal = po.tanggal instanceof Date ? po.tanggal.toISOString().split("T")[0] : po.tanggal;
+
+    res.json({
+      tanggal: formattedTanggal,
+      uraian: `Pembelian - ${po.supplier.nama}`,
+      nominal: Math.round(totalRealisasi * 100) / 100,
+      transaksiPembelianId: po.id
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat memproses prefill data jurnal" });
   }
 });
 
@@ -2356,6 +2398,27 @@ router.get("/supplier", requireAuth, requireRole("AKUNTAN", "MITRA"), async (req
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data supplier" });
+  }
+});
+
+// POST /api/akuntan/supplier - Akuntan membuat supplier baru
+router.post("/supplier", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
+  try {
+    const { nama, kontak } = req.body || {};
+    if (!nama) {
+      return res.status(400).json({ error: "Nama supplier wajib diisi" });
+    }
+    const created = await prisma.supplier.create({
+      data: {
+        nama,
+        kontak,
+        aktif: true
+      }
+    });
+    res.status(201).json(created);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan supplier baru" });
   }
 });
 

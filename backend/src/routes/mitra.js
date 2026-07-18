@@ -574,14 +574,23 @@ router.put("/po/:id/realisasi", requireAuth, requireRole("MITRA"), async (req, r
           data: {
             qtyRealisasi: Math.round(qty * 1000) / 1000,
             hargaSatuanRealisasi: Math.round(harga * 100) / 100,
-            subtotalRealisasi: Math.round((qty * harga) * 100) / 100
+            subtotalRealisasi: Math.round((qty * harga) * 100) / 100,
+            updatedById: req.user.sub
           }
         });
       }
 
+      // Check if ALL items of this PO now have qtyRealisasi
+      const allItems = await tx.transaksiPembelianItem.findMany({
+        where: { transaksiId: po.id },
+        select: { qtyRealisasi: true }
+      });
+      const allRealized = allItems.every(i => i.qtyRealisasi !== null);
+      const newStatus = allRealized ? "DIREALISASI" : "DIAJUKAN";
+
       return await tx.transaksiPembelian.update({
         where: { id },
-        data: { status: "DIREALISASI" },
+        data: { status: newStatus },
         include: {
           items: { include: { bahanPokok: true } },
           supplier: true
