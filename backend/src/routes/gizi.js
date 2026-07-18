@@ -1470,7 +1470,7 @@ router.post("/pengiriman", requireAuth, requireRole("AHLI_GIZI"), async (req, re
           kategoriPenerima: true
         }
       });
-    });
+    }, { timeout: 15000 });
 
     res.status(201).json(created);
   } catch (error) {
@@ -1544,7 +1544,7 @@ router.put("/pengiriman/:id", requireAuth, requireRole("AHLI_GIZI"), async (req,
           kategoriPenerima: true
         }
       });
-    });
+    }, { timeout: 15000 });
 
     res.json(updated);
   } catch (error) {
