@@ -33,6 +33,27 @@ export const AkuntanPoPage = () => {
     const [newSupplier, setNewSupplier] = useState({ nama: '', kontak: '' });
     const [supplierSubmitting, setSupplierSubmitting] = useState(false);
 
+    // ponytail: Cetak PO Gabungan states & helpers
+    const [selectedTanggalMulti, setSelectedTanggalMulti] = useState([]);
+    const [isMultiPrintModalOpen, setIsMultiPrintModalOpen] = useState(false);
+    const [printGabunganData, setPrintGabunganData] = useState(null);
+
+    const cleanDateStr = (dStr) => dStr ? dStr.split('T')[0] : '';
+
+    const getDatesInRange = (startDateStr, endDateStr) => {
+        const dates = [];
+        if (!startDateStr || !endDateStr) return dates;
+        const [sY, sM, sD] = startDateStr.split('-').map(Number);
+        const [eY, eM, eD] = endDateStr.split('-').map(Number);
+        let current = new Date(Date.UTC(sY, sM - 1, sD));
+        const end = new Date(Date.UTC(eY, eM - 1, eD));
+        while (current <= end) {
+            dates.push(current.toISOString().split('T')[0]);
+            current.setUTCDate(current.getUTCDate() + 1);
+        }
+        return dates;
+    };
+
     // Fetch master data on mount
     useEffect(() => {
         request('/aslap/periode')
@@ -215,6 +236,145 @@ export const AkuntanPoPage = () => {
         }
     };
 
+    if (isPrinting && printGabunganData) {
+        const sortedTanggalList = [...printGabunganData.tanggalList].sort();
+        const totalHargaGabungan = printGabunganData.ingredients.reduce((sum, item) => sum + Number(item.subtotal), 0);
+
+        return (
+            <div style={{ padding: '25px', backgroundColor: '#fff', minHeight: '100vh', color: '#000', fontFamily: 'Courier New, monospace' }}>
+                <style>{`
+                    @media print {
+                        .no-print { display: none !important; }
+                        body { background-color: #fff; color: #000; }
+                    }
+                `}</style>
+                <div className="no-print" style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#eaeaea', display: 'flex', gap: '10px' }}>
+                    <button onClick={() => window.print()} style={{ padding: '8px 16px', fontWeight: 'bold', backgroundColor: '#007bff', color: 'white', border: 'none', cursor: 'pointer' }}>
+                        Cetak Sekarang (Print)
+                    </button>
+                    <button onClick={() => { setIsPrinting(false); setPrintGabunganData(null); }} style={{ padding: '8px 16px', backgroundColor: '#6c757d', color: 'white', border: 'none', cursor: 'pointer' }}>
+                        Kembali
+                    </button>
+                </div>
+
+                {/* PO Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }}>
+                    <div>
+                        <div style={{ fontWeight: 'bold', fontSize: '15px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
+                        <div style={{ fontSize: '11px' }}>Gedung E Kompleks Kementrian Pertanian</div>
+                        <div style={{ fontSize: '11px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
+                    </div>
+                </div>
+
+                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', textDecoration: 'underline', marginBottom: '15px' }}>
+                    NOTA PESANAN GABUNGAN BAHAN MAKANAN (MULTI-TANGGAL)
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '15px', fontSize: '13px', marginBottom: '20px' }}>
+                    <div>
+                        <table style={{ width: '100%' }}>
+                            <tbody>
+                                <tr>
+                                    <td style={{ width: '100px' }}>SPPG</td>
+                                    <td>: {namaLembaga}</td>
+                                </tr>
+                                <tr>
+                                    <td>ID SPPG</td>
+                                    <td>: {idLembaga}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <table style={{ width: '100%' }}>
+                            <tbody>
+                                <tr>
+                                    <td style={{ width: '120px' }}>Periode Tanggal</td>
+                                    <td>: {sortedTanggalList.map(tgl => tgl.split('T')[0]).join(', ')}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <table border="1" cellPadding="5" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '25px' }}>
+                    <thead>
+                        <tr style={{ backgroundColor: '#eaeaea' }}>
+                            <th style={{ width: '30px' }} rowSpan="2">No</th>
+                            <th rowSpan="2">Uraian Jenis Bahan Makanan</th>
+                            <th colSpan={sortedTanggalList.length} style={{ textAlign: 'center' }}>Alokasi SISWA</th>
+                            <th colSpan={sortedTanggalList.length} style={{ textAlign: 'center' }}>Alokasi B3</th>
+                            <th rowSpan="2" style={{ width: '70px', textAlign: 'right' }}>QTY</th>
+                            <th rowSpan="2" style={{ width: '50px', textAlign: 'center' }}>Satuan</th>
+                            <th rowSpan="2" style={{ width: '90px', textAlign: 'right' }}>Harga Satuan</th>
+                            <th rowSpan="2" style={{ width: '100px', textAlign: 'right' }}>Jumlah</th>
+                        </tr>
+                        <tr style={{ backgroundColor: '#eaeaea' }}>
+                            {sortedTanggalList.map(tgl => (
+                                <th key={`h-siswa-${tgl}`} style={{ textAlign: 'center', fontSize: '10px' }}>
+                                    {tgl.split('-')[2]}
+                                </th>
+                            ))}
+                            {sortedTanggalList.map(tgl => (
+                                <th key={`h-b3-${tgl}`} style={{ textAlign: 'center', fontSize: '10px' }}>
+                                    {tgl.split('-')[2]}
+                                </th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {printGabunganData.ingredients.map((item, idx) => (
+                            <tr key={item.bahanPokokId}>
+                                <td style={{ textAlign: 'center' }}>{idx + 1}</td>
+                                <td>{item.nama}</td>
+                                {sortedTanggalList.map(tgl => (
+                                    <td key={`siswa-${item.bahanPokokId}-${tgl}`} style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                                        {Number(item.perTanggal[tgl]?.siswa || 0).toLocaleString('id-ID')}
+                                    </td>
+                                ))}
+                                {sortedTanggalList.map(tgl => (
+                                    <td key={`b3-${item.bahanPokokId}-${tgl}`} style={{ textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                                        {Number(item.perTanggal[tgl]?.b3 || 0).toLocaleString('id-ID')}
+                                    </td>
+                                ))}
+                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>{Number(item.qtyTotal).toLocaleString('id-ID')}</td>
+                                <td style={{ textAlign: 'center' }}>{item.satuan}</td>
+                                <td style={{ textAlign: 'right' }}>Rp{Number(item.hargaSatuan).toLocaleString('id-ID')}</td>
+                                <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Rp{Number(item.subtotal).toLocaleString('id-ID')}</td>
+                            </tr>
+                        ))}
+                        <tr style={{ fontWeight: 'bold', backgroundColor: '#eaeaea' }}>
+                            <td colSpan={2 + sortedTanggalList.length * 2} style={{ textAlign: 'right' }}>Total:</td>
+                            <td style={{ textAlign: 'right' }}>
+                                {printGabunganData.ingredients.reduce((sum, item) => sum + Number(item.qtyTotal), 0).toLocaleString('id-ID')}
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td style={{ textAlign: 'right' }}>Rp{totalHargaGabungan.toLocaleString('id-ID')}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
+                    <div style={{ textAlign: 'center', width: '250px' }}>
+                        <div>Pembuat Pesanan,</div>
+                        <div style={{ fontWeight: '500', marginTop: '5px' }}>Akuntan SPPG</div>
+                        <div style={{ marginTop: '60px', fontWeight: 'bold' }}>
+                            {activePeriod?.createdBy?.nama || 'Akuntan SPPG'}
+                        </div>
+                    </div>
+                    <div style={{ textAlign: 'center', width: '250px' }}>
+                        <div>Penanggung Jawab / Aslap,</div>
+                        <div style={{ fontWeight: '500', marginTop: '5px' }}>Asisten Lapangan</div>
+                        <div style={{ marginTop: '60px', textDecoration: 'underline', fontWeight: 'bold' }}>
+                            —
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     if (isPrinting && printPoData) {
         const totalHargaDiminta = printPoData.items.reduce((sum, item) => sum + Number(item.subtotal), 0);
         const totalHargaRealisasi = printPoData.items.reduce((sum, item) => sum + Number(item.subtotalRealisasi || 0), 0);
@@ -391,28 +551,52 @@ export const AkuntanPoPage = () => {
                 boxShadow: 'var(--shadow)',
                 marginBottom: '30px',
                 width: '26%',
-                minWidth: '320px'
+                minWidth: '320px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px'
             }}>
-                <label style={{
-                    textTransform: 'uppercase',
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    letterSpacing: '0.07em',
-                    color: 'var(--text-muted)',
-                    display: 'block',
-                    marginBottom: '6px'
-                }}>
-                    Pilih Periode
-                </label>
-                <Dropdown
-                    style={{ width: '100%' }}
-                    value={selectedPeriodId}
-                    onChange={setSelectedPeriodId}
-                    options={periods.map(p => ({
-                        value: p.id,
-                        label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
-                    }))}
-                />
+                <div>
+                    <label style={{
+                        textTransform: 'uppercase',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        letterSpacing: '0.07em',
+                        color: 'var(--text-muted)',
+                        display: 'block',
+                        marginBottom: '6px'
+                    }}>
+                        Pilih Periode
+                    </label>
+                    <Dropdown
+                        style={{ width: '100%' }}
+                        value={selectedPeriodId}
+                        onChange={setSelectedPeriodId}
+                        options={periods.map(p => ({
+                            value: p.id,
+                            label: `${p.tanggalMulai} - ${p.tanggalSelesai}`
+                        }))}
+                    />
+                </div>
+                <button
+                    type="button"
+                    onClick={() => {
+                        setSelectedTanggalMulti([]);
+                        setIsMultiPrintModalOpen(true);
+                    }}
+                    style={{
+                        padding: '10px 16px',
+                        backgroundColor: '#6c757d',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: 'var(--radius-sm)',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '13px'
+                    }}
+                >
+                    Cetak PO Gabungan
+                </button>
             </div>
 
             {/* Input Form PO */}
@@ -926,6 +1110,118 @@ export const AkuntanPoPage = () => {
                             </button>
                         </div>
                     </form>
+                </div>
+            )}
+
+            {/* Modal Cetak PO Gabungan */}
+            {isMultiPrintModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        borderRadius: 'var(--radius-md)',
+                        width: '100%',
+                        maxWidth: '500px',
+                        padding: '24px',
+                        border: '1px solid var(--border)',
+                        boxShadow: 'var(--shadow-hover)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px'
+                    }}>
+                        <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Cetak PO Gabungan Multi-Tanggal</h3>
+                        <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
+                            Pilih tanggal-tanggal yang ingin digabungkan dalam cetakan PO:
+                        </p>
+                        
+                        <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {(() => {
+                                const activePeriod = periods.find(p => p.id === selectedPeriodId);
+                                if (!activePeriod) return <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Pilih periode terlebih dahulu.</span>;
+                                const dates = getDatesInRange(cleanDateStr(activePeriod.tanggalMulai), cleanDateStr(activePeriod.tanggalSelesai));
+                                return dates.map(tgl => {
+                                    const isChecked = selectedTanggalMulti.includes(tgl);
+                                    return (
+                                        <label key={tgl} style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '14px', cursor: 'pointer', color: 'var(--text)' }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={isChecked}
+                                                onChange={() => {
+                                                    if (isChecked) {
+                                                        setSelectedTanggalMulti(prev => prev.filter(t => t !== tgl));
+                                                    } else {
+                                                        setSelectedTanggalMulti(prev => [...prev, tgl]);
+                                                    }
+                                                }}
+                                            />
+                                            {renderDate(tgl)}
+                                        </label>
+                                    );
+                                });
+                            })()}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px' }}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsMultiPrintModalOpen(false);
+                                    setSelectedTanggalMulti([]);
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: 'var(--border)',
+                                    color: 'var(--text)',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    borderRadius: 'var(--radius-sm)',
+                                    fontWeight: 600
+                                }}
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="button"
+                                disabled={selectedTanggalMulti.length === 0}
+                                onClick={async () => {
+                                    try {
+                                        const r = await request(`/mitra/po/kebutuhan?tanggal=${selectedTanggalMulti.join(',')}&periodeId=${selectedPeriodId}`);
+                                        if (r.ok) {
+                                            const data = await r.json();
+                                            setPrintGabunganData(data);
+                                            setIsPrinting(true);
+                                            setIsMultiPrintModalOpen(false);
+                                        } else {
+                                            const errData = await r.json().catch(() => ({ error: 'Gagal memuat kebutuhan bahan gabungan.' }));
+                                            toast.error(errData.error);
+                                        }
+                                    } catch (err) {
+                                        toast.error('Koneksi server gagal.');
+                                    }
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: 'var(--btn-primary-bg)',
+                                    color: 'var(--btn-primary-text)',
+                                    border: 'none',
+                                    cursor: selectedTanggalMulti.length === 0 ? 'not-allowed' : 'pointer',
+                                    borderRadius: 'var(--radius-sm)',
+                                    fontWeight: 600,
+                                    opacity: selectedTanggalMulti.length === 0 ? 0.6 : 1
+                                }}
+                            >
+                                Cetak
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

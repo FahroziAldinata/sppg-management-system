@@ -393,56 +393,9 @@ router.get("/po/kebutuhan", requireAuth, requireRole("MITRA", "AKUNTAN"), async 
       return res.status(400).json({ error: "tanggal dan periodeId wajib diisi" });
     }
 
-    const targetDate = normalizeDateUTC(tanggal);
-    if (isNaN(targetDate.getTime())) {
-      return res.status(400).json({ error: "Format tanggal tidak valid" });
-    }
-
-    // 1. Fetch MenuHarian for this date & period
-    const menu = await prisma.menuHarian.findFirst({
-      where: {
-        periodeId,
-        tanggal: targetDate
-      },
-      include: {
-        blok: {
-          include: {
-            kelompokUmurMenu: {
-              include: { kategoriPenerima: true }
-            },
-            menuItem: {
-              include: {
-                bahan: {
-                  include: { bahanPokok: true }
-                }
-              }
-            }
-          }
-        }
-      }
-    });
-
-    if (!menu) {
-      return res.json({ success: true, menu: null, ingredients: [] });
-    }
-
-    // 2. Fetch active InputPenerimaManfaat once
-    const day = targetDate.getUTCDay();
-    const dayOfWeek = HARI_MAP[day];
-    let inputsForDay = [];
-    if (dayOfWeek) {
-      const activeInputs = await prisma.inputPenerimaManfaat.findMany({
-        where: { periodeId },
-        include: { detail: true }
-      });
-      inputsForDay = activeInputs.filter(inp => inp.hariAktif.includes(dayOfWeek));
-    }
-
-    const porsiPerKategori = {};
-    for (const input of inputsForDay) {
-      for (const det of input.detail) {
-        porsiPerKategori[det.kategoriId] = (porsiPerKategori[det.kategoriId] || 0) + (det.lakiLaki + det.perempuan);
-      }
+    const tanggalArr = tanggal.split(',').map(t => t.trim()).filter(Boolean);
+    if (tanggalArr.length === 0) {
+      return res.status(400).json({ error: "tanggal tidak boleh kosong" });
     }
 
     // Get active price list for this period
@@ -454,66 +407,147 @@ router.get("/po/kebutuhan", requireAuth, requireRole("MITRA", "AKUNTAN"), async 
       priceMap[p.bahanPokokId] = Number(p.harga);
     });
 
+    // Fetch active InputPenerimaManfaat once
+    const activeInputs = await prisma.inputPenerimaManfaat.findMany({
+      where: { periodeId },
+      include: { detail: true }
+    });
+
+    const menuByTanggal = {};
     const akumulasiBahan = {};
 
-    for (const blok of menu.blok) {
-      // Calculate total portions for this block
-      let totalPorsiBlok = 0;
-      const categoriesInBlock = blok.kelompokUmurMenu.kategoriPenerima;
-      for (const kat of categoriesInBlock) {
-        totalPorsiBlok += (porsiPerKategori[kat.id] || 0);
+    for (const tgl of tanggalArr) {
+      const targetDate = normalizeDateUTC(tgl);
+      if (isNaN(targetDate.getTime())) {
+        return res.status(400).json({ error: `Format tanggal tidak valid: ${tgl}` });
       }
 
-      for (const item of blok.menuItem) {
-        for (const b of item.bahan) {
-          const bid = b.bahanPokokId;
-          if (!akumulasiBahan[bid]) {
-            akumulasiBahan[bid] = {
-              bahanPokokId: bid,
-              nama: b.bahanPokok.nama,
-              satuan: b.bahanPokok.satuan,
-              qtySiswa: 0,
-              qtyB3: 0,
-              qtyTotal: 0,
-              hargaSatuan: priceMap[bid] || 0
-            };
+      // Fetch MenuHarian for this date & period
+      const menu = await prisma.menuHarian.findFirst({
+        where: {
+          periodeId,
+          tanggal: targetDate
+        },
+        include: {
+          blok: {
+            include: {
+              kelompokUmurMenu: {
+                include: { kategoriPenerima: true }
+              },
+              menuItem: {
+                include: {
+                  bahan: {
+                    include: { bahanPokok: true }
+                  }
+                }
+              }
+            }
           }
+        }
+      });
 
-          // Kebutuhan bahan = porsi * beratKotorGr / 1000 (convert to kg/liter)
-          const qtyNeed = (Number(b.beratKotorGr) * totalPorsiBlok) / 1000;
-          
-          if (blok.kelompokUmurMenu.jalur === "SISWA") {
-            akumulasiBahan[bid].qtySiswa += qtyNeed;
-          } else {
-            akumulasiBahan[bid].qtyB3 += qtyNeed;
+      if (!menu) {
+        menuByTanggal[tgl] = "";
+        continue;
+      }
+
+      // Construct Menu description string for this date
+      const menuNames = [];
+      menu.blok.forEach(b => {
+        b.menuItem.forEach(item => {
+          if (!menuNames.includes(item.nama)) {
+            menuNames.push(item.nama);
           }
-          akumulasiBahan[bid].qtyTotal += qtyNeed;
+        });
+      });
+      menuByTanggal[tgl] = menuNames.join(", ");
+
+      const day = targetDate.getUTCDay();
+      const dayOfWeek = HARI_MAP[day];
+      let inputsForDay = [];
+      if (dayOfWeek) {
+        inputsForDay = activeInputs.filter(inp => inp.hariAktif.includes(dayOfWeek));
+      }
+
+      const porsiPerKategori = {};
+      for (const input of inputsForDay) {
+        for (const det of input.detail) {
+          porsiPerKategori[det.kategoriId] = (porsiPerKategori[det.kategoriId] || 0) + (det.lakiLaki + det.perempuan);
+        }
+      }
+
+      for (const blok of menu.blok) {
+        // Calculate total portions for this block
+        let totalPorsiBlok = 0;
+        const categoriesInBlock = blok.kelompokUmurMenu.kategoriPenerima;
+        for (const kat of categoriesInBlock) {
+          totalPorsiBlok += (porsiPerKategori[kat.id] || 0);
+        }
+
+        for (const item of blok.menuItem) {
+          for (const b of item.bahan) {
+            const bid = b.bahanPokokId;
+            if (!akumulasiBahan[bid]) {
+              akumulasiBahan[bid] = {
+                bahanPokokId: bid,
+                nama: b.bahanPokok.nama,
+                satuan: b.bahanPokok.satuan,
+                qtySiswa: 0,
+                qtyB3: 0,
+                qtyTotal: 0,
+                hargaSatuan: priceMap[bid] || 0,
+                perTanggal: {}
+              };
+            }
+
+            if (!akumulasiBahan[bid].perTanggal[tgl]) {
+              akumulasiBahan[bid].perTanggal[tgl] = { siswa: 0, b3: 0 };
+            }
+
+            // Kebutuhan bahan = porsi * beratKotorGr / 1000
+            const qtyNeed = (Number(b.beratKotorGr) * totalPorsiBlok) / 1000;
+            
+            if (blok.kelompokUmurMenu.jalur === "SISWA") {
+              akumulasiBahan[bid].qtySiswa += qtyNeed;
+              akumulasiBahan[bid].perTanggal[tgl].siswa += qtyNeed;
+            } else {
+              akumulasiBahan[bid].qtyB3 += qtyNeed;
+              akumulasiBahan[bid].perTanggal[tgl].b3 += qtyNeed;
+            }
+            akumulasiBahan[bid].qtyTotal += qtyNeed;
+          }
         }
       }
     }
 
     // Convert to rounded values
-    const result = Object.values(akumulasiBahan).map(b => ({
-      ...b,
-      qtySiswa: Math.round(b.qtySiswa * 1000) / 1000,
-      qtyB3: Math.round(b.qtyB3 * 1000) / 1000,
-      qtyTotal: Math.round(b.qtyTotal * 1000) / 1000,
-      subtotal: Math.round((b.qtyTotal * b.hargaSatuan) * 100) / 100
-    }));
-
-    // Construct Menu description string for PO header
-    const menuNames = [];
-    menu.blok.forEach(b => {
-      b.menuItem.forEach(item => {
-        if (!menuNames.includes(item.nama)) {
-          menuNames.push(item.nama);
-        }
-      });
+    const result = Object.values(akumulasiBahan).map(b => {
+      const roundedPerTanggal = {};
+      for (const tgl of tanggalArr) {
+        const pt = b.perTanggal[tgl] || { siswa: 0, b3: 0 };
+        roundedPerTanggal[tgl] = {
+          siswa: Math.round(pt.siswa * 1000) / 1000,
+          b3: Math.round(pt.b3 * 1000) / 1000
+        };
+      }
+      return {
+        bahanPokokId: b.bahanPokokId,
+        nama: b.nama,
+        satuan: b.satuan,
+        hargaSatuan: b.hargaSatuan,
+        qtySiswa: Math.round(b.qtySiswa * 1000) / 1000,
+        qtyB3: Math.round(b.qtyB3 * 1000) / 1000,
+        qtyTotal: Math.round(b.qtyTotal * 1000) / 1000,
+        subtotal: Math.round((b.qtyTotal * b.hargaSatuan) * 100) / 100,
+        perTanggal: roundedPerTanggal
+      };
     });
 
     res.json({
       success: true,
-      menuDescription: menuNames.join(", "),
+      tanggalList: tanggalArr,
+      menuDescription: Object.values(menuByTanggal).filter(Boolean).join(", "),
+      menuByTanggal,
       ingredients: result
     });
   } catch (error) {
