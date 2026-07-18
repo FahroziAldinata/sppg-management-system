@@ -4,6 +4,39 @@ const { requireAuth, requireRole } = require("../middleware/auth");
 
 const router = express.Router();
 
+async function getHargaBahan(tx, periodeId, bahanPokokId) {
+  const langsung = await tx.hargaBahanPeriode.findUnique({
+    where: {
+      periodeId_bahanPokokId: { periodeId, bahanPokokId }
+    }
+  });
+  if (langsung) return { harga: Number(langsung.harga), isFallback: false };
+
+  // fallback: cari harga terakhir dari periode manapun sebelumnya (order by periode.tanggalMulai desc)
+  const targetPeriode = await tx.periode.findUnique({ where: { id: periodeId } });
+  if (!targetPeriode) {
+    return { harga: 0, isFallback: true };
+  }
+
+  const fallback = await tx.hargaBahanPeriode.findFirst({
+    where: {
+      bahanPokokId,
+      periode: {
+        tanggalMulai: { lt: targetPeriode.tanggalMulai }
+      }
+    },
+    orderBy: {
+      periode: {
+        tanggalMulai: "desc"
+      }
+    }
+  });
+  if (fallback) return { harga: Number(fallback.harga), isFallback: true };
+
+  return { harga: 0, isFallback: true }; // belum pernah ada harga sama sekali
+}
+
+
 // GET /api/gizi/kelompok-umur-menu - List all KelompokUmurMenu (dropdown untuk MenuHarianBlok)
 router.get("/kelompok-umur-menu", requireAuth, requireRole("ASLAP", "KEPALA_SPPG", "AHLI_GIZI", "AKUNTAN"), async (req, res) => {
   try {
@@ -639,7 +672,6 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
       karbohidratGr,
       seratGr,
       bddPersen,
-      hargaSatuan,
       beratSatuanGr
     } = req.body || {};
 
@@ -648,7 +680,6 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
     if (!bahanPokokId) return res.status(400).json({ error: "bahanPokokId wajib diisi" });
     if (beratBersihGr === undefined) return res.status(400).json({ error: "beratBersihGr wajib diisi" });
     if (bddPersen === undefined) return res.status(400).json({ error: "bddPersen wajib diisi" });
-    if (hargaSatuan === undefined) return res.status(400).json({ error: "hargaSatuan wajib diisi" });
     if (beratSatuanGr === undefined) return res.status(400).json({ error: "beratSatuanGr wajib diisi" });
 
     // Gizi fields are required
@@ -661,7 +692,6 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
     // Validate numeric non-negative constraints
     const cleanBeratBersih = Number(beratBersihGr);
     const cleanBdd = Number(bddPersen);
-    const cleanHarga = Number(hargaSatuan);
     const cleanBeratSatuan = Number(beratSatuanGr);
     const cleanEnergi = Number(energiKkal);
     const cleanProtein = Number(proteinGr);
@@ -671,7 +701,6 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
 
     if (isNaN(cleanBeratBersih) || cleanBeratBersih < 0) return res.status(400).json({ error: "beratBersihGr harus berupa angka non-negatif" });
     if (isNaN(cleanBdd) || cleanBdd <= 0 || cleanBdd > 100) return res.status(400).json({ error: "bddPersen harus bernilai antara 1 dan 100" });
-    if (isNaN(cleanHarga) || cleanHarga < 0) return res.status(400).json({ error: "hargaSatuan harus berupa angka non-negatif" });
     if (isNaN(cleanBeratSatuan) || cleanBeratSatuan <= 0) return res.status(400).json({ error: "beratSatuanGr harus bernilai positif lebih besar dari 0" });
     if (isNaN(cleanEnergi) || cleanEnergi < 0) return res.status(400).json({ error: "energiKkal harus berupa angka non-negatif" });
     if (isNaN(cleanProtein) || cleanProtein < 0) return res.status(400).json({ error: "proteinGr harus berupa angka non-negatif" });
@@ -679,13 +708,18 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
     if (isNaN(cleanKarbo) || cleanKarbo < 0) return res.status(400).json({ error: "karbohidratGr harus berupa angka non-negatif" });
     if (isNaN(cleanSerat) || cleanSerat < 0) return res.status(400).json({ error: "seratGr harus berupa angka non-negatif" });
 
-    // Calculate formulas in app-layer
-    const beratKotorGr = cleanBeratBersih / cleanBdd * 100;
-    const totalHargaBahan = beratKotorGr * cleanHarga / cleanBeratSatuan;
-
     const created = await prisma.$transaction(async (tx) => {
       // Validate menuItem exists
-      const menuItem = await tx.menuItem.findUnique({ where: { id: menuItemId } });
+      const menuItem = await tx.menuItem.findUnique({
+        where: { id: menuItemId },
+        include: {
+          blok: {
+            include: {
+              menuHarian: true
+            }
+          }
+        }
+      });
       if (!menuItem) {
         throw new Error("[NOT_FOUND] Menu item tidak ditemukan");
       }
@@ -696,7 +730,14 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
         throw new Error("[NOT_FOUND] Bahan pokok tidak ditemukan");
       }
 
-      return await tx.menuItemBahan.create({
+      const periodeId = menuItem.blok.menuHarian.periodeId;
+      const { harga: cleanHarga, isFallback } = await getHargaBahan(tx, periodeId, bahanPokokId);
+
+      // Calculate formulas in app-layer
+      const beratKotorGr = cleanBeratBersih / cleanBdd * 100;
+      const totalHargaBahan = beratKotorGr * cleanHarga / cleanBeratSatuan;
+
+      const newBahan = await tx.menuItemBahan.create({
         data: {
           menuItemId,
           bahanPokokId,
@@ -714,6 +755,11 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
           totalHargaBahan
         }
       });
+
+      return {
+        ...newBahan,
+        isFallback
+      };
     });
 
     res.status(201).json(created);
@@ -744,12 +790,24 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
       karbohidratGr,
       seratGr,
       bddPersen,
-      hargaSatuan,
       beratSatuanGr
     } = req.body || {};
 
     const updated = await prisma.$transaction(async (tx) => {
-      const existing = await tx.menuItemBahan.findUnique({ where: { id } });
+      const existing = await tx.menuItemBahan.findUnique({
+        where: { id },
+        include: {
+          menuItem: {
+            include: {
+              blok: {
+                include: {
+                  menuHarian: true
+                }
+              }
+            }
+          }
+        }
+      });
       if (!existing) {
         throw new Error("[NOT_FOUND] Data bahan menu item tidak ditemukan");
       }
@@ -757,7 +815,6 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
       // Merge current values with updates
       const cleanBeratBersih = beratBersihGr !== undefined ? Number(beratBersihGr) : Number(existing.beratBersihGr);
       const cleanBdd = bddPersen !== undefined ? Number(bddPersen) : Number(existing.bddPersen);
-      const cleanHarga = hargaSatuan !== undefined ? Number(hargaSatuan) : Number(existing.hargaSatuan);
       const cleanBeratSatuan = beratSatuanGr !== undefined ? Number(beratSatuanGr) : Number(existing.beratSatuanGr);
 
       const cleanEnergi = energiKkal !== undefined ? Number(energiKkal) : Number(existing.energiKkal);
@@ -768,7 +825,6 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
 
       if (isNaN(cleanBeratBersih) || cleanBeratBersih < 0) throw new Error("[VALIDASI] beratBersihGr harus berupa angka non-negatif");
       if (isNaN(cleanBdd) || cleanBdd <= 0 || cleanBdd > 100) throw new Error("[VALIDASI] bddPersen harus bernilai antara 1 dan 100");
-      if (isNaN(cleanHarga) || cleanHarga < 0) throw new Error("[VALIDASI] hargaSatuan harus berupa angka non-negatif");
       if (isNaN(cleanBeratSatuan) || cleanBeratSatuan <= 0) throw new Error("[VALIDASI] beratSatuanGr harus bernilai positif lebih besar dari 0");
       if (isNaN(cleanEnergi) || cleanEnergi < 0) throw new Error("[VALIDASI] energiKkal harus berupa angka non-negatif");
       if (isNaN(cleanProtein) || cleanProtein < 0) throw new Error("[VALIDASI] proteinGr harus berupa angka non-negatif");
@@ -776,11 +832,14 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
       if (isNaN(cleanKarbo) || cleanKarbo < 0) throw new Error("[VALIDASI] karbohidratGr harus berupa angka non-negatif");
       if (isNaN(cleanSerat) || cleanSerat < 0) throw new Error("[VALIDASI] seratGr harus berupa angka non-negatif");
 
+      const periodeId = existing.menuItem.blok.menuHarian.periodeId;
+      const { harga: cleanHarga, isFallback } = await getHargaBahan(tx, periodeId, existing.bahanPokokId);
+
       // Calculate formulas in app-layer
       const beratKotorGr = cleanBeratBersih / cleanBdd * 100;
       const totalHargaBahan = beratKotorGr * cleanHarga / cleanBeratSatuan;
 
-      return await tx.menuItemBahan.update({
+      const updatedBahan = await tx.menuItemBahan.update({
         where: { id },
         data: {
           beratBersihGr: cleanBeratBersih,
@@ -797,6 +856,11 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
           totalHargaBahan
         }
       });
+
+      return {
+        ...updatedBahan,
+        isFallback
+      };
     });
 
     res.json(updated);
@@ -1633,6 +1697,39 @@ router.get("/master-menu", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPAL
   }
 });
 
+// GET /api/gizi/master-menu/by-hari - Return 1 row master buat hari+jalur itu
+router.get("/master-menu/by-hari", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPALA_SPPG", "AKUNTAN"), async (req, res) => {
+  try {
+    const { periodeId, jalur, hari } = req.query;
+    if (!periodeId) return res.status(400).json({ error: "periodeId wajib diisi" });
+    if (!jalur) return res.status(400).json({ error: "jalur wajib diisi" });
+    if (!hari) return res.status(400).json({ error: "hari wajib diisi" });
+
+    // Validate enum values
+    if (!["SISWA", "TIGA_B"].includes(jalur)) {
+      return res.status(400).json({ error: "jalur tidak valid (harus SISWA atau TIGA_B)" });
+    }
+    if (!["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"].includes(hari)) {
+      return res.status(400).json({ error: "hari tidak valid (harus SENIN s/d SABTU)" });
+    }
+
+    const row = await prisma.masterMenuMingguan.findUnique({
+      where: {
+        periodeId_jalur_hari: {
+          periodeId,
+          jalur,
+          hari
+        }
+      }
+    });
+
+    res.json(row);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data master menu by hari" });
+  }
+});
+
 // GET /api/gizi/master-menu/:id - Detail referensi historis per blok MenuHarian
 router.get("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPALA_SPPG", "AKUNTAN"), async (req, res) => {
   try {
@@ -1647,14 +1744,124 @@ router.get("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "K
   }
 });
 
-const masterMenuReadonly = (req, res) => {
-  res.status(410).json({
-    error: "Master Menu Mingguan sudah menjadi referensi historis read-only dari MenuHarian yang disetujui"
-  });
-};
+// POST /api/gizi/master-menu - Create MasterMenuMingguan
+router.post("/master-menu", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
+  try {
+    const {
+      periodeId,
+      jalur,
+      hari,
+      menuKarbohidrat,
+      menuLaukHewani,
+      menuLaukNabati,
+      menuSayur,
+      menuBuah
+    } = req.body || {};
 
-router.post("/master-menu", requireAuth, requireRole("AHLI_GIZI"), masterMenuReadonly);
-router.put("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI"), masterMenuReadonly);
-router.delete("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI"), masterMenuReadonly);
+    if (!periodeId) return res.status(400).json({ error: "periodeId wajib diisi" });
+    if (!jalur) return res.status(400).json({ error: "jalur wajib diisi" });
+    if (!hari) return res.status(400).json({ error: "hari wajib diisi" });
+
+    // Validate enum values
+    if (!["SISWA", "TIGA_B"].includes(jalur)) {
+      return res.status(400).json({ error: "jalur tidak valid (harus SISWA atau TIGA_B)" });
+    }
+    if (!["SENIN", "SELASA", "RABU", "KAMIS", "JUMAT", "SABTU"].includes(hari)) {
+      return res.status(400).json({ error: "hari tidak valid (harus SENIN s/d SABTU)" });
+    }
+
+    // Validate Periode exists
+    const period = await prisma.periode.findUnique({ where: { id: periodeId } });
+    if (!period) return res.status(404).json({ error: "Periode tidak ditemukan" });
+
+    // Check unique constraint manually to avoid generic error
+    const existing = await prisma.masterMenuMingguan.findUnique({
+      where: {
+        periodeId_jalur_hari: {
+          periodeId,
+          jalur,
+          hari
+        }
+      }
+    });
+    if (existing) {
+      return res.status(400).json({ error: "Master menu untuk periode, jalur, dan hari ini sudah ada" });
+    }
+
+    const created = await prisma.masterMenuMingguan.create({
+      data: {
+        periodeId,
+        jalur,
+        hari,
+        menuKarbohidrat: menuKarbohidrat || "",
+        menuLaukHewani: menuLaukHewani || "",
+        menuLaukNabati: menuLaukNabati || "",
+        menuSayur: menuSayur || "",
+        menuBuah: menuBuah || "",
+        createdById: req.user.sub
+      }
+    });
+
+    res.status(201).json(created);
+  } catch (error) {
+    console.error(error);
+    if (error.code === "P2002") {
+      return res.status(400).json({ error: "Master menu untuk periode, jalur, dan hari ini sudah ada" });
+    }
+    res.status(500).json({ error: "Terjadi kesalahan server saat membuat master menu" });
+  }
+});
+
+// PUT /api/gizi/master-menu/:id - Update MasterMenuMingguan
+router.put("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      menuKarbohidrat,
+      menuLaukHewani,
+      menuLaukNabati,
+      menuSayur,
+      menuBuah
+    } = req.body || {};
+
+    const existing = await prisma.masterMenuMingguan.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: "Master menu tidak ditemukan" });
+    }
+
+    const updated = await prisma.masterMenuMingguan.update({
+      where: { id },
+      data: {
+        menuKarbohidrat: menuKarbohidrat !== undefined ? menuKarbohidrat : existing.menuKarbohidrat,
+        menuLaukHewani: menuLaukHewani !== undefined ? menuLaukHewani : existing.menuLaukHewani,
+        menuLaukNabati: menuLaukNabati !== undefined ? menuLaukNabati : existing.menuLaukNabati,
+        menuSayur: menuSayur !== undefined ? menuSayur : existing.menuSayur,
+        menuBuah: menuBuah !== undefined ? menuBuah : existing.menuBuah
+      }
+    });
+
+    res.json(updated);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat memperbarui master menu" });
+  }
+});
+
+// DELETE /api/gizi/master-menu/:id - Delete MasterMenuMingguan
+router.delete("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const existing = await prisma.masterMenuMingguan.findUnique({ where: { id } });
+    if (!existing) {
+      return res.status(404).json({ error: "Master menu tidak ditemukan" });
+    }
+
+    await prisma.masterMenuMingguan.delete({ where: { id } });
+    res.json({ success: true, message: "Master menu berhasil dihapus" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat menghapus master menu" });
+  }
+});
 
 module.exports = router;
