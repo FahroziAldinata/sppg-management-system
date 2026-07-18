@@ -46,6 +46,9 @@ export const MenuHarianPage = () => {
     const [batasHargaMap, setBatasHargaMap] = useState({ KECIL: 8000, BESAR: 10000 });
     const [expandedComponents, setExpandedComponents] = useState({});
     const [expandedMenus, setExpandedMenus] = useState({});
+    const [riwayatTanggalFilter, setRiwayatTanggalFilter] = useState('');
+    const [riwayatKelompokUmurFilter, setRiwayatKelompokUmurFilter] = useState('');
+    const [expandedRiwayatMenuId, setExpandedRiwayatMenuId] = useState(null);
 
     const KOMPONEN_OPTIONS = ['KARBOHIDRAT', 'LAUK_HEWANI', 'LAUK_NABATI', 'SAYUR', 'BUAH'];
     const KOMPONEN_LABEL = {
@@ -996,6 +999,47 @@ export const MenuHarianPage = () => {
         );
     };
 
+    const menuAktif = items.filter(item => item.status !== 'DISETUJUI');
+    const menuRiwayat = items.filter(item => item.status === 'DISETUJUI');
+
+    // Extract blocks from menuRiwayat to list them in the history view
+    const riwayatBlocks = [];
+    for (const menu of menuRiwayat) {
+        for (const blok of menu.blok) {
+            riwayatBlocks.push({
+                menuId: menu.id,
+                blokId: blok.id,
+                tanggal: menu.tanggal,
+                kelompokUmurId: blok.kelompokUmurMenuId,
+                kelompokUmurNama: blok.kelompokUmurMenu?.nama || blok.kelompokUmurMenuId,
+                menuSummary: (blok.menuItem || []).map(mi => mi.namaMenu).join(', ') || '—',
+                rawMenu: menu,
+                rawBlok: blok
+            });
+        }
+    }
+
+    // Filter riwayat blocks based on selected filters
+    const filteredRiwayatBlocks = riwayatBlocks.filter(b => {
+        if (riwayatTanggalFilter && b.tanggal.split('T')[0] !== riwayatTanggalFilter) return false;
+        if (riwayatKelompokUmurFilter && b.kelompokUmurId !== riwayatKelompokUmurFilter) return false;
+        return true;
+    });
+
+    // Generate options for the filters
+    const riwayatTanggalOptions = [
+        { value: '', label: 'Semua Tanggal' },
+        ...Array.from(new Set(menuRiwayat.map(item => item.tanggal.split('T')[0]))).sort().map(tStr => ({
+            value: tStr,
+            label: formatDate(tStr)
+        }))
+    ];
+
+    const riwayatKelompokUmurOptions = [
+        { value: '', label: 'Semua Kelompok Umur' },
+        ...kelompokUmur.map(k => ({ value: k.id, label: k.nama }))
+    ];
+
     return (
         <div>
             <h2 style={{ color: 'var(--text)', marginBottom: 20 }}>Menu Harian</h2>
@@ -1014,7 +1058,16 @@ export const MenuHarianPage = () => {
                     <form onSubmit={create} style={{ display: 'flex', gap: 12, alignItems: 'end' }}>
                         <div style={{ flex: 1 }}>
                             {fieldLabel('Pilih Tanggal Menu Harian')}
-                            <DatePicker value={tanggal} onChange={setTanggal} defaultFocusMonth={activePeriod?.tanggalMulai} required />
+                            <DatePicker
+                                value={tanggal}
+                                onChange={setTanggal}
+                                defaultFocusMonth={activePeriod?.tanggalMulai}
+                                required
+                                isDateUnavailable={(date) => {
+                                    const dateStr = date.toString();
+                                    return items.some(item => item.tanggal.split('T')[0] === dateStr && item.status === 'DISETUJUI');
+                                }}
+                            />
                         </div>
                         <button type="submit" style={buttonStyle('primary')}>Buat Menu Harian</button>
                     </form>
@@ -1026,13 +1079,104 @@ export const MenuHarianPage = () => {
                 <Table columns={masterMenuColumns} data={masterMenuList} emptyText="Belum ada histori menu disetujui untuk periode ini." />
             </section>
 
-            <section>
+            <section style={{ marginBottom: 24 }}>
                 <h3 style={{ margin: '0 0 16px 0', color: 'var(--text)' }}>Input Menu Harian Aktual</h3>
-                {items.length === 0 ? (
-                    <div style={{ padding: 32, textAlign: 'center', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', color: 'var(--text-muted)' }}>
-                        Belum ada menu harian untuk periode ini.
+                {menuAktif.length === 0 ? (
+                    <div style={{ padding: 32, textAlign: 'center', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', color: 'var(--text-muted)', backgroundColor: 'var(--bg-elevated)' }}>
+                        Belum ada menu harian aktif untuk periode ini.
                     </div>
-                ) : items.map(renderMenuHarianWorkspace)}
+                ) : menuAktif.map(renderMenuHarianWorkspace)}
+            </section>
+
+            <section style={{ border: '1px solid var(--border)', padding: 24, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-elevated)', boxShadow: 'var(--shadow)', marginBottom: 24 }}>
+                <h3 style={{ margin: '0 0 16px 0', color: 'var(--text)' }}>Riwayat Menu (Disetujui)</h3>
+                
+                {/* Filter Card */}
+                <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', padding: 16, border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg)', marginBottom: 20 }}>
+                    <div style={{ minWidth: 200, flex: 1 }}>
+                        {fieldLabel('Filter Tanggal')}
+                        <Dropdown
+                            value={riwayatTanggalFilter}
+                            onChange={setRiwayatTanggalFilter}
+                            options={riwayatTanggalOptions}
+                        />
+                    </div>
+                    <div style={{ minWidth: 200, flex: 1 }}>
+                        {fieldLabel('Filter Kelompok Umur')}
+                        <Dropdown
+                            value={riwayatKelompokUmurFilter}
+                            onChange={setRiwayatKelompokUmurFilter}
+                            options={riwayatKelompokUmurOptions}
+                        />
+                    </div>
+                </div>
+
+                {/* List of Approved Blocks */}
+                {filteredRiwayatBlocks.length === 0 ? (
+                    <div style={{ padding: 24, textAlign: 'center', color: 'var(--text-muted)', border: '1px dashed var(--border)', borderRadius: 'var(--radius-sm)' }}>
+                        Tidak ada riwayat menu yang cocok dengan filter.
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {filteredRiwayatBlocks.map(b => {
+                            const isExpanded = expandedRiwayatMenuId === b.blokId;
+                            return (
+                                <div key={b.blokId} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg)', overflow: 'hidden' }}>
+                                    <div
+                                        onClick={() => setExpandedRiwayatMenuId(isExpanded ? null : b.blokId)}
+                                        style={{
+                                            padding: '12px 16px',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            cursor: 'pointer',
+                                            backgroundColor: 'var(--bg-elevated)',
+                                            userSelect: 'none'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                                            <span style={{
+                                                fontSize: 14,
+                                                transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                                transition: 'transform 0.2s ease',
+                                                display: 'inline-block',
+                                                color: 'var(--text-muted)'
+                                            }}>
+                                                ▸
+                                            </span>
+                                            <div>
+                                                <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>{formatDate(b.tanggal)}</span>
+                                                <span style={{ marginLeft: 12, padding: '2px 8px', borderRadius: 12, fontSize: 11, backgroundColor: 'rgba(59,130,246,0.1)', color: 'var(--btn-primary-bg)', fontWeight: 700 }}>
+                                                    {b.kelompokUmurNama}
+                                                </span>
+                                            </div>
+                                            <div style={{ color: 'var(--text-muted)', fontSize: 13, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: 400 }}>
+                                                {b.menuSummary}
+                                            </div>
+                                        </div>
+                                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 4, backgroundColor: 'rgba(16, 185, 129, 0.1)', color: 'var(--color-success)' }}>
+                                            DISETUJUI
+                                        </span>
+                                    </div>
+                                    <div
+                                        style={{
+                                            maxHeight: isExpanded ? '2000px' : '0px',
+                                            transition: 'max-height 0.3s ease-in-out',
+                                            overflow: 'hidden'
+                                        }}
+                                    >
+                                        <div style={{ padding: 16, borderTop: '1px solid var(--border)', backgroundColor: 'var(--bg)' }}>
+                                            <div style={{ marginBottom: 14, padding: 12, border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: 12 }}>
+                                                Mode baca saja. Menu ini telah disetujui oleh Kepala SPPG.
+                                            </div>
+                                            {renderMenuTab(b.rawBlok, false)}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
             </section>
 
             <ConfirmDialog

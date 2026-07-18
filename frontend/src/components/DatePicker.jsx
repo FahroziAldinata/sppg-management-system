@@ -10,7 +10,8 @@ export function DatePicker({
     style = {},
     className = '',
     disabled = false,
-    defaultFocusMonth
+    defaultFocusMonth,
+    isDateUnavailable
 }) {
     const [open, setOpen] = useState(false);
     const [placement, setPlacement] = useState('bottom');
@@ -116,6 +117,7 @@ export function DatePicker({
                         value={value ? parseDate(value) : null}
                         onChange={handleDateChange}
                         defaultFocusedValue={defaultFocusMonth ? parseDate(defaultFocusMonth) : undefined}
+                        isDateUnavailable={isDateUnavailable}
                     />
                 </div>
             )}
