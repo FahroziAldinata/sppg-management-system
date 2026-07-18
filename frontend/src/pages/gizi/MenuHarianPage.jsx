@@ -44,6 +44,7 @@ export const MenuHarianPage = () => {
     const [activeTabByBlok, setActiveTabByBlok] = useState({});
     const [selectedMenuItemByBlok, setSelectedMenuItemByBlok] = useState({});
     const [batasHargaMap, setBatasHargaMap] = useState({ KECIL: 8000, BESAR: 10000 });
+    const [expandedComponents, setExpandedComponents] = useState({});
 
     const KOMPONEN_OPTIONS = ['KARBOHIDRAT', 'LAUK_HEWANI', 'LAUK_NABATI', 'SAYUR', 'BUAH'];
     const KOMPONEN_LABEL = {
@@ -529,80 +530,124 @@ export const MenuHarianPage = () => {
         const menuItems = menuItemsByBlok[blok.id] || [];
         const tanpaKomponen = menuItems.filter(item => !item.komponen);
 
+        const toggleComponent = (komponen, isCurrentlyExpanded) => {
+            setExpandedComponents(prev => ({
+                ...prev,
+                [`${blok.id}-${komponen}`]: !isCurrentlyExpanded
+            }));
+        };
+
         return (
             <>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
                     {KOMPONEN_OPTIONS.map(komponen => {
                         const komponenItems = menuItems.filter(item => item.komponen === komponen);
                         const isEmpty = komponenItems.length === 0;
+                        const isExpanded = expandedComponents[`${blok.id}-${komponen}`] !== undefined
+                            ? expandedComponents[`${blok.id}-${komponen}`]
+                            : !isEmpty;
 
-                        if (isEmpty) {
-                            return (
+                        return (
+                            <div
+                                key={komponen}
+                                style={{
+                                    border: '1px solid var(--border)',
+                                    borderRadius: 'var(--radius-md)',
+                                    backgroundColor: 'var(--bg)',
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    flexDirection: 'column'
+                                }}
+                            >
                                 <div
-                                    key={komponen}
+                                    onClick={() => toggleComponent(komponen, isExpanded)}
                                     style={{
-                                        border: '1px solid var(--border)',
-                                        borderRadius: 'var(--radius-md)',
                                         padding: '10px 12px',
                                         display: 'flex',
                                         justifyContent: 'space-between',
                                         alignItems: 'center',
-                                        backgroundColor: 'var(--bg)'
+                                        cursor: 'pointer',
+                                        backgroundColor: 'var(--bg-elevated)',
+                                        userSelect: 'none',
+                                        borderBottom: isExpanded ? '1px solid var(--border)' : 'none'
                                     }}
                                 >
-                                    <div style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: 13 }}>
+                                    <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>
                                         {KOMPONEN_LABEL[komponen]}
+                                    </span>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        {isEmpty && (
+                                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Kosong</span>
+                                        )}
+                                        <span style={{
+                                            fontSize: 12,
+                                            color: 'var(--text-muted)',
+                                            transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                            transition: 'transform 0.2s ease',
+                                            display: 'inline-block'
+                                        }}>
+                                            ▸
+                                        </span>
                                     </div>
-                                    {editable ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setKomponenInput(prev => ({ ...prev, [blok.id]: komponen }));
-                                                toast.info(`Komponen ${KOMPONEN_LABEL[komponen]} dipilih. Silakan isi nama menu pada form di bawah.`);
-                                            }}
-                                            style={{
-                                                padding: '4px 10px',
-                                                border: '1px solid var(--border)',
-                                                borderRadius: 'var(--radius-sm)',
-                                                backgroundColor: 'var(--bg-elevated)',
-                                                color: 'var(--text)',
-                                                fontSize: 12,
-                                                fontWeight: 600,
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            + Tambah
-                                        </button>
-                                    ) : (
-                                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Kosong</span>
-                                    )}
                                 </div>
-                            );
-                        }
-
-                        return (
-                            <div key={komponen} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 12, minHeight: 140 }}>
-                                <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>{KOMPONEN_LABEL[komponen]}</div>
-                                <div style={{ display: 'grid', gap: 8 }}>
-                                    {komponenItems.map(item => (
-                                        <button
-                                            key={item.id}
-                                            type="button"
-                                            onClick={() => setSelectedMenuItemByBlok(prev => ({ ...prev, [blok.id]: item.id }))}
-                                            style={{
-                                                textAlign: 'left',
-                                                padding: 10,
-                                                border: selectedMenuItemByBlok[blok.id] === item.id ? '1px solid var(--btn-primary-bg)' : '1px solid var(--border)',
-                                                borderRadius: 'var(--radius-sm)',
-                                                backgroundColor: selectedMenuItemByBlok[blok.id] === item.id ? 'rgba(59,130,246,0.08)' : 'var(--bg)',
-                                                color: 'var(--text)',
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <strong>{item.namaMenu}</strong>
-                                            <div style={{ marginTop: 4, fontSize: 12, color: 'var(--text-muted)' }}>{(bahanByMenuItem[item.id] || []).length} bahan</div>
-                                        </button>
-                                    ))}
+                                <div
+                                    style={{
+                                        maxHeight: isExpanded ? '500px' : '0px',
+                                        transition: 'max-height 0.3s ease',
+                                        overflow: 'hidden'
+                                    }}
+                                >
+                                    <div style={{ padding: 12 }}>
+                                        {isEmpty ? (
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <span style={{ color: 'var(--text-muted)', fontSize: 13 }}>Belum ada menu.</span>
+                                                {editable && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setKomponenInput(prev => ({ ...prev, [blok.id]: komponen }));
+                                                            toast.info(`Komponen ${KOMPONEN_LABEL[komponen]} dipilih. Silakan isi nama menu pada form di bawah.`);
+                                                        }}
+                                                        style={{
+                                                            padding: '4px 10px',
+                                                            border: '1px solid var(--border)',
+                                                            borderRadius: 'var(--radius-sm)',
+                                                            backgroundColor: 'var(--bg-elevated)',
+                                                            color: 'var(--text)',
+                                                            fontSize: 12,
+                                                            fontWeight: 600,
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        + Tambah
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div style={{ display: 'grid', gap: 8 }}>
+                                                {komponenItems.map(item => (
+                                                    <button
+                                                        key={item.id}
+                                                        type="button"
+                                                        onClick={() => setSelectedMenuItemByBlok(prev => ({ ...prev, [blok.id]: item.id }))}
+                                                        style={{
+                                                            textAlign: 'left',
+                                                            padding: 10,
+                                                            border: selectedMenuItemByBlok[blok.id] === item.id ? '1px solid var(--btn-primary-bg)' : '1px solid var(--border)',
+                                                            borderRadius: 'var(--radius-sm)',
+                                                            backgroundColor: selectedMenuItemByBlok[blok.id] === item.id ? 'rgba(59,130,246,0.08)' : 'var(--bg)',
+                                                            color: 'var(--text)',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        <strong>{item.namaMenu}</strong>
+                                                        <div style={{ marginTop: 4, fontSize: 12, color: 'var(--text-muted)' }}>{(bahanByMenuItem[item.id] || []).length} bahan</div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         );
