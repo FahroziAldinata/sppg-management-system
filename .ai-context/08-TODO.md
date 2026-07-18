@@ -30,7 +30,7 @@ _Tidak ada tugas aktif saat ini._
 ### 5. [ ] Guardrail Harga Porsi Real-time di Menu Harian (Ahli Gizi)
 - **Deskripsi**: Excel asli (`MENU_..xlsx`) selalu tampilkan header "ANGGARAN PORSI KECIL 8.000, BESAR 10.000" + baris "Total Anggaran" per blok menu, sebagai pembanding real-time. Sistem sekarang tidak punya ini — jadi akar penyebab sering miss antara Ahli Gizi (nyusun tanpa liat batas) & Akuntan (baru ketauan kelebihan pas hitung RAB).
 - **Rencana**: Tampilkan total biaya per blok (SUM MenuItemBahan.totalHargaBahan) real-time dibanding `BatasHargaPorsi` sesuai `jenisPorsi` blok. Read-only info, tidak block submit.
-- **Status**: Belum dikerjakan, belum diaudit endpoint existing.
+- **Status**: Implementasi backend selesai (endpoint `/batas-harga-porsi` & penambahan include `kategoriPenerima` di `/menu-harian` dkk). Pekerjaan frontend (rendering guardrail real-time di UI `MenuHarianPage.jsx`) belum dikerjakan.
 
 ---
 
