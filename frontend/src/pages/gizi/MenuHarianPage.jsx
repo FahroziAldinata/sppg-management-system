@@ -45,6 +45,7 @@ export const MenuHarianPage = () => {
     const [selectedMenuItemByBlok, setSelectedMenuItemByBlok] = useState({});
     const [batasHargaMap, setBatasHargaMap] = useState({ KECIL: 8000, BESAR: 10000 });
     const [expandedComponents, setExpandedComponents] = useState({});
+    const [expandedMenus, setExpandedMenus] = useState({});
 
     const KOMPONEN_OPTIONS = ['KARBOHIDRAT', 'LAUK_HEWANI', 'LAUK_NABATI', 'SAYUR', 'BUAH'];
     const KOMPONEN_LABEL = {
@@ -944,10 +945,27 @@ export const MenuHarianPage = () => {
 
     const renderMenuHarianWorkspace = (menu) => {
         const editable = isEditableMenu(menu);
+        const isDetailExpanded = expandedMenus[menu.id] !== undefined ? expandedMenus[menu.id] : true;
+
         return (
             <section key={menu.id} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-elevated)', boxShadow: 'var(--shadow)', overflow: 'hidden', marginBottom: 24 }}>
                 <div style={{ position: 'sticky', top: 0, zIndex: 5, display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center', padding: '16px 18px', borderBottom: '1px solid var(--border)', backgroundColor: 'var(--bg-elevated)' }}>
                     <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'center' }}>
+                        <span
+                            onClick={() => setExpandedMenus(prev => ({ ...prev, [menu.id]: !isDetailExpanded }))}
+                            style={{
+                                fontSize: 16,
+                                cursor: 'pointer',
+                                userSelect: 'none',
+                                color: 'var(--text-muted)',
+                                transform: isDetailExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s ease',
+                                display: 'inline-block',
+                                paddingRight: 6
+                            }}
+                        >
+                            ▸
+                        </span>
                         <div>{fieldLabel('Periode')}<strong>{activePeriod ? `${activePeriod.tanggalMulai.split('T')[0]} - ${activePeriod.tanggalSelesai.split('T')[0]}` : '-'}</strong></div>
                         <div>{fieldLabel('Tanggal')}<strong>{formatDate(menu.tanggal)}</strong></div>
                         <div>{fieldLabel('Status')}{renderStatus(menu.status)}</div>
@@ -957,14 +975,22 @@ export const MenuHarianPage = () => {
                         <button type="button" disabled={!editable} onClick={() => triggerAjukanMenu(menu.id)} style={buttonStyle('primary', !editable)}>Ajukan</button>
                     </div>
                 </div>
-                <div style={{ padding: 18 }}>
-                    {!editable && (
-                        <div style={{ marginBottom: 14, padding: 12, border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)' }}>
-                            Mode baca saja. Menu dengan status {menu.status} tidak dapat diubah oleh Ahli Gizi.
-                        </div>
-                    )}
-                    {renderBlokWorkspace(menu, editable)}
-                    {renderPengiriman(menu, editable)}
+                <div
+                    style={{
+                        maxHeight: isDetailExpanded ? '5000px' : '0px',
+                        transition: 'max-height 0.4s ease-in-out',
+                        overflow: 'hidden'
+                    }}
+                >
+                    <div style={{ padding: 18 }}>
+                        {!editable && (
+                            <div style={{ marginBottom: 14, padding: 12, border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)' }}>
+                                Mode baca saja. Menu dengan status {menu.status} tidak dapat diubah oleh Ahli Gizi.
+                            </div>
+                        )}
+                        {renderBlokWorkspace(menu, editable)}
+                        {renderPengiriman(menu, editable)}
+                    </div>
                 </div>
             </section>
         );
