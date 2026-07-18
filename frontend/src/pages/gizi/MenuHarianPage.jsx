@@ -1138,14 +1138,15 @@ export const MenuHarianPage = () => {
                                 zIndex: 3,
                                 display: 'flex',
                                 justifyContent: 'space-between',
-                                gap: 12,
+                                gap: '12px 24px',
+                                flexWrap: 'wrap',
                                 alignItems: 'center',
                                 paddingBottom: 14,
                                 marginBottom: 14,
                                 borderBottom: '1px solid var(--border)',
                                 backgroundColor: 'var(--bg-elevated)'
                             }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                                     <div>
                                         <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Blok aktif</div>
                                         <h4 style={{ margin: 0, color: 'var(--text)' }}>{activeBlok.kelompokUmurMenu?.nama || activeBlok.kelompokUmurMenuId}</h4>
@@ -1160,7 +1161,8 @@ export const MenuHarianPage = () => {
                                             color: badgeColor,
                                             fontWeight: 700,
                                             fontSize: 13,
-                                            border: `1px solid ${isOverBatas ? 'var(--color-danger)' : 'var(--color-success)'}`
+                                            border: `1px solid ${isOverBatas ? 'var(--color-danger)' : 'var(--color-success)'}`,
+                                            whiteSpace: 'nowrap'
                                         }}>
                                             Total: Rp{totalBlok.toLocaleString('id-ID')} / Rp{batasMaksimal.toLocaleString('id-ID')}
                                         </div>
