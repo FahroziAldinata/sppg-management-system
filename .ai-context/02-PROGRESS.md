@@ -144,6 +144,11 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
    - E2E test full cycle via Invoke-RestMethod: login 3 role → POST Akuntan → POST Mitra (410) → PUT realisasi → GET list Aslap → PUT approve. Semua pass.
    - 3 file integration test manual nyangkut di repo (`gizi_temp.js`, `aslap.js`, `mitra.js` di `__tests__/`) dihapus.
    - Catatan: data test historis di DB (~14 PO) masih tersisa, tidak dibersihkan sesi ini.
+- [x] **PO 2-Tahap (Akuntan→Mitra→Aslap) + Tambah Supplier On-the-fly + Prefill Jurnal dari PO — Selesai 2026-07-18**:
+   - MEKANISME PO: Akuntan inisiasi PO → Mitra checklist Tahan/Beli per item (partial-save, auto-flip DIREALISASI) → Aslap verifikasi fisik (gate DIREALISASI).
+   - FITUR BARU: Modal "+ Baru" tambah supplier on-the-fly di AkuntanPoPage (POST /api/akuntan/supplier). Dropdown "Isi dari PO" di JurnalTransaksiPage (GET /api/akuntan/jurnal-transaksi/prefill/:id) — prefill nominal dari realisasi, Akuntan submit manual.
+   - NON-FITUR: qtyDiterima tetap nullable/unused (YAGNI) — Aslap approve per-dokumen.
+   - BUG FIX: Transaction timeout jurnal POST/PUT/DELETE dinaikkan ke 15s.
 
 ## Sedang jalan / berikutnya
 - Belum ada — lihat `08-TODO.md` untuk task terbuka.

@@ -41,24 +41,24 @@ _Tidak ada tugas aktif saat ini._
 - **Langkah**: Optimalkan bundle size dengan `React.lazy` atau penataan `manualChunks`.
 - **Status**: Belum dikerjakan.
 
-### 7. [ ] PO 2-Tahap: Tutup Gap Partial-Realisasi (tempel, bukan rebuild)
-- Deskripsi: hasil audit ulang alur PO — flip-status prematur, tidak ada
-  audit trail update Mitra, belum ada link quick-fill PO→Jurnal, FE belum
-  ada grouping+checklist tahan/beli.
-- Sub-tugas:
-  a. [ ] Migration: tambah `updatedAt DateTime?` + `updatedById String?`
-     (relasi User) di `TransaksiPembelianItem`.
-  b. [ ] Fix PUT `/api/mitra/po/:id/realisasi` — flip status `DIREALISASI`
-     HANYA jika SEMUA item `qtyRealisasi != null`. Isi `updatedAt`/
-     `updatedById` tiap kali item di-PATCH (termasuk partial save).
-  c. [ ] Audit endpoint Jurnal — cek ada/belum jalur baca
-     `TransaksiPembelianItem.subtotalRealisasi` buat prefill form Jurnal.
-  d. [ ] FE `AkuntanPoPage`/`MitraPoPage` — redesign grouping
-     tanggal→supplier, checklist tahan/beli per item, tombol "Simpan"
-     (bukan submit-sekali-final).
-  e. [ ] FE `AslapPoPage` — re-verify tombol approve cuma aktif kalau
-     status PO = `DIREALISASI` (cross-check belum ke-bypass di kode lama).
-- Status: Belum dikerjakan.
+### 7. [x] PO 2-Tahap: Akuntan Inisiasi → Mitra Realisasi → Verifikasi Aslap ✅
+- **Mekanisme**: Akuntan bikin PO → Mitra checklist Tahan/Beli per item
+  (partial-save, auto-flip DIREALISASI kalau semua item terisi) →
+  Aslap verifikasi fisik (gate status DIREALISASI, no partial).
+- **Tambah Supplier On-the-fly**: Modal "+ Baru" di AkuntanPoPage.jsx
+  — POST /api/akuntan/supplier → auto-refresh dropdown + auto-select
+  supplier baru.
+- **Prefill Jurnal dari PO**: Dropdown "Isi dari PO" di
+  JurnalTransaksiPage.jsx — GET /api/akuntan/jurnal-transaksi/prefill/:id
+  — isi draft nominal dari subtotalRealisasi PO, Akuntan submit manual
+  setelah cek nota fisik.
+- **qtyDiterima**: Field di schema tetap ada tapi tidak dipakai (YAGNI)
+  — Aslap approve per-dokumen, bukan per-item.
+- **Fix tambahan**: Transaction timeout dinaikkan ke 15000ms di 3 endpoint
+  jurnal (POST/PUT/DELETE) — bug lama ketemu pas testing.
+- **Status**: ✅ **SELESAI 2026-07-18** — Seluruh sub-tugas (migration
+  audit trail, flip-logic, prefill jurnal, FE grouping, gate Aslap)
+  sudah diimplementasi, dites via production endpoint, dan diclose.
 
 ---
 
