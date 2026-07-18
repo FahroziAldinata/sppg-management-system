@@ -90,7 +90,28 @@ router.get("/menu-harian", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPAL
       },
       orderBy: { tanggal: "asc" }
     });
-    res.json(data);
+
+    // Fetch all HargaBahanPeriode for this period to see which ones are NOT fallback
+    const directPrices = await prisma.hargaBahanPeriode.findMany({
+      where: { periodeId }
+    });
+    const directBahanIds = new Set(directPrices.map(p => p.bahanPokokId));
+
+    const mapped = data.map(menu => ({
+      ...menu,
+      blok: menu.blok.map(blok => ({
+        ...blok,
+        menuItem: blok.menuItem.map(item => ({
+          ...item,
+          bahan: item.bahan.map(b => ({
+            ...b,
+            isFallback: !directBahanIds.has(b.bahanPokokId)
+          }))
+        }))
+      }))
+    }));
+
+    res.json(mapped);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data menu harian" });
@@ -123,7 +144,26 @@ router.get("/menu-harian/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "K
       return res.status(404).json({ error: "Data menu harian tidak ditemukan" });
     }
 
-    res.json(data);
+    const directPrices = await prisma.hargaBahanPeriode.findMany({
+      where: { periodeId: data.periodeId }
+    });
+    const directBahanIds = new Set(directPrices.map(p => p.bahanPokokId));
+
+    const mapped = {
+      ...data,
+      blok: data.blok.map(blok => ({
+        ...blok,
+        menuItem: blok.menuItem.map(item => ({
+          ...item,
+          bahan: item.bahan.map(b => ({
+            ...b,
+            isFallback: !directBahanIds.has(b.bahanPokokId)
+          }))
+        }))
+      }))
+    };
+
+    res.json(mapped);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Terjadi kesalahan server saat mengambil data menu harian" });

@@ -39,6 +39,224 @@ export const MenuHarianPage = () => {
     const [pengirimanByMenu, setPengirimanByMenu] = useState({});
     const [pengirimanForm, setPengirimanForm] = useState({});
     const [masterMenuList, setMasterMenuList] = useState([]);
+    const [showMasterModal, setShowMasterModal] = useState(false);
+    const [masterForm, setMasterForm] = useState({
+        id: '',
+        jalur: 'SISWA',
+        hari: 'SENIN',
+        menuKarbohidrat: '',
+        menuLaukHewani: '',
+        menuLaukNabati: '',
+        menuSayur: '',
+        menuBuah: ''
+    });
+
+    const fetchMasterByHari = async (jalur, hari) => {
+        if (!periodeId) return;
+        try {
+            const r = await request(`/gizi/master-menu/by-hari?periodeId=${periodeId}&jalur=${jalur}&hari=${hari}`);
+            if (r.ok) {
+                const data = await r.json();
+                if (data) {
+                    setMasterForm({
+                        id: data.id,
+                        jalur: data.jalur,
+                        hari: data.hari,
+                        menuKarbohidrat: data.menuKarbohidrat || '',
+                        menuLaukHewani: data.menuLaukHewani || '',
+                        menuLaukNabati: data.menuLaukNabati || '',
+                        menuSayur: data.menuSayur || '',
+                        menuBuah: data.menuBuah || ''
+                    });
+                } else {
+                    setMasterForm(prev => ({
+                        id: '',
+                        jalur: prev.jalur,
+                        hari: prev.hari,
+                        menuKarbohidrat: '',
+                        menuLaukHewani: '',
+                        menuLaukNabati: '',
+                        menuSayur: '',
+                        menuBuah: ''
+                    }));
+                }
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const submitMasterMenu = async (e) => {
+        e.preventDefault();
+        if (!periodeId) {
+            toast.error('Periode belum dipilih.');
+            return;
+        }
+
+        const payload = {
+            periodeId,
+            jalur: masterForm.jalur,
+            hari: masterForm.hari,
+            menuKarbohidrat: masterForm.menuKarbohidrat,
+            menuLaukHewani: masterForm.menuLaukHewani,
+            menuLaukNabati: masterForm.menuLaukNabati,
+            menuSayur: masterForm.menuSayur,
+            menuBuah: masterForm.menuBuah
+        };
+
+        if (masterForm.id) {
+            try {
+                const r = await request(`/gizi/master-menu/${masterForm.id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(payload)
+                });
+                const d = await r.json();
+                if (r.ok) {
+                    toast.success('Master Menu berhasil diperbarui.');
+                    request(`/gizi/master-menu?periodeId=${periodeId}`)
+                        .then(res => res.ok ? res.json() : [])
+                        .then(d => setMasterMenuList(d));
+                    setShowMasterModal(false);
+                } else {
+                    toast.error(d.error || 'Gagal memperbarui master menu.');
+                }
+            } catch (err) {
+                toast.error(err.message || 'Terjadi kesalahan koneksi');
+            }
+        } else {
+            try {
+                const r = await request('/gizi/master-menu', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const d = await r.json();
+                if (r.ok) {
+                    toast.success('Master Menu berhasil disimpan.');
+                    request(`/gizi/master-menu?periodeId=${periodeId}`)
+                        .then(res => res.ok ? res.json() : [])
+                        .then(d => setMasterMenuList(d));
+                    setShowMasterModal(false);
+                } else if (r.status === 400 || r.status === 409) {
+                    toast.info('Master menu sudah ada. Memuat data untuk diedit...');
+                    const getRes = await request(`/gizi/master-menu/by-hari?periodeId=${periodeId}&jalur=${masterForm.jalur}&hari=${masterForm.hari}`);
+                    if (getRes.ok) {
+                        const existingData = await getRes.json();
+                        if (existingData) {
+                            setMasterForm({
+                                id: existingData.id,
+                                jalur: existingData.jalur,
+                                hari: existingData.hari,
+                                menuKarbohidrat: existingData.menuKarbohidrat || '',
+                                menuLaukHewani: existingData.menuLaukHewani || '',
+                                menuLaukNabati: existingData.menuLaukNabati || '',
+                                menuSayur: existingData.menuSayur || '',
+                                menuBuah: existingData.menuBuah || ''
+                            });
+                        }
+                    }
+                } else {
+                    toast.error(d.error || 'Gagal menyimpan master menu.');
+                }
+            } catch (err) {
+                toast.error(err.message || 'Terjadi kesalahan koneksi');
+            }
+        }
+    };
+
+    const deleteMasterMenu = async (id) => {
+        if (!id) return;
+        if (!window.confirm('Apakah Anda yakin ingin menghapus master menu ini?')) return;
+        try {
+            const r = await request(`/gizi/master-menu/${id}`, { method: 'DELETE' });
+            if (r.ok) {
+                toast.success('Master Menu berhasil dihapus.');
+                setMasterForm(prev => ({
+                    id: '',
+                    jalur: prev.jalur,
+                    hari: prev.hari,
+                    menuKarbohidrat: '',
+                    menuLaukHewani: '',
+                    menuLaukNabati: '',
+                    menuSayur: '',
+                    menuBuah: ''
+                }));
+                request(`/gizi/master-menu?periodeId=${periodeId}`)
+                    .then(res => res.ok ? res.json() : [])
+                    .then(d => setMasterMenuList(d));
+                setShowMasterModal(false);
+            } else {
+                const d = await r.json();
+                toast.error(d.error || 'Gagal menghapus master menu.');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+        }
+    };
+
+    const applyMasterMenu = async (blok, menu) => {
+        setError('');
+        const datePart = menu.tanggal.split('T')[0];
+        const [year, month, day] = datePart.split('-').map(Number);
+        const dateObj = new Date(year, month - 1, day);
+        const daysMap = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+        const hari = daysMap[dateObj.getDay()];
+        const jalur = blok.kelompokUmurMenu?.jalur;
+
+        if (!jalur) {
+            toast.error('Jalur menu tidak ditemukan pada kelompok umur ini.');
+            return;
+        }
+
+        try {
+            const r = await request(`/gizi/master-menu/by-hari?periodeId=${periodeId}&jalur=${jalur}&hari=${hari}`);
+            if (!r.ok) {
+                toast.error('Gagal mengambil data master menu.');
+                return;
+            }
+            const data = await r.json();
+            if (!data) {
+                toast.error('Belum ada master menu buat hari ini');
+                return;
+            }
+
+            const itemsToCreate = [];
+            if (data.menuKarbohidrat) itemsToCreate.push({ namaMenu: data.menuKarbohidrat, komponen: 'KARBOHIDRAT' });
+            if (data.menuLaukHewani) itemsToCreate.push({ namaMenu: data.menuLaukHewani, komponen: 'LAUK_HEWANI' });
+            if (data.menuLaukNabati) itemsToCreate.push({ namaMenu: data.menuLaukNabati, komponen: 'LAUK_NABATI' });
+            if (data.menuSayur) itemsToCreate.push({ namaMenu: data.menuSayur, komponen: 'SAYUR' });
+            if (data.menuBuah) itemsToCreate.push({ namaMenu: data.menuBuah, komponen: 'BUAH' });
+
+            if (itemsToCreate.length === 0) {
+                toast.warning('Master menu ditemukan tetapi semua komponen kosong.');
+                return;
+            }
+
+            let createdCount = 0;
+            for (const item of itemsToCreate) {
+                const resCreate = await request('/gizi/menu-item', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        blokId: blok.id,
+                        namaMenu: item.namaMenu,
+                        komponen: item.komponen
+                    })
+                });
+                if (resCreate.ok) {
+                    createdCount++;
+                }
+            }
+
+            if (createdCount > 0) {
+                toast.success(`Berhasil mengimpor ${createdCount} komponen menu dari Master.`);
+                load(periodeId);
+            } else {
+                toast.error('Gagal mengimpor menu dari Master.');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan saat menerapkan master menu');
+        }
+    };
+
 
     const [activeBlokByMenu, setActiveBlokByMenu] = useState({});
     const [activeTabByBlok, setActiveTabByBlok] = useState({});
@@ -300,7 +518,7 @@ export const MenuHarianPage = () => {
         setError('');
         const f = { ...(bahanForm[menuItemId] || {}) };
         if (f.bahanPokokId === undefined && bahanPokokList[0]) f.bahanPokokId = bahanPokokList[0].id;
-        const required = ['bahanPokokId', 'beratBersihGr', 'energiKkal', 'proteinGr', 'lemakGr', 'karbohidratGr', 'seratGr', 'bddPersen', 'hargaSatuan', 'beratSatuanGr'];
+        const required = ['bahanPokokId', 'beratBersihGr', 'energiKkal', 'proteinGr', 'lemakGr', 'karbohidratGr', 'seratGr', 'bddPersen', 'beratSatuanGr'];
         if (required.some(k => f[k] === undefined || f[k] === '')) { setError('Semua field bahan wajib diisi kecuali Berat URT'); return; }
         const r = await request('/gizi/menu-item-bahan', {
             method: 'POST',
@@ -458,17 +676,6 @@ export const MenuHarianPage = () => {
         }
         const bahanRows = bahanByMenuItem[item.id] || [];
         const form = bahanForm[item.id] || {};
-        const numberFields = [
-            ['beratBersihGr', 'Bersih'],
-            ['bddPersen', 'BDD'],
-            ['hargaSatuan', 'Harga'],
-            ['beratSatuanGr', 'Basis'],
-            ['energiKkal', 'Energi'],
-            ['proteinGr', 'Protein'],
-            ['lemakGr', 'Lemak'],
-            ['karbohidratGr', 'Karbo'],
-            ['seratGr', 'Serat']
-        ];
 
         return (
             <div style={{ marginTop: 18, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
@@ -495,7 +702,25 @@ export const MenuHarianPage = () => {
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.beratBersihGr}</td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.beratURT || '-'}</td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.bddPersen}</td>
-                                    <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.hargaSatuan}</td>
+                                    <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                            <span>Rp{Number(bahan.hargaSatuan || 0).toLocaleString('id-ID')}</span>
+                                            {bahan.isFallback && (
+                                                <span 
+                                                    title="Harga dari periode sebelumnya, belum diupdate Mitra" 
+                                                    style={{ 
+                                                        color: '#d97706', 
+                                                        cursor: 'help',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        fontSize: 14
+                                                    }}
+                                                >
+                                                    ⚠️
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.beratSatuanGr}</td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.energiKkal}</td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.proteinGr}</td>
@@ -515,11 +740,17 @@ export const MenuHarianPage = () => {
                                             options={bahanPokokList.length === 0 ? [{ value: '', label: '-- Bahan Pokok kosong --' }] : bahanPokokList.map(bp => ({ value: bp.id, label: getBahanLabel(bp) }))}
                                         />
                                     </td>
-                                    <td><input className="form-field" type="number" value={form.beratBersihGr || ''} onChange={e => setBahanField(item.id, 'beratBersihGr', e.target.value)} /></td>
-                                    <td><input className="form-field" value={form.beratURT || ''} onChange={e => setBahanField(item.id, 'beratURT', e.target.value)} /></td>
-                                    {numberFields.slice(1).map(([field]) => (
-                                        <td key={field}><input className="form-field" type="number" value={form[field] || ''} onChange={e => setBahanField(item.id, field, e.target.value)} /></td>
-                                    ))}
+                                    <td><input className="form-field" type="number" style={{ minWidth: 70 }} value={form.beratBersihGr || ''} onChange={e => setBahanField(item.id, 'beratBersihGr', e.target.value)} /></td>
+                                    <td><input className="form-field" style={{ minWidth: 70 }} value={form.beratURT || ''} onChange={e => setBahanField(item.id, 'beratURT', e.target.value)} /></td>
+                                    <td><input className="form-field" type="number" style={{ minWidth: 60 }} value={form.bddPersen || ''} onChange={e => setBahanField(item.id, 'bddPersen', e.target.value)} /></td>
+                                    <td><input className="form-field" style={{ minWidth: 80, backgroundColor: 'var(--bg-muted)', color: 'var(--text-muted)' }} disabled placeholder="Auto" value="" /></td>
+                                    <td><input className="form-field" type="number" style={{ minWidth: 70 }} value={form.beratSatuanGr || ''} onChange={e => setBahanField(item.id, 'beratSatuanGr', e.target.value)} /></td>
+                                    <td><input className="form-field" type="number" style={{ minWidth: 70 }} value={form.energiKkal || ''} onChange={e => setBahanField(item.id, 'energiKkal', e.target.value)} /></td>
+                                    <td><input className="form-field" type="number" style={{ minWidth: 60 }} value={form.proteinGr || ''} onChange={e => setBahanField(item.id, 'proteinGr', e.target.value)} /></td>
+                                    <td><input className="form-field" type="number" style={{ minWidth: 60 }} value={form.lemakGr || ''} onChange={e => setBahanField(item.id, 'lemakGr', e.target.value)} /></td>
+                                    <td><input className="form-field" type="number" style={{ minWidth: 60 }} value={form.karbohidratGr || ''} onChange={e => setBahanField(item.id, 'karbohidratGr', e.target.value)} /></td>
+                                    <td><input className="form-field" type="number" style={{ minWidth: 60 }} value={form.seratGr || ''} onChange={e => setBahanField(item.id, 'seratGr', e.target.value)} /></td>
+                                    <td style={{ color: 'var(--text-muted)' }}>-</td>
                                     <td><button type="button" onClick={() => addBahan(item.id)} style={buttonStyle('primary')}>Tambah</button></td>
                                 </tr>
                             )}
@@ -530,7 +761,7 @@ export const MenuHarianPage = () => {
         );
     };
 
-    const renderMenuTab = (blok, editable) => {
+    const renderMenuTab = (blok, editable, menu) => {
         const menuItems = menuItemsByBlok[blok.id] || [];
         const tanpaKomponen = menuItems.filter(item => !item.komponen);
 
@@ -543,6 +774,17 @@ export const MenuHarianPage = () => {
 
         return (
             <>
+                {editable && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+                        <button
+                            type="button"
+                            onClick={() => applyMasterMenu(blok, menu)}
+                            style={buttonStyle('secondary')}
+                        >
+                            📋 Isi dari Master
+                        </button>
+                    </div>
+                )}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
                     {KOMPONEN_OPTIONS.map(komponen => {
                         const komponenItems = menuItems.filter(item => item.komponen === komponen);
@@ -936,7 +1178,7 @@ export const MenuHarianPage = () => {
                                     ))}
                                 </div>
                             </div>
-                            {(activeTabByBlok[activeBlok.id] || 'menu') === 'menu' && renderMenuTab(activeBlok, editable)}
+                            {(activeTabByBlok[activeBlok.id] || 'menu') === 'menu' && renderMenuTab(activeBlok, editable, menu)}
                             {activeTabByBlok[activeBlok.id] === 'alergi' && renderAlergiTab(activeBlok, editable)}
                             {activeTabByBlok[activeBlok.id] === 'organoleptik' && renderOrganoleptikTab(activeBlok, editable)}
                         </>
@@ -1075,7 +1317,29 @@ export const MenuHarianPage = () => {
             </section>
 
             <section style={{ border: '1px solid var(--border)', padding: 24, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-elevated)', boxShadow: 'var(--shadow)', marginBottom: 24 }}>
-                <h3 style={{ margin: '0 0 20px 0', color: 'var(--text)' }}>Master Menu Mingguan (Referensi)</h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                    <h3 style={{ margin: 0, color: 'var(--text)' }}>Master Menu Mingguan (Referensi)</h3>
+                    <button 
+                        type="button" 
+                        onClick={() => {
+                            setMasterForm({
+                                id: '',
+                                jalur: 'SISWA',
+                                hari: 'SENIN',
+                                menuKarbohidrat: '',
+                                menuLaukHewani: '',
+                                menuLaukNabati: '',
+                                menuSayur: '',
+                                menuBuah: ''
+                            });
+                            setShowMasterModal(true);
+                            fetchMasterByHari('SISWA', 'SENIN');
+                        }}
+                        style={buttonStyle('secondary')}
+                    >
+                        📋 Kelola Rencana Master Menu
+                    </button>
+                </div>
                 <Table columns={masterMenuColumns} data={masterMenuList} emptyText="Belum ada histori menu disetujui untuk periode ini." />
             </section>
 
@@ -1169,7 +1433,7 @@ export const MenuHarianPage = () => {
                                             <div style={{ marginBottom: 14, padding: 12, border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', color: 'var(--text-muted)', fontSize: 12 }}>
                                                 Mode baca saja. Menu ini telah disetujui oleh Kepala SPPG.
                                             </div>
-                                            {renderMenuTab(b.rawBlok, false)}
+                                            {renderMenuTab(b.rawBlok, false, b.rawMenu)}
                                         </div>
                                     </div>
                                 </div>
@@ -1178,6 +1442,159 @@ export const MenuHarianPage = () => {
                     </div>
                 )}
             </section>
+
+            {showMasterModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        borderRadius: 'var(--radius-lg)',
+                        width: '100%',
+                        maxWidth: 550,
+                        padding: 24,
+                        boxShadow: 'var(--shadow-lg)',
+                        border: '1px solid var(--border)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                            <h3 style={{ margin: 0, color: 'var(--text)' }}>
+                                {masterForm.id ? 'Edit Master Menu Mingguan' : 'Tambah Master Menu Mingguan'}
+                            </h3>
+                            <button 
+                                type="button" 
+                                onClick={() => setShowMasterModal(false)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: 'var(--text-muted)',
+                                    fontSize: 20,
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                &times;
+                            </button>
+                        </div>
+                        <form onSubmit={submitMasterMenu}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                                <div>
+                                    {fieldLabel('Jalur')}
+                                    <Dropdown 
+                                        value={masterForm.jalur} 
+                                        onChange={val => {
+                                            setMasterForm(prev => ({ ...prev, jalur: val }));
+                                            fetchMasterByHari(val, masterForm.hari);
+                                        }} 
+                                        options={[
+                                            { value: 'SISWA', label: 'Siswa' },
+                                            { value: 'TIGA_B', label: 'Tiga B' }
+                                        ]} 
+                                    />
+                                </div>
+                                <div>
+                                    {fieldLabel('Hari')}
+                                    <Dropdown 
+                                        value={masterForm.hari} 
+                                        onChange={val => {
+                                            setMasterForm(prev => ({ ...prev, hari: val }));
+                                            fetchMasterByHari(masterForm.jalur, val);
+                                        }} 
+                                        options={[
+                                            { value: 'SENIN', label: 'Senin' },
+                                            { value: 'SELASA', label: 'Selasa' },
+                                            { value: 'RABU', label: 'Rabu' },
+                                            { value: 'KAMIS', label: 'Kamis' },
+                                            { value: 'JUMAT', label: 'Jumat' },
+                                            { value: 'SABTU', label: 'Sabtu' }
+                                        ]} 
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
+                                <div>
+                                    {fieldLabel('Karbohidrat')}
+                                    <input 
+                                        className="form-field" 
+                                        value={masterForm.menuKarbohidrat} 
+                                        onChange={e => setMasterForm(prev => ({ ...prev, menuKarbohidrat: e.target.value }))} 
+                                        placeholder="Contoh: Nasi Putih"
+                                    />
+                                </div>
+                                <div>
+                                    {fieldLabel('Lauk Hewani')}
+                                    <input 
+                                        className="form-field" 
+                                        value={masterForm.menuLaukHewani} 
+                                        onChange={e => setMasterForm(prev => ({ ...prev, menuLaukHewani: e.target.value }))} 
+                                        placeholder="Contoh: Ayam Goreng"
+                                    />
+                                </div>
+                                <div>
+                                    {fieldLabel('Lauk Nabati')}
+                                    <input 
+                                        className="form-field" 
+                                        value={masterForm.menuLaukNabati} 
+                                        onChange={e => setMasterForm(prev => ({ ...prev, menuLaukNabati: e.target.value }))} 
+                                        placeholder="Contoh: Tempe Bacem"
+                                    />
+                                </div>
+                                <div>
+                                    {fieldLabel('Sayur')}
+                                    <input 
+                                        className="form-field" 
+                                        value={masterForm.menuSayur} 
+                                        onChange={e => setMasterForm(prev => ({ ...prev, menuSayur: e.target.value }))} 
+                                        placeholder="Contoh: Sayur Sop"
+                                    />
+                                </div>
+                                <div>
+                                    {fieldLabel('Buah')}
+                                    <input 
+                                        className="form-field" 
+                                        value={masterForm.menuBuah} 
+                                        onChange={e => setMasterForm(prev => ({ ...prev, menuBuah: e.target.value }))} 
+                                        placeholder="Contoh: Pisang Mas"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                                {masterForm.id && (
+                                    <button 
+                                        type="button" 
+                                        onClick={() => deleteMasterMenu(masterForm.id)}
+                                        style={{ ...buttonStyle('secondary'), borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
+                                    >
+                                        Hapus
+                                    </button>
+                                )}
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowMasterModal(false)}
+                                    style={buttonStyle('secondary')}
+                                >
+                                    Batal
+                                </button>
+                                <button 
+                                    type="submit" 
+                                    style={buttonStyle('primary')}
+                                >
+                                    {masterForm.id ? 'Simpan Perubahan' : 'Tambah Master'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             <ConfirmDialog
                 open={confirmOpen}
