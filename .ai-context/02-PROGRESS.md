@@ -162,6 +162,3 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 
 ## Sedang jalan / berikutnya
 - Belum ada — lihat `08-TODO.md` untuk task terbuka.
-
-## Belum dikerjakan sama sekali
-- Audit visual menu harian dan layout historis Ahli Gizi.
