@@ -556,7 +556,8 @@ export const MenuHarianPage = () => {
                                     backgroundColor: 'var(--bg)',
                                     overflow: 'hidden',
                                     display: 'flex',
-                                    flexDirection: 'column'
+                                    flexDirection: 'column',
+                                    alignSelf: 'start'
                                 }}
                             >
                                 <div
