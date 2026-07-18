@@ -1392,7 +1392,8 @@ router.get("/pengiriman", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPALA
     const list = await prisma.pengirimanHarian.findMany({
       where: menuHarianId ? { menuHarianId } : {},
       include: {
-        kendaraan: true
+        kendaraan: true,
+        kategoriPenerima: true
       }
     });
     res.json(list);
@@ -1408,7 +1409,10 @@ router.get("/pengiriman/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KE
     const { id } = req.params;
     const data = await prisma.pengirimanHarian.findUnique({
       where: { id },
-      include: { kendaraan: true }
+      include: { 
+        kendaraan: true,
+        kategoriPenerima: true
+      }
     });
     if (!data) return res.status(404).json({ error: "Data pengiriman tidak ditemukan" });
     res.json(data);
@@ -1421,16 +1425,13 @@ router.get("/pengiriman/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KE
 // POST /api/gizi/pengiriman - Create PengirimanHarian
 router.post("/pengiriman", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
   try {
-    const { menuHarianId, jenisPorsi, kendaraanId, catatan } = req.body || {};
+    const { menuHarianId, kategoriIds, kendaraanId, catatan } = req.body || {};
 
     if (!menuHarianId) return res.status(400).json({ error: "menuHarianId wajib diisi" });
-    if (!jenisPorsi) return res.status(400).json({ error: "jenisPorsi wajib diisi" });
-    if (!kendaraanId) return res.status(400).json({ error: "kendaraanId wajib diisi" });
-
-    const validPorsi = ["KECIL", "BESAR"];
-    if (!validPorsi.includes(jenisPorsi)) {
-      return res.status(400).json({ error: `jenisPorsi harus berupa salah satu dari: ${validPorsi.join(", ")}` });
+    if (!kategoriIds || !Array.isArray(kategoriIds) || kategoriIds.length === 0) {
+      return res.status(400).json({ error: "kategoriIds wajib berupa array dan minimal memiliki 1 item" });
     }
+    if (!kendaraanId) return res.status(400).json({ error: "kendaraanId wajib diisi" });
 
     const created = await prisma.$transaction(async (tx) => {
       // Validate MenuHarian exists
@@ -1446,12 +1447,27 @@ router.post("/pengiriman", requireAuth, requireRole("AHLI_GIZI"), async (req, re
         throw new Error("[VALIDASI] Kendaraan yang dipilih tidak aktif");
       }
 
+      // Validate all kategoriIds
+      const uniqueKategoriIds = [...new Set(kategoriIds)];
+      const validKategori = await tx.kategoriPenerima.findMany({
+        where: { id: { in: uniqueKategoriIds } }
+      });
+      if (validKategori.length !== uniqueKategoriIds.length) {
+        throw new Error("[VALIDASI] Satu atau lebih kategoriPenerimaId tidak valid");
+      }
+
       return await tx.pengirimanHarian.create({
         data: {
           menuHarianId,
-          jenisPorsi,
           kendaraanId,
-          catatan
+          catatan,
+          kategoriPenerima: {
+            connect: uniqueKategoriIds.map(id => ({ id }))
+          }
+        },
+        include: {
+          kendaraan: true,
+          kategoriPenerima: true
         }
       });
     });
@@ -1459,11 +1475,8 @@ router.post("/pengiriman", requireAuth, requireRole("AHLI_GIZI"), async (req, re
     res.status(201).json(created);
   } catch (error) {
     console.error(error);
-    if (error.code === "P2002") {
-      return res.status(409).json({ error: "Pengiriman untuk menu harian dengan jenis porsi ini sudah terdaftar" });
-    }
     if (error.code === "P2003") {
-      return res.status(404).json({ error: "Menu harian atau kendaraan tidak ditemukan di database" });
+      return res.status(404).json({ error: "Menu harian or kendaraan tidak ditemukan di database" });
     }
     if (error.message) {
       if (error.message.startsWith("[NOT_FOUND]")) return res.status(404).json({ error: error.message.replace("[NOT_FOUND] ", "") });
@@ -1477,34 +1490,20 @@ router.post("/pengiriman", requireAuth, requireRole("AHLI_GIZI"), async (req, re
 router.put("/pengiriman/:id", requireAuth, requireRole("AHLI_GIZI"), async (req, res) => {
   try {
     const { id } = req.params;
-    const { menuHarianId, jenisPorsi, kendaraanId, catatan } = req.body || {};
+    const { menuHarianId, kategoriIds, kendaraanId, catatan } = req.body || {};
 
     const updated = await prisma.$transaction(async (tx) => {
       const existing = await tx.pengirimanHarian.findUnique({ where: { id } });
       if (!existing) throw new Error("[NOT_FOUND] Data pengiriman tidak ditemukan");
 
-      const cleanMenuHarianId = menuHarianId !== undefined ? menuHarianId : existing.menuHarianId;
-      const cleanJenisPorsi = jenisPorsi !== undefined ? jenisPorsi : existing.jenisPorsi;
-
-      if (menuHarianId !== undefined || jenisPorsi !== undefined) {
-        const menu = await tx.menuHarian.findUnique({ where: { id: cleanMenuHarianId } });
+      if (menuHarianId !== undefined) {
+        const menu = await tx.menuHarian.findUnique({ where: { id: menuHarianId } });
         if (!menu) throw new Error("[NOT_FOUND] Menu harian tidak ditemukan");
+      }
 
-        const validPorsi = ["KECIL", "BESAR"];
-        if (!validPorsi.includes(cleanJenisPorsi)) {
-          throw new Error("[VALIDASI] jenisPorsi harus berupa salah satu dari: KECIL, BESAR");
-        }
-
-        // Conflict check (exclusion pattern)
-        const conflict = await tx.pengirimanHarian.findFirst({
-          where: {
-            menuHarianId: cleanMenuHarianId,
-            jenisPorsi: cleanJenisPorsi,
-            NOT: { id }
-          }
-        });
-        if (conflict) {
-          throw new Error("[CONFLICT] Pengiriman untuk menu harian dengan jenis porsi ini sudah terdaftar");
+      if (kategoriIds !== undefined) {
+        if (!Array.isArray(kategoriIds) || kategoriIds.length === 0) {
+          throw new Error("[VALIDASI] kategoriIds wajib berupa array dan minimal memiliki 1 item");
         }
       }
 
@@ -1518,13 +1517,31 @@ router.put("/pengiriman/:id", requireAuth, requireRole("AHLI_GIZI"), async (req,
         }
       }
 
+      const updateData = {
+        menuHarianId: menuHarianId !== undefined ? menuHarianId : undefined,
+        kendaraanId: kendaraanId !== undefined ? kendaraanId : undefined,
+        catatan: catatan !== undefined ? catatan : undefined,
+      };
+
+      if (kategoriIds !== undefined) {
+        const uniqueKategoriIds = [...new Set(kategoriIds)];
+        const validKategori = await tx.kategoriPenerima.findMany({
+          where: { id: { in: uniqueKategoriIds } }
+        });
+        if (validKategori.length !== uniqueKategoriIds.length) {
+          throw new Error("[VALIDASI] Satu atau lebih kategoriPenerimaId tidak valid");
+        }
+        updateData.kategoriPenerima = {
+          set: uniqueKategoriIds.map(id => ({ id }))
+        };
+      }
+
       return await tx.pengirimanHarian.update({
         where: { id },
-        data: {
-          menuHarianId: menuHarianId !== undefined ? menuHarianId : undefined,
-          jenisPorsi: jenisPorsi !== undefined ? jenisPorsi : undefined,
-          kendaraanId: kendaraanId !== undefined ? kendaraanId : undefined,
-          catatan: catatan !== undefined ? catatan : undefined
+        data: updateData,
+        include: {
+          kendaraan: true,
+          kategoriPenerima: true
         }
       });
     });
@@ -1532,16 +1549,12 @@ router.put("/pengiriman/:id", requireAuth, requireRole("AHLI_GIZI"), async (req,
     res.json(updated);
   } catch (error) {
     console.error(error);
-    if (error.code === "P2002") {
-      return res.status(409).json({ error: "Pengiriman untuk menu harian dengan jenis porsi ini sudah terdaftar" });
-    }
     if (error.code === "P2003") {
-      return res.status(404).json({ error: "Menu harian atau kendaraan tidak ditemukan di database" });
+      return res.status(404).json({ error: "Menu harian or kendaraan tidak ditemukan di database" });
     }
     if (error.message) {
       if (error.message.startsWith("[NOT_FOUND]")) return res.status(404).json({ error: error.message.replace("[NOT_FOUND] ", "") });
       if (error.message.startsWith("[VALIDASI]")) return res.status(400).json({ error: error.message.replace("[VALIDASI] ", "") });
-      if (error.message.startsWith("[CONFLICT]")) return res.status(409).json({ error: error.message.replace("[CONFLICT] ", "") });
     }
     res.status(500).json({ error: "Terjadi kesalahan server saat memperbarui pengiriman" });
   }

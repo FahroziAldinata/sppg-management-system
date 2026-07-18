@@ -413,6 +413,7 @@ model KategoriPenerima {
   kelompokUmurMenu           KelompokUmurMenu[]
   hargaPaket                 HargaPaketKategoriPeriode[]
   anggaranBahanMakananDetail AnggaranBahanMakananDetail[]
+  pengirimanHarian           PengirimanHarian[]
 }
 
 model KelompokUmurMenu {
@@ -671,15 +672,13 @@ model Kendaraan {
 }
 
 model PengirimanHarian {
-  id           String     @id @default(cuid())
-  menuHarianId String
-  menuHarian   MenuHarian @relation(fields: [menuHarianId], references: [id])
-  jenisPorsi   JenisPorsi
-  kendaraanId  String
-  kendaraan    Kendaraan  @relation(fields: [kendaraanId], references: [id])
-  catatan      String?
-
-  @@unique([menuHarianId, jenisPorsi])
+  id               String             @id @default(cuid())
+  menuHarianId     String
+  menuHarian       MenuHarian         @relation(fields: [menuHarianId], references: [id])
+  kendaraanId      String
+  kendaraan        Kendaraan          @relation(fields: [kendaraanId], references: [id])
+  catatan          String?
+  kategoriPenerima KategoriPenerima[]
 }
 
 // 1 blok = 1 (tanggal, kelompok umur) — jantung modul Menu
