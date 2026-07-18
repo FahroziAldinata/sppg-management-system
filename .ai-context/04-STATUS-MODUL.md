@@ -12,9 +12,9 @@ Legenda: ✅ selesai · 🟡 sebagian/ada gap · ⬜ belum mulai
 | Mitra — Harga Bahan | ✅ | — | ✅ | — | ✅ | CRUD HargaBahanPeriode & read-only BahanPokok selesai |
 | Stok (Saldo/Masuk/Keluar) | ✅ | ✅ (Bahan) | ✅ | ✅ | ✅ | Backend & Frontend selesai. Form MutasiStok & SaldoAwalBarang terintegrasi. Perbaikan bug StockBarang lintas-periode (gte periode.tanggalMulai) diaplikasikan. |
 | Validasi Stok | ✅ | — | ✅ | ✅ | ✅ | Backend & Frontend selesai (preview, reconciliation, list). |
-| Menu (Master, Harian, Blok, Item, Bahan, Target Gizi, Organoleptik) | ✅ | — | ✅ | ✅ | ✅ | CRUD MenuHarianBlok, MenuItem, MenuItemBahan, TargetGizi, Organoleptik, & MasterMenuMingguan selesai di frontend. |
+| Menu (Master, Harian, Blok, Item, Bahan, Target Gizi, Organoleptik) | ✅ | — | ✅ | ✅ | ✅ | Master Menu Mingguan dibuka lagi jadi input manual (bukan cuma read-only historis) untuk prefill Menu Harian. `hargaSatuan` bahan otomatis dari `HargaBahanPeriode` (fallback via `getHargaBahan`, ditandai `isFallback`). |
 | Alergi | ✅ (v5) | — | ✅ | ✅ | ✅ | AlergiCatatan CRUD selesai (frontend & backend). |
-| Pengiriman (Kendaraan) | ✅ (v5) | ✅ | ✅ | — | ✅ | CRUD Kendaraan & PengirimanHarian selesai di backend & frontend. |
+| Pengiriman (Kendaraan) | ✅ (v5.25) | ✅ | ✅ | — | ✅ | PengirimanHarian multi-kategori per kendaraan (many-to-many ke `KategoriPenerima`), bukan lagi 2 slot Kecil/Besar. |
 | RAB Harian & Pembelian | ✅ | — | ✅ | — | ✅ | CRUD RabHarian selesai. Frontend: form create + tabel list di dashboard. |
 | Anggaran Resmi (AnggaranHarian) | ✅ | — | ✅ | — | ✅ | CRUD AnggaranHarian selesai. Frontend: form conditional (BAHAN_MAKANAN rincian vs flat) + tabel list. |
 | Ledger (Akun, Jurnal, SaldoAwal) | ✅ | ✅ (Akun) | ✅ | ✅ | ✅ | Frontend: form + dropdown akun aktif + tabel list. Backend GET `/akun` & GET `/supplier` ditambahkan. |

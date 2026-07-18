@@ -57,8 +57,8 @@ yang dicocokkan dengan catatan pengeluaran akuntan (rekonsiliasi).
 - Database: PostgreSQL, di-host via Supabase (free tier)
 - Auth: Custom (session/JWT sederhana) — tidak pakai library OAuth berat,
   karena hanya 4 role tetap (aslap, mitra, ahli_gizi, akuntan)
-- Hosting backend: Render (free web service)
-- Hosting frontend: Vercel atau Render Static Site
+- Hosting backend: Railway (sppg-management-system-production.up.railway.app)
+- Hosting frontend: Vercel (sppg-management-system.vercel.app)
 - Hosting database: Supabase (free tier, tidak auto-expire 30 hari seperti
   Render Postgres)
 

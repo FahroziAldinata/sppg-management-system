@@ -1,5 +1,7 @@
 # 07 — API Contract (Landing Dashboard Summary)
 
+> **⚠️ Dokumen ini adalah SPEC AWAL.** Implementasi aktual di `dashboard.js` punya response shape lebih sederhana — field `pendingApprovalsCount`, `akgRataRata`, `lastReconciliationDate` BELUM diimplementasi, diganti `notifikasiPenting` & perhitungan `selisihStok`. `workflowProgress` 6-stage SUDAH sesuai Opsi A (dynamic check).
+
 Dokumen ini mendefinisikan kontrak API untuk endpoint dashboard baru yang menyajikan ringkasan eksekutif dan kemajuan operasional (6-stage workflow) lintas role di SIKOP-SPPG.
 
 ---

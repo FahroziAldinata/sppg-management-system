@@ -4,11 +4,11 @@ Keputusan berstatus **FINAL** tidak diubah tanpa alasan kuat (data sumber baru y
 
 ## Tech stack (FINAL)
 
-Node.js + Express, React (Vite), Prisma ORM, PostgreSQL, auth custom (bukan OAuth library, cuma 4 role tetap). Hosting rencana: Render (backend) + Vercel/Render Static (frontend) + Supabase (database, free tier tidak auto-expire).
+Node.js + Express, React (Vite), Prisma ORM, PostgreSQL, auth custom (bukan OAuth library, cuma 4 role tetap). Hosting: Railway (backend, sppg-management-system-production.up.railway.app) + Vercel (frontend, sppg-management-system.vercel.app) + Supabase (database, free tier tidak auto-expire).
 
 Prisma **di-pin ke v6**, bukan v7 — v7 mindahin `datasource.url` keluar schema ke `prisma.config.ts` + wajib driver adapter. Ditunda sampai ada alasan kuat upgrade.
 
-Database dev: **PostgreSQL lokal** (diinstall di mesin dev, port 5432) dipakai untuk `prisma migrate dev` selama setup awal. Supabase tetap rencana untuk staging/production sesuai `00-PROJECT.md` — **belum diputuskan** apakah dev seterusnya pakai lokal atau langsung pindah ke Supabase dari awal (lihat `08-TODO.md`).
+Database dev: **PostgreSQL lokal** (diinstall di mesin dev, port 5432) dipakai untuk `prisma migrate dev` selama setup awal. **Production sudah pakai Supabase** (PostgreSQL via Supabase pooler port 6543, direct port 5432 untuk migration). Dev masih lokal; belum diputuskan apakah dev seterusnya pindah ke Supabase dari awal.
 
 ## Arsitektur data (FINAL)
 
@@ -69,6 +69,12 @@ Database dev: **PostgreSQL lokal** (diinstall di mesin dev, port 5432) dipakai u
 - **Menonaktifkan Animasi Dropdown Global (v5.19, FINAL)**: Semua transisi dan animasi CSS pada tag `<select>` dinonaktifkan secara global di `index.css` agar interaksi drop-down bernilai instan tanpa ada visual delay.
 - **Penyelarasan Layout Form & Tata Letak Flex (v5.20, FINAL)**: Form Setup Periode (`PeriodeSetupPage.jsx`) dan form Pengaturan Akun (`SettingPage.jsx`) direfaktor tata letaknya menggunakan Flexbox Row responsif (`display: 'flex', gap: '15px', flexWrap: 'wrap'` dengan anak wrapper `flex: '1 1 200px'`) agar selaras dengan layout form Jurnal Transaksi yang telah disetujui sebelumnya. Untuk input di dalam fieldset Setup Periode, background tetap dipertahankan `var(--bg-elevated)` demi kontras visual di atas latar belakang `var(--bg)`.
 - **Standarisasi React Aria Components & Migrasi Jurnal (v5.21, FINAL)**: Menghapus `CustomSelect.jsx` dan memigrasi seluruh input di `JurnalTransaksiPage.jsx` ke React Aria Components (DatePicker, TextField, ComboBox, dan Button). Seluruh input RAC distandarisasi ukurannya (tinggi 42px, radius `--radius-sm`, background `--bg`, padding 10px 12px) dengan spacing teks yang lega (padding-left 12px) untuk menghilangkan visual bug. Tombol utama/primer/sekunder RAC diubah dari tinggi tetap 42px menjadi tinggi alami menggunakan padding `py-3 px-6` (vertical 12px, horizontal 24px) sesuai spesifikasi baru, sementara tombol quiet menggunakan `py-1.5 px-3`. Halaman Jurnal Transaksi kini 100% menggunakan komponen baru.
+
+- **MasterMenuMingguan Dibuka Lagi Sebagai Template Manual (v5.23, FINAL, 2026-07-18)**: KOREKSI atas keputusan v5.3 ("bukan template wajib, CRUD ditutup 410"). Dikonfirmasi via audit Excel asli (kecocokan 1:1 sheet detail harian vs kolom master per hari) bahwa Ahli Gizi memang isi master 1x per periode sebagai basis prefill. CRUD POST/PUT/DELETE `/master-menu` dibuka lagi. PENTING: prefill tetap tidak mengunci/validasi menu harian ke master — `MenuHarianBlok` tetap satu-satunya sumber kebenaran, prinsip inti v5.3 TIDAK berubah, cuma cara isi awal yang berubah (dari kosong manual jadi bisa dibantu prefill).
+
+- **Auto-Harga MenuItemBahan dari HargaBahanPeriode (v5.24, FINAL, 2026-07-18)**: `MenuItemBahan.hargaSatuan` tidak lagi input manual Ahli Gizi, diambil otomatis via helper `getHargaBahan()` dari `HargaBahanPeriode` periode aktif, fallback ke harga periode sebelumnya terdekat kalau belum diisi Mitra (ditandai `isFallback`). Nilai gizi tetap 100% manual, tidak berubah.
+
+- **PengirimanHarian Multi-Kategori per Kendaraan (v5.25, FINAL, 2026-07-18)**: Field `jenisPorsi` (enum, max 2 slot/hari) dihapus dari `PengirimanHarian`, diganti relasi many-to-many ke `KategoriPenerima` — dikonfirmasi via audit Excel asli (grouping bebas "Mobil 1/2/3" lintas kategori/jalur/porsi). Migration `20260718154626_pengiriman_harian_kategori_multi`.
 
 ## Open Risks (Belum Diputuskan)
 

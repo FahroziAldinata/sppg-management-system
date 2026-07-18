@@ -237,5 +237,5 @@ Output ke-3 fungsi di atas tinggal disuntik ke template surat (docx/PDF) — sem
 
 - ~~Template docx/PDF aktual untuk LPA/SPTJ/BAPSD~~ — **SELESAI**: `backend/src/templates/dokumen/lpa.js`, `sptj.js`, `bapsd.js`, `bku.js` via puppeteer-core.
 - ~~Format tampilan Rupiah~~ — **SELESAI**: `formatNumberTabel` / `formatRupiah` di `shared.js`, format bulan Indonesia di `bku.js`.
-- Pemanggilan `recalcAktualAnggaran` harus di-trigger otomatis tiap `JurnalTransaksi` dibuat/diedit/dihapus (taruh di service layer API, bukan di query laporan). — **Belum diimplementasikan sebagai service layer terpisah**.
+- ~~Pemanggilan `recalcAktualAnggaran` harus di-trigger otomatis tiap `JurnalTransaksi`~~ — **SELESAI**: dipanggil di `akuntan.js` dalam `$transaction` yang sama pada POST/PUT/DELETE `JurnalTransaksi` (baris 1027, 1248, 1259, 1303). Tidak dipisah sebagai service layer terpisah, tapi sudah fungsional.
 - Pagination/lazy load kalau jurnal transaksi ribuan baris per periode (query `generateBKU`/`generateBP` di atas masih `findMany` tanpa limit). — **Belum diimplementasikan**.

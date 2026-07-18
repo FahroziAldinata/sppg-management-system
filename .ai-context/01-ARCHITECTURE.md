@@ -1,6 +1,6 @@
 # 01 — Architecture
 
-Referensi schema: `prisma/schema.prisma` v5.2 (38+ model). Dokumen ini ringkasan struktur & alasan, bukan pengganti baca schema langsung.
+Referensi schema: `prisma/schema.prisma` v5.4 (38+ model). Dokumen ini ringkasan struktur & alasan, bukan pengganti baca schema langsung.
 
 ## Prinsip desain
 
@@ -8,7 +8,7 @@ Referensi schema: `prisma/schema.prisma` v5.2 (38+ model). Dokumen ini ringkasan
 - **Nested workflow**: `Periode` (2 minggu) berisi siklus **harian** — `MenuHarian` + `RabHarian` adalah "amplop approval" per hari, direview `Kepala SPPG` lewat `Approval`.
 - **RAB Harian ≠ RAB Periode sebagai tabel.** RAB Periode = agregasi SUM query dari `AnggaranHarian` harian, tidak disimpan sebagai baris sendiri.
 - **1 taksonomi kategori penerima**, bukan banyak. `KategoriPenerima` (13 kategori resmi BGN: 9 Peserta Didik + 4 Non-Peserta Didik/B3) dipakai bersama oleh Aslap (input jumlah), Ahli Gizi (lewat mapping `KelompokUmurMenu`), dan Akuntan (`HargaPaketKategoriPeriode`, `AnggaranBahanMakananDetail`).
-- **Nilai gizi 100% manual.** `MenuItemBahan` (kalori/protein/lemak/karbo/serat) diisi ahli gizi dari rujukan TKPI eksternal — sistem tidak pernah menghitung/mengarang rumus konversi gizi.
+- **Nilai gizi 100% manual, hargaSatuan otomatis.** `MenuItemBahan` (kalori/protein/lemak/karbo/serat) diisi ahli gizi dari rujukan TKPI eksternal — sistem tidak pernah menghitung/mengarang rumus konversi gizi. `hargaSatuan` diambil otomatis dari `HargaBahanPeriode` periode aktif via helper `getHargaBahan()`, fallback ke harga periode sebelumnya terdekat kalau belum diisi Mitra (ditandai `isFallback`).
 
 ## Peta modul
 
@@ -21,7 +21,7 @@ Referensi schema: `prisma/schema.prisma` v5.2 (38+ model). Dokumen ini ringkasan
 | Harga | `HargaPaketKategoriPeriode`, `BahanPokok`, `HargaBahanPeriode` | Akuntan, Mitra |
 | Stok | `SaldoAwalBarang`, `MutasiStok` | Mitra/Akuntan (pencatat) |
 | Menu | `MasterMenuMingguan`, `MenuHarian`, `MenuHarianBlok`, `MenuItem`, `MenuItemBahan`, `MenuTargetGizi`, `MenuOrganoleptik`, `AlergiCatatan` | Ahli Gizi |
-| Pengiriman | `Kendaraan`, `PengirimanHarian` | Ahli Gizi/Aslap (operasional dapur) |
+| Pengiriman | `Kendaraan`, `PengirimanHarian` (many-to-many ke `KategoriPenerima`) | Ahli Gizi/Aslap (operasional dapur) |
 | RAB & Pembelian | `RabHarian`, `Supplier`, `TransaksiPembelian`, `TransaksiPembelianItem` | Akuntan |
 | Anggaran resmi | `AnggaranHarian`, `AnggaranBahanMakananDetail` | Akuntan |
 | Ledger | `Akun`, `SaldoAwalPeriode`, `JurnalTransaksi` | Akuntan |
@@ -43,3 +43,5 @@ Referensi schema: `prisma/schema.prisma` v5.2 (38+ model). Dokumen ini ringkasan
 - Rekap "Jumlah Per Kelas" versi resmi → view/query dari `InputPenerimaManfaatDetail`, `SekolahKelasDetail` cuma pembantu.
 - "Tabel bantuan" harga beli terbaru (row-labels/pivot Excel) → query, bukan tabel.
 - RAB Periode, "Kebutuhan Belanja Bahan" → semua agregasi/query dari data harian.
+
+> **Catatan (v5.23):** `MasterMenuMingguan` yang sempat ditutup read-only (410) **dibuka lagi** sebagai template input manual Ahli Gizi untuk prefill Menu Harian. Ini KOREKSI dari keputusan v5.3 — lihat `03-DECISIONS.md` entry v5.23 untuk detail. Prinsip `MenuHarianBlok` sebagai satu-satunya sumber kebenaran tetap berlaku (prefill tidak mengunci validasi).
