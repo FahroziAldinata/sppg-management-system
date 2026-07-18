@@ -43,6 +43,7 @@ export const MenuHarianPage = () => {
     const [activeBlokByMenu, setActiveBlokByMenu] = useState({});
     const [activeTabByBlok, setActiveTabByBlok] = useState({});
     const [selectedMenuItemByBlok, setSelectedMenuItemByBlok] = useState({});
+    const [batasHargaMap, setBatasHargaMap] = useState({ KECIL: 8000, BESAR: 10000 });
 
     const KOMPONEN_OPTIONS = ['KARBOHIDRAT', 'LAUK_HEWANI', 'LAUK_NABATI', 'SAYUR', 'BUAH'];
     const KOMPONEN_LABEL = {
@@ -58,6 +59,18 @@ export const MenuHarianPage = () => {
     const formatDate = (val) => val ? new Date(val).toLocaleDateString('id-ID', { dateStyle: 'medium' }) : '-';
     const getBahanName = (bahan) => bahan.bahanPokok?.nama || bahanPokokList.find(bp => bp.id === bahan.bahanPokokId)?.nama || bahan.bahanPokokId;
     const getBahanLabel = (bp) => `${bp.nama} (${bp.satuan})`;
+
+    const getBlokTotalHarga = (blokId) => {
+        const itemsInBlok = menuItemsByBlok[blokId] || [];
+        let total = 0;
+        for (const item of itemsInBlok) {
+            const bahanList = bahanByMenuItem[item.id] || [];
+            for (const bahan of bahanList) {
+                total += Number(bahan.totalHargaBahan || 0);
+            }
+        }
+        return Math.round(total * 100) / 100;
+    };
 
     const fieldLabel = (text) => (
         <label style={{
@@ -128,6 +141,21 @@ export const MenuHarianPage = () => {
             .then(r => r.json())
             .then(d => setKendaraanList(d))
             .catch(err => setError(err.message || 'Gagal memuat daftar kendaraan'));
+    }, []);
+
+    useEffect(() => {
+        request('/gizi/batas-harga-porsi')
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+                if (d && d.success && d.data) {
+                    const map = {};
+                    d.data.forEach(item => {
+                        map[item.jenisPorsi] = Number(item.batasMaksimal);
+                    });
+                    setBatasHargaMap(map);
+                }
+            })
+            .catch(() => {});
     }, []);
 
     useEffect(() => {
@@ -503,16 +531,60 @@ export const MenuHarianPage = () => {
 
         return (
             <>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12, marginBottom: 16 }}>
                     {KOMPONEN_OPTIONS.map(komponen => {
                         const komponenItems = menuItems.filter(item => item.komponen === komponen);
+                        const isEmpty = komponenItems.length === 0;
+
+                        if (isEmpty) {
+                            return (
+                                <div
+                                    key={komponen}
+                                    style={{
+                                        border: '1px solid var(--border)',
+                                        borderRadius: 'var(--radius-md)',
+                                        padding: '10px 12px',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        backgroundColor: 'var(--bg)'
+                                    }}
+                                >
+                                    <div style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: 13 }}>
+                                        {KOMPONEN_LABEL[komponen]}
+                                    </div>
+                                    {editable ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setKomponenInput(prev => ({ ...prev, [blok.id]: komponen }));
+                                                toast.info(`Komponen ${KOMPONEN_LABEL[komponen]} dipilih. Silakan isi nama menu pada form di bawah.`);
+                                            }}
+                                            style={{
+                                                padding: '4px 10px',
+                                                border: '1px solid var(--border)',
+                                                borderRadius: 'var(--radius-sm)',
+                                                backgroundColor: 'var(--bg-elevated)',
+                                                color: 'var(--text)',
+                                                fontSize: 12,
+                                                fontWeight: 600,
+                                                cursor: 'pointer'
+                                            }}
+                                        >
+                                            + Tambah
+                                        </button>
+                                    ) : (
+                                        <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Kosong</span>
+                                    )}
+                                </div>
+                            );
+                        }
+
                         return (
                             <div key={komponen} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 12, minHeight: 140 }}>
                                 <div style={{ fontWeight: 700, color: 'var(--text)', marginBottom: 10 }}>{KOMPONEN_LABEL[komponen]}</div>
                                 <div style={{ display: 'grid', gap: 8 }}>
-                                    {komponenItems.length === 0 ? (
-                                        <div style={{ color: 'var(--text-muted)', fontSize: 13 }}>Belum ada menu.</div>
-                                    ) : komponenItems.map(item => (
+                                    {komponenItems.map(item => (
                                         <button
                                             key={item.id}
                                             type="button"
@@ -669,6 +741,12 @@ export const MenuHarianPage = () => {
         const activeBlokId = activeBlokByMenu[menu.id] || menu.blok[0]?.id || '';
         const activeBlok = menu.blok.find(blok => blok.id === activeBlokId);
 
+        const totalBlok = activeBlok ? getBlokTotalHarga(activeBlok.id) : 0;
+        const jenisPorsi = activeBlok?.kelompokUmurMenu?.kategoriPenerima?.[0]?.jenisPorsi;
+        const batasMaksimal = jenisPorsi ? (batasHargaMap[jenisPorsi] || 0) : 0;
+        const isOverBatas = batasMaksimal > 0 && totalBlok > batasMaksimal;
+        const badgeColor = isOverBatas ? 'var(--color-danger)' : 'var(--color-success)';
+
         return (
             <div style={{ display: 'grid', gridTemplateColumns: '260px minmax(0, 1fr)', gap: 18, alignItems: 'start' }}>
                 <aside style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', overflow: 'hidden', backgroundColor: 'var(--bg-elevated)' }}>
@@ -678,14 +756,75 @@ export const MenuHarianPage = () => {
                     ) : menu.blok.map(blok => {
                         const status = getBlokStatus(blok);
                         const active = blok.id === activeBlokId;
+                        const blokTotal = getBlokTotalHarga(blok.id);
+
+                        if (!active) {
+                            return (
+                                <button
+                                    key={blok.id}
+                                    type="button"
+                                    onClick={() => setActiveBlokByMenu(prev => ({ ...prev, [menu.id]: blok.id }))}
+                                    style={{
+                                        width: '100%',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '10px 14px',
+                                        border: 'none',
+                                        borderBottom: '1px solid var(--border)',
+                                        backgroundColor: 'transparent',
+                                        color: 'var(--text)',
+                                        cursor: 'pointer',
+                                        fontSize: 13
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <span style={{ fontWeight: 600 }}>{blok.kelompokUmurMenu?.nama || blok.kelompokUmurMenuId}</span>
+                                        <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: status.color, flexShrink: 0 }} title={status.label} />
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Rp{blokTotal.toLocaleString('id-ID')}</span>
+                                        {editable && (
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteBlok(blok.id);
+                                                }}
+                                                style={{ color: 'var(--color-danger)', display: 'inline-flex', padding: 2 }}
+                                            >
+                                                <Trash2 size={12} />
+                                            </span>
+                                        )}
+                                    </div>
+                                </button>
+                            );
+                        }
+
                         return (
-                            <button key={blok.id} type="button" onClick={() => setActiveBlokByMenu(prev => ({ ...prev, [menu.id]: blok.id }))} style={{ width: '100%', textAlign: 'left', padding: 14, border: 'none', borderBottom: '1px solid var(--border)', backgroundColor: active ? 'rgba(59,130,246,0.08)' : 'transparent', color: 'var(--text)', cursor: 'pointer' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8 }}>
-                                    <strong>{blok.kelompokUmurMenu?.nama || blok.kelompokUmurMenuId}</strong>
-                                    {editable && <span onClick={(e) => { e.stopPropagation(); deleteBlok(blok.id); }} style={{ color: 'var(--color-danger)' }}><Trash2 size={14} /></span>}
+                            <div key={blok.id} style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'rgba(59,130,246,0.06)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, padding: '12px 14px 6px 14px', alignItems: 'center' }}>
+                                    <strong style={{ color: 'var(--text)', fontSize: 14 }}>{blok.kelompokUmurMenu?.nama || blok.kelompokUmurMenuId}</strong>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                        <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 6px', borderRadius: 4, backgroundColor: 'rgba(59,130,246,0.1)', color: 'var(--btn-primary-bg)' }}>
+                                            Rp{blokTotal.toLocaleString('id-ID')}
+                                        </span>
+                                        {editable && (
+                                            <span
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteBlok(blok.id);
+                                                }}
+                                                style={{ color: 'var(--color-danger)', cursor: 'pointer' }}
+                                            >
+                                                <Trash2 size={14} />
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div style={{ marginTop: 5, fontSize: 12, color: status.color }}>{status.label}</div>
-                            </button>
+                                <div style={{ padding: '0 14px 12px 14px', fontSize: 12, color: status.color }}>
+                                    {status.label}
+                                </div>
+                            </div>
                         );
                     })}
                     {editable && (
@@ -701,10 +840,39 @@ export const MenuHarianPage = () => {
                         <div style={{ color: 'var(--text-muted)' }}>Pilih atau tambah kelompok umur terlebih dahulu.</div>
                     ) : (
                         <>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 14 }}>
-                                <div>
-                                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Blok aktif</div>
-                                    <h4 style={{ margin: 0, color: 'var(--text)' }}>{activeBlok.kelompokUmurMenu?.nama || activeBlok.kelompokUmurMenuId}</h4>
+                            <div style={{
+                                position: 'sticky',
+                                top: 72,
+                                zIndex: 3,
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                gap: 12,
+                                alignItems: 'center',
+                                paddingBottom: 14,
+                                marginBottom: 14,
+                                borderBottom: '1px solid var(--border)',
+                                backgroundColor: 'var(--bg-elevated)'
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                    <div>
+                                        <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Blok aktif</div>
+                                        <h4 style={{ margin: 0, color: 'var(--text)' }}>{activeBlok.kelompokUmurMenu?.nama || activeBlok.kelompokUmurMenuId}</h4>
+                                    </div>
+                                    {batasMaksimal > 0 && (
+                                        <div style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            padding: '4px 10px',
+                                            borderRadius: 'var(--radius-sm)',
+                                            backgroundColor: isOverBatas ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                                            color: badgeColor,
+                                            fontWeight: 700,
+                                            fontSize: 13,
+                                            border: `1px solid ${isOverBatas ? 'var(--color-danger)' : 'var(--color-success)'}`
+                                        }}>
+                                            Total: Rp{totalBlok.toLocaleString('id-ID')} / Rp{batasMaksimal.toLocaleString('id-ID')}
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                                     {[
