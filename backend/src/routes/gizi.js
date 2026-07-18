@@ -1770,6 +1770,21 @@ router.get("/master-menu/by-hari", requireAuth, requireRole("AHLI_GIZI", "ASLAP"
   }
 });
 
+// GET /api/gizi/master-menu-list - List all MasterMenuMingguan per period
+router.get("/master-menu-list", requireAuth, requireRole("AHLI_GIZI", "AKUNTAN", "KEPALA_SPPG", "ASLAP"), async (req, res) => {
+  const { periodeId } = req.query;
+  if (!periodeId) return res.status(400).json({ error: "periodeId wajib diisi" });
+  try {
+    const data = await prisma.masterMenuMingguan.findMany({
+      where: { periodeId },
+      orderBy: [{ jalur: "asc" }, { hari: "asc" }]
+    });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ error: "Gagal mengambil daftar master menu" });
+  }
+});
+
 // GET /api/gizi/master-menu/:id - Detail referensi historis per blok MenuHarian
 router.get("/master-menu/:id", requireAuth, requireRole("AHLI_GIZI", "ASLAP", "KEPALA_SPPG", "AKUNTAN"), async (req, res) => {
   try {
