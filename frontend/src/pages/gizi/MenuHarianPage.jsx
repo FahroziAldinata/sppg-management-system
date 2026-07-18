@@ -39,6 +39,7 @@ export const MenuHarianPage = () => {
     const [pengirimanByMenu, setPengirimanByMenu] = useState({});
     const [pengirimanForm, setPengirimanForm] = useState({});
     const [masterMenuList, setMasterMenuList] = useState([]);
+    const [actualMasterMenuList, setActualMasterMenuList] = useState([]);
     const [showMasterModal, setShowMasterModal] = useState(false);
     const [masterForm, setMasterForm] = useState({
         id: '',
@@ -50,6 +51,18 @@ export const MenuHarianPage = () => {
         menuSayur: '',
         menuBuah: ''
     });
+
+    const loadActualMasterMenu = (pid) => {
+        if (!pid) return;
+        request(`/gizi/master-menu-list?periodeId=${pid}`)
+            .then(r => r.ok ? r.json() : { success: false })
+            .then(d => {
+                if (d && d.success) {
+                    setActualMasterMenuList(d.data || []);
+                }
+            })
+            .catch(() => {});
+    };
 
     const fetchMasterByHari = async (jalur, hari) => {
         if (!periodeId) return;
@@ -116,6 +129,7 @@ export const MenuHarianPage = () => {
                     request(`/gizi/master-menu?periodeId=${periodeId}`)
                         .then(res => res.ok ? res.json() : [])
                         .then(d => setMasterMenuList(d));
+                    loadActualMasterMenu(periodeId);
                     setShowMasterModal(false);
                 } else {
                     toast.error(d.error || 'Gagal memperbarui master menu.');
@@ -135,6 +149,7 @@ export const MenuHarianPage = () => {
                     request(`/gizi/master-menu?periodeId=${periodeId}`)
                         .then(res => res.ok ? res.json() : [])
                         .then(d => setMasterMenuList(d));
+                    loadActualMasterMenu(periodeId);
                     setShowMasterModal(false);
                 } else if (r.status === 400 || r.status === 409) {
                     toast.info('Master menu sudah ada. Memuat data untuk diedit...');
@@ -183,6 +198,7 @@ export const MenuHarianPage = () => {
                 request(`/gizi/master-menu?periodeId=${periodeId}`)
                     .then(res => res.ok ? res.json() : [])
                     .then(d => setMasterMenuList(d));
+                loadActualMasterMenu(periodeId);
                 setShowMasterModal(false);
             } else {
                 const d = await r.json();
@@ -387,6 +403,7 @@ export const MenuHarianPage = () => {
             .then(r => r.ok ? r.json() : [])
             .then(d => setMasterMenuList(d))
             .catch(() => {});
+        loadActualMasterMenu(periodeId);
     }, [periodeId]);
 
     const load = async (pid) => {
@@ -1293,34 +1310,21 @@ export const MenuHarianPage = () => {
                 </div>
             )}
 
-            <section style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: 20, backgroundColor: 'var(--bg-elevated)', boxShadow: 'var(--shadow)', marginBottom: 24 }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(260px, 360px) minmax(280px, 520px)', gap: 20, alignItems: 'end' }}>
-                    <div>
-                        {fieldLabel('Pilih Periode Aktif')}
-                        <Dropdown value={periodeId} onChange={setPeriodeId} options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai.split('T')[0]} - ${p.tanggalSelesai.split('T')[0]}` }))} />
-                    </div>
-                    <form onSubmit={create} style={{ display: 'flex', gap: 12, alignItems: 'end' }}>
-                        <div style={{ flex: 1 }}>
-                            {fieldLabel('Pilih Tanggal Menu Harian')}
-                            <DatePicker
-                                value={tanggal}
-                                onChange={setTanggal}
-                                defaultFocusMonth={activePeriod?.tanggalMulai}
-                                required
-                                isDateUnavailable={(date) => {
-                                    const dateStr = date.toString();
-                                    return items.some(item => item.tanggal.split('T')[0] === dateStr && item.status === 'DISETUJUI');
-                                }}
-                            />
-                        </div>
-                        <button type="submit" style={buttonStyle('primary')}>Buat Menu Harian</button>
-                    </form>
-                </div>
+            <div style={{ maxWidth: 360, marginBottom: 24, border: '1px solid var(--border)', padding: 14, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-elevated)' }}>
+                {fieldLabel('Pilih Periode Aktif')}
+                <Dropdown value={periodeId} onChange={setPeriodeId} options={periods.map(p => ({ value: p.id, label: `${p.tanggalMulai.split('T')[0]} - ${p.tanggalSelesai.split('T')[0]}` }))} />
+            </div>
+
+            {/* Section 1: Master Menu Mingguan (Referensi) */}
+            <section style={{ border: '1px solid var(--border)', padding: 24, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-elevated)', boxShadow: 'var(--shadow)', marginBottom: 24 }}>
+                <h3 style={{ margin: '0 0 20px 0', color: 'var(--text)' }}>Master Menu Mingguan (Referensi)</h3>
+                <Table columns={masterMenuColumns} data={masterMenuList} emptyText="Belum ada histori menu disetujui untuk periode ini." />
             </section>
 
+            {/* Section 2: Setup Master Menu (BARU) */}
             <section style={{ border: '1px solid var(--border)', padding: 24, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-elevated)', boxShadow: 'var(--shadow)', marginBottom: 24 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                    <h3 style={{ margin: 0, color: 'var(--text)' }}>Master Menu Mingguan (Referensi)</h3>
+                    <h3 style={{ margin: 0, color: 'var(--text)' }}>Setup Master Menu</h3>
                     <button 
                         type="button" 
                         onClick={() => {
@@ -1342,7 +1346,264 @@ export const MenuHarianPage = () => {
                         📋 Kelola Rencana Master Menu
                     </button>
                 </div>
-                <Table columns={masterMenuColumns} data={masterMenuList} emptyText="Belum ada histori menu disetujui untuk periode ini." />
+                
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', minWidth: 900, borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                                <th style={{ textAlign: 'left', padding: '12px 10px', fontSize: 13, color: 'var(--text-muted)' }}>Jalur</th>
+                                <th style={{ textAlign: 'left', padding: '12px 10px', fontSize: 13, color: 'var(--text-muted)' }}>Hari</th>
+                                <th style={{ textAlign: 'left', padding: '12px 10px', fontSize: 13, color: 'var(--text-muted)' }}>Karbohidrat</th>
+                                <th style={{ textAlign: 'left', padding: '12px 10px', fontSize: 13, color: 'var(--text-muted)' }}>Lauk Hewani</th>
+                                <th style={{ textAlign: 'left', padding: '12px 10px', fontSize: 13, color: 'var(--text-muted)' }}>Lauk Nabati</th>
+                                <th style={{ textAlign: 'left', padding: '12px 10px', fontSize: 13, color: 'var(--text-muted)' }}>Sayur</th>
+                                <th style={{ textAlign: 'left', padding: '12px 10px', fontSize: 13, color: 'var(--text-muted)' }}>Buah</th>
+                                <th style={{ textAlign: 'center', padding: '12px 10px', fontSize: 13, color: 'var(--text-muted)', width: 140 }}>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {actualMasterMenuList.length === 0 ? (
+                                <tr>
+                                    <td colSpan={8} style={{ textAlign: 'center', padding: '24px 10px', color: 'var(--text-muted)' }}>
+                                        Belum ada rencana master menu. Silakan klik "Kelola Rencana Master Menu" untuk menambahkan.
+                                    </td>
+                                </tr>
+                            ) : actualMasterMenuList.map(row => (
+                                <tr key={row.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                    <td style={{ padding: '12px 10px' }}><strong>{row.jalur}</strong></td>
+                                    <td style={{ padding: '12px 10px' }}>{row.hari}</td>
+                                    <td style={{ padding: '12px 10px' }}>{row.menuKarbohidrat || '-'}</td>
+                                    <td style={{ padding: '12px 10px' }}>{row.menuLaukHewani || '-'}</td>
+                                    <td style={{ padding: '12px 10px' }}>{row.menuLaukNabati || '-'}</td>
+                                    <td style={{ padding: '12px 10px' }}>{row.menuSayur || '-'}</td>
+                                    <td style={{ padding: '12px 10px' }}>{row.menuBuah || '-'}</td>
+                                    <td style={{ padding: '12px 10px', textAlign: 'center' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'center', gap: 8 }}>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => {
+                                                    setMasterForm({
+                                                        id: row.id,
+                                                        jalur: row.jalur,
+                                                        hari: row.hari,
+                                                        menuKarbohidrat: row.menuKarbohidrat || '',
+                                                        menuLaukHewani: row.menuLaukHewani || '',
+                                                        menuLaukNabati: row.menuLaukNabati || '',
+                                                        menuSayur: row.menuSayur || '',
+                                                        menuBuah: row.menuBuah || ''
+                                                    });
+                                                    setShowMasterModal(true);
+                                                }}
+                                                style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: 12,
+                                                    fontWeight: 600,
+                                                    border: '1px solid var(--border)',
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    backgroundColor: 'var(--bg-elevated)',
+                                                    color: 'var(--text)',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => deleteMasterMenu(row.id)}
+                                                style={{
+                                                    padding: '4px 8px',
+                                                    fontSize: 12,
+                                                    fontWeight: 600,
+                                                    border: '1px solid #ef4444',
+                                                    borderRadius: 'var(--radius-sm)',
+                                                    backgroundColor: 'rgba(239, 68, 68, 0.05)',
+                                                    color: '#ef4444',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                {showMasterModal && (
+                    <div style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        backgroundColor: 'rgba(0,0,0,0.5)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 1000
+                    }}>
+                        <div style={{
+                            backgroundColor: 'var(--bg-elevated)',
+                            borderRadius: 'var(--radius-lg)',
+                            width: '100%',
+                            maxWidth: 550,
+                            padding: 24,
+                            boxShadow: 'var(--shadow-lg)',
+                            border: '1px solid var(--border)'
+                        }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                                <h3 style={{ margin: 0, color: 'var(--text)' }}>
+                                    {masterForm.id ? 'Edit Master Menu Mingguan' : 'Tambah Master Menu Mingguan'}
+                                </h3>
+                                <button 
+                                    type="button" 
+                                    onClick={() => setShowMasterModal(false)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: 'var(--text-muted)',
+                                        fontSize: 20,
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                            <form onSubmit={submitMasterMenu}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                                    <div>
+                                        {fieldLabel('Jalur')}
+                                        <Dropdown 
+                                            value={masterForm.jalur} 
+                                            onChange={val => {
+                                                setMasterForm(prev => ({ ...prev, jalur: val }));
+                                                fetchMasterByHari(val, masterForm.hari);
+                                            }} 
+                                            options={[
+                                                { value: 'SISWA', label: 'Siswa' },
+                                                { value: 'TIGA_B', label: 'Tiga B' }
+                                            ]} 
+                                        />
+                                    </div>
+                                    <div>
+                                        {fieldLabel('Hari')}
+                                        <Dropdown 
+                                            value={masterForm.hari} 
+                                            onChange={val => {
+                                                setMasterForm(prev => ({ ...prev, hari: val }));
+                                                fetchMasterByHari(masterForm.jalur, val);
+                                            }} 
+                                            options={[
+                                                { value: 'SENIN', label: 'Senin' },
+                                                { value: 'SELASA', label: 'Selasa' },
+                                                { value: 'RABU', label: 'Rabu' },
+                                                { value: 'KAMIS', label: 'Kamis' },
+                                                { value: 'JUMAT', label: 'Jumat' },
+                                                { value: 'SABTU', label: 'Sabtu' }
+                                            ]} 
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
+                                    <div>
+                                        {fieldLabel('Karbohidrat')}
+                                        <input 
+                                            className="form-field" 
+                                            value={masterForm.menuKarbohidrat} 
+                                            onChange={e => setMasterForm(prev => ({ ...prev, menuKarbohidrat: e.target.value }))} 
+                                            placeholder="Contoh: Nasi Putih"
+                                        />
+                                    </div>
+                                    <div>
+                                        {fieldLabel('Lauk Hewani')}
+                                        <input 
+                                            className="form-field" 
+                                            value={masterForm.menuLaukHewani} 
+                                            onChange={e => setMasterForm(prev => ({ ...prev, menuLaukHewani: e.target.value }))} 
+                                            placeholder="Contoh: Ayam Goreng"
+                                        />
+                                    </div>
+                                    <div>
+                                        {fieldLabel('Lauk Nabati')}
+                                        <input 
+                                            className="form-field" 
+                                            value={masterForm.menuLaukNabati} 
+                                            onChange={e => setMasterForm(prev => ({ ...prev, menuLaukNabati: e.target.value }))} 
+                                            placeholder="Contoh: Tempe Bacem"
+                                        />
+                                    </div>
+                                    <div>
+                                        {fieldLabel('Sayur')}
+                                        <input 
+                                            className="form-field" 
+                                            value={masterForm.menuSayur} 
+                                            onChange={e => setMasterForm(prev => ({ ...prev, menuSayur: e.target.value }))} 
+                                            placeholder="Contoh: Sayur Sop"
+                                        />
+                                    </div>
+                                    <div>
+                                        {fieldLabel('Buah')}
+                                        <input 
+                                            className="form-field" 
+                                            value={masterForm.menuBuah} 
+                                            onChange={e => setMasterForm(prev => ({ ...prev, menuBuah: e.target.value }))} 
+                                            placeholder="Contoh: Pisang Mas"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                                    {masterForm.id && (
+                                        <button 
+                                            type="button" 
+                                            onClick={() => deleteMasterMenu(masterForm.id)}
+                                            style={{ ...buttonStyle('secondary'), borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
+                                        >
+                                            Hapus
+                                        </button>
+                                    )}
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setShowMasterModal(false)}
+                                        style={buttonStyle('secondary')}
+                                    >
+                                        Batal
+                                    </button>
+                                    <button 
+                                        type="submit" 
+                                        style={buttonStyle('primary')}
+                                    >
+                                        {masterForm.id ? 'Simpan Perubahan' : 'Tambah Master'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+            </section>
+
+            {/* Section 3: Input Menu Harian Aktual */}
+            <section style={{ border: '1px solid var(--border)', padding: 24, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-elevated)', boxShadow: 'var(--shadow)', marginBottom: 24 }}>
+                <h3 style={{ margin: '0 0 16px 0', color: 'var(--text)' }}>Buat / Pilih Tanggal Menu Harian Aktual</h3>
+                <form onSubmit={create} style={{ display: 'flex', gap: 12, alignItems: 'end', maxWidth: 600 }}>
+                    <div style={{ flex: 1 }}>
+                        {fieldLabel('Pilih Tanggal Menu Harian')}
+                        <DatePicker
+                            value={tanggal}
+                            onChange={setTanggal}
+                            defaultFocusMonth={activePeriod?.tanggalMulai}
+                            required
+                            isDateUnavailable={(date) => {
+                                const dateStr = date.toString();
+                                return items.some(item => item.tanggal.split('T')[0] === dateStr && item.status === 'DISETUJUI');
+                            }}
+                        />
+                    </div>
+                    <button type="submit" style={buttonStyle('primary')}>Buat Menu Harian</button>
+                </form>
             </section>
 
             <section style={{ marginBottom: 24 }}>
@@ -1354,6 +1615,7 @@ export const MenuHarianPage = () => {
                 ) : menuAktif.map(renderMenuHarianWorkspace)}
             </section>
 
+            {/* Section 4: Riwayat Menu (Disetujui) */}
             <section style={{ border: '1px solid var(--border)', padding: 24, borderRadius: 'var(--radius-md)', backgroundColor: 'var(--bg-elevated)', boxShadow: 'var(--shadow)', marginBottom: 24 }}>
                 <h3 style={{ margin: '0 0 16px 0', color: 'var(--text)' }}>Riwayat Menu (Disetujui)</h3>
                 
@@ -1395,7 +1657,6 @@ export const MenuHarianPage = () => {
                                             display: 'flex',
                                             justifyContent: 'space-between',
                                             alignItems: 'center',
-                                            cursor: 'pointer',
                                             backgroundColor: 'var(--bg-elevated)',
                                             userSelect: 'none'
                                         }}
@@ -1444,159 +1705,6 @@ export const MenuHarianPage = () => {
                     </div>
                 )}
             </section>
-
-            {showMasterModal && (
-                <div style={{
-                    position: 'fixed',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundColor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    zIndex: 1000
-                }}>
-                    <div style={{
-                        backgroundColor: 'var(--bg-elevated)',
-                        borderRadius: 'var(--radius-lg)',
-                        width: '100%',
-                        maxWidth: 550,
-                        padding: 24,
-                        boxShadow: 'var(--shadow-lg)',
-                        border: '1px solid var(--border)'
-                    }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                            <h3 style={{ margin: 0, color: 'var(--text)' }}>
-                                {masterForm.id ? 'Edit Master Menu Mingguan' : 'Tambah Master Menu Mingguan'}
-                            </h3>
-                            <button 
-                                type="button" 
-                                onClick={() => setShowMasterModal(false)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: 'var(--text-muted)',
-                                    fontSize: 20,
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                &times;
-                            </button>
-                        </div>
-                        <form onSubmit={submitMasterMenu}>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                                <div>
-                                    {fieldLabel('Jalur')}
-                                    <Dropdown 
-                                        value={masterForm.jalur} 
-                                        onChange={val => {
-                                            setMasterForm(prev => ({ ...prev, jalur: val }));
-                                            fetchMasterByHari(val, masterForm.hari);
-                                        }} 
-                                        options={[
-                                            { value: 'SISWA', label: 'Siswa' },
-                                            { value: 'TIGA_B', label: 'Tiga B' }
-                                        ]} 
-                                    />
-                                </div>
-                                <div>
-                                    {fieldLabel('Hari')}
-                                    <Dropdown 
-                                        value={masterForm.hari} 
-                                        onChange={val => {
-                                            setMasterForm(prev => ({ ...prev, hari: val }));
-                                            fetchMasterByHari(masterForm.jalur, val);
-                                        }} 
-                                        options={[
-                                            { value: 'SENIN', label: 'Senin' },
-                                            { value: 'SELASA', label: 'Selasa' },
-                                            { value: 'RABU', label: 'Rabu' },
-                                            { value: 'KAMIS', label: 'Kamis' },
-                                            { value: 'JUMAT', label: 'Jumat' },
-                                            { value: 'SABTU', label: 'Sabtu' }
-                                        ]} 
-                                    />
-                                </div>
-                            </div>
-                            
-                            <div style={{ display: 'grid', gap: 12, marginBottom: 20 }}>
-                                <div>
-                                    {fieldLabel('Karbohidrat')}
-                                    <input 
-                                        className="form-field" 
-                                        value={masterForm.menuKarbohidrat} 
-                                        onChange={e => setMasterForm(prev => ({ ...prev, menuKarbohidrat: e.target.value }))} 
-                                        placeholder="Contoh: Nasi Putih"
-                                    />
-                                </div>
-                                <div>
-                                    {fieldLabel('Lauk Hewani')}
-                                    <input 
-                                        className="form-field" 
-                                        value={masterForm.menuLaukHewani} 
-                                        onChange={e => setMasterForm(prev => ({ ...prev, menuLaukHewani: e.target.value }))} 
-                                        placeholder="Contoh: Ayam Goreng"
-                                    />
-                                </div>
-                                <div>
-                                    {fieldLabel('Lauk Nabati')}
-                                    <input 
-                                        className="form-field" 
-                                        value={masterForm.menuLaukNabati} 
-                                        onChange={e => setMasterForm(prev => ({ ...prev, menuLaukNabati: e.target.value }))} 
-                                        placeholder="Contoh: Tempe Bacem"
-                                    />
-                                </div>
-                                <div>
-                                    {fieldLabel('Sayur')}
-                                    <input 
-                                        className="form-field" 
-                                        value={masterForm.menuSayur} 
-                                        onChange={e => setMasterForm(prev => ({ ...prev, menuSayur: e.target.value }))} 
-                                        placeholder="Contoh: Sayur Sop"
-                                    />
-                                </div>
-                                <div>
-                                    {fieldLabel('Buah')}
-                                    <input 
-                                        className="form-field" 
-                                        value={masterForm.menuBuah} 
-                                        onChange={e => setMasterForm(prev => ({ ...prev, menuBuah: e.target.value }))} 
-                                        placeholder="Contoh: Pisang Mas"
-                                    />
-                                </div>
-                            </div>
-                            
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-                                {masterForm.id && (
-                                    <button 
-                                        type="button" 
-                                        onClick={() => deleteMasterMenu(masterForm.id)}
-                                        style={{ ...buttonStyle('secondary'), borderColor: 'var(--color-danger)', color: 'var(--color-danger)' }}
-                                    >
-                                        Hapus
-                                    </button>
-                                )}
-                                <button 
-                                    type="button" 
-                                    onClick={() => setShowMasterModal(false)}
-                                    style={buttonStyle('secondary')}
-                                >
-                                    Batal
-                                </button>
-                                <button 
-                                    type="submit" 
-                                    style={buttonStyle('primary')}
-                                >
-                                    {masterForm.id ? 'Simpan Perubahan' : 'Tambah Master'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
 
             <ConfirmDialog
                 open={confirmOpen}
