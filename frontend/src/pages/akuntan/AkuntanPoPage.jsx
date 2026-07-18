@@ -29,6 +29,9 @@ export const AkuntanPoPage = () => {
     const [isPrinting, setIsPrinting] = useState(false);
     const [printPoData, setPrintPoData] = useState(null);
     const [detailPoData, setDetailPoData] = useState(null);
+    const [isAddSupplierOpen, setIsAddSupplierOpen] = useState(false);
+    const [newSupplier, setNewSupplier] = useState({ nama: '', kontak: '' });
+    const [supplierSubmitting, setSupplierSubmitting] = useState(false);
 
     // Fetch master data on mount
     useEffect(() => {
@@ -156,6 +159,40 @@ export const AkuntanPoPage = () => {
             }
         } catch (err) {
             toast.error('Terjadi kesalahan koneksi.');
+        }
+    };
+
+    const handleAddSupplier = async (e) => {
+        e.preventDefault();
+        if (!newSupplier.nama) {
+            return toast.error('Nama supplier wajib diisi.');
+        }
+        setSupplierSubmitting(true);
+        try {
+            const r = await request('/akuntan/supplier', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newSupplier)
+            });
+            if (r.ok) {
+                const data = await r.json();
+                toast.success('Supplier baru berhasil ditambahkan.');
+                const res = await request('/akuntan/supplier');
+                if (res.ok) {
+                    const list = await res.json();
+                    setSuppliers(list);
+                    setSupplierId(data.id);
+                }
+                setNewSupplier({ nama: '', kontak: '' });
+                setIsAddSupplierOpen(false);
+            } else {
+                const errData = await r.json().catch(() => ({ error: 'Gagal menambahkan supplier.' }));
+                toast.error(errData.error);
+            }
+        } catch (err) {
+            toast.error('Terjadi kesalahan koneksi.');
+        } finally {
+            setSupplierSubmitting(false);
         }
     };
 
@@ -426,15 +463,34 @@ export const AkuntanPoPage = () => {
                         }}>
                             Pilih Supplier / CV
                         </label>
-                        <Dropdown
-                            style={{ width: '100%' }}
-                            value={supplierId}
-                            onChange={setSupplierId}
-                            options={suppliers.map(s => ({
-                                value: s.id,
-                                label: s.nama
-                            }))}
-                        />
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <Dropdown
+                                style={{ flex: 1 }}
+                                value={supplierId}
+                                onChange={setSupplierId}
+                                options={suppliers.map(s => ({
+                                    value: s.id,
+                                    label: s.nama
+                                }))}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setIsAddSupplierOpen(true)}
+                                style={{
+                                    padding: '8px 12px',
+                                    backgroundColor: 'var(--btn-primary-bg)',
+                                    color: 'var(--btn-primary-text)',
+                                    border: 'none',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    fontSize: '13px',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                + Baru
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -761,6 +817,115 @@ export const AkuntanPoPage = () => {
                             </button>
                         </div>
                     </div>
+                </div>
+            )}
+
+            {/* Modal Tambah Supplier */}
+            {isAddSupplierOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '20px'
+                }}>
+                    <form onSubmit={handleAddSupplier} style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        borderRadius: 'var(--radius-md)',
+                        width: '100%',
+                        maxWidth: '450px',
+                        padding: '24px',
+                        border: '1px solid var(--border)',
+                        boxShadow: 'var(--shadow-hover)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px'
+                    }}>
+                        <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Tambah Supplier / CV Baru</h3>
+                        
+                        <div>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Nama Supplier / CV *
+                            </label>
+                            <input
+                                type="text"
+                                className="form-field"
+                                placeholder="Contoh: CV Sembako Makmur"
+                                value={newSupplier.nama}
+                                onChange={e => setNewSupplier(prev => ({ ...prev, nama: e.target.value }))}
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Kontak / Telepon (opsional)
+                            </label>
+                            <input
+                                type="text"
+                                className="form-field"
+                                placeholder="Contoh: 0812345678"
+                                value={newSupplier.kontak}
+                                onChange={e => setNewSupplier(prev => ({ ...prev, kontak: e.target.value }))}
+                            />
+                        </div>
+
+                        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setNewSupplier({ nama: '', kontak: '' });
+                                    setIsAddSupplierOpen(false);
+                                }}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: 'var(--border)',
+                                    color: 'var(--text)',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    borderRadius: 'var(--radius-sm)',
+                                    fontWeight: 600
+                                }}
+                            >
+                                Batal
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={supplierSubmitting}
+                                style={{
+                                    padding: '8px 16px',
+                                    backgroundColor: 'var(--btn-primary-bg)',
+                                    color: 'var(--btn-primary-text)',
+                                    border: 'none',
+                                    cursor: supplierSubmitting ? 'not-allowed' : 'pointer',
+                                    borderRadius: 'var(--radius-sm)',
+                                    fontWeight: 600,
+                                    opacity: supplierSubmitting ? 0.6 : 1
+                                }}
+                            >
+                                {supplierSubmitting ? 'Menyimpan...' : 'Simpan'}
+                            </button>
+                        </div>
+                    </form>
                 </div>
             )}
         </div>
