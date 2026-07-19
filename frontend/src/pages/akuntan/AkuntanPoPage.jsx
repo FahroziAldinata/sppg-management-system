@@ -258,13 +258,13 @@ export const AkuntanPoPage = () => {
                 </div>
 
                 {/* PO Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }}>
+                    <img src="/kop-po.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
                     <div>
                         <div style={{ fontWeight: 'bold', fontSize: '15px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
                         <div style={{ fontSize: '11px' }}>Gedung E Kompleks Kementrian Pertanian</div>
                         <div style={{ fontSize: '11px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
                     </div>
-                    <img src="/kop-po.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
                 </div>
 
                 <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', textDecoration: 'underline', marginBottom: '15px' }}>
@@ -436,13 +436,13 @@ export const AkuntanPoPage = () => {
                 </div>
 
                 {/* PO Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }}>
+                    <img src="/kop-po.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
                     <div>
                         <div style={{ fontWeight: 'bold', fontSize: '15px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
                         <div style={{ fontSize: '11px' }}>Gedung E Kompleks Kementrian Pertanian</div>
                         <div style={{ fontSize: '11px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
                     </div>
-                    <img src="/kop-po.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
                 </div>
 
                 <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', textDecoration: 'underline', marginBottom: '15px' }}>
