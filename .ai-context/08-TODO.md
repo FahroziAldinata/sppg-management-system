@@ -8,17 +8,13 @@ _Tidak ada tugas aktif saat ini._
 
 ## B. Tugas Terbuka (Todo)
 
-### 3. [ ] Gabung 9 Halaman Laporan Jadi 1 (Dropdown Selector)
-- **Deskripsi**: 9 laporan (BKU, BP per akun, LPA, SPTJ, BAPSD, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan, StockBarang) masing-masing halaman terpisah. Gabung jadi 1 halaman `LaporanPage` dengan dropdown pilih jenis laporan. Backend endpoint TIDAK berubah, murni restrukturisasi FE routing.
-- **Status**: Belum dikerjakan.
-
-### 4. [ ] Pisah Halaman Dokumen Resmi dari Laporan BKU
-- **Deskripsi**: Penerbitan Dokumen Resmi (LPA/SPTJ/BAPSD) sekarang nyampur di halaman sama dengan laporan BKU (read-only). Pisah jadi halaman `DokumenResmiPage` sendiri.
-- **Status**: Belum dikerjakan.
+_Tidak ada tugas terbuka saat ini._
 
 ---
 
 ## C. Arsip Tugas Selesai (Completed)
+- [x] **Gabung 9 Halaman Laporan Jadi 1 (Dropdown Selector) — SELESAI 2026-07-19**: 6 laporan (BKU, BP, StockBarang, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan) disatukan ke dalam `LaporanPage.jsx` dengan sinkronisasi URL path. 3 laporan resmi dipindahkan ke generator tersendiri.
+- [x] **Pisah Halaman Dokumen Resmi dari Laporan BKU — SELESAI 2026-07-19**: Penerbitan Dokumen Resmi (LPA, SPTJ, BAPSD, LR) dipisahkan ke `DokumenResmiPage.jsx` dengan tabbed view, validasi data, deletion (Batal Terbit), dan modal PDF viewer.
 - [x] **Layout Cetak PO Gabungan Sesuai Format Asli**: Redesign kop surat (logo + token warna), tabel header/total token warna, footer Mitra SPPG, field Kepada/Alamat/Waktu/PM/Menu sesuai referensi Excel. TODO #3 CLOSED.
 - [x] **Guardrail Harga Porsi Real-time di Menu Harian (Ahli Gizi)**: Integrasi backend-frontend untuk membatasi anggaran porsi (KECIL/BESAR) real-time di UI `MenuHarianPage.jsx` beserta optimasi visual accordion kelompok umur, collapse empty menu components, dan sticky workspace header.
 - [x] **PO 2-Tahap (Akuntan→Mitra→Aslap)**: Inisiasi PO oleh Akuntan, partial-save realisasi oleh Mitra (auto-flip DIREALISASI), approval Aslap, modal tambah supplier baru, dan prefill jurnal transaksi.
