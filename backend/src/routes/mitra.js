@@ -1,6 +1,7 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAuth, requireRole } = require("../middleware/auth");
+const { getTotalPorsiBlok } = require("../lib/porsiHelper");
 
 const router = express.Router();
 
@@ -478,11 +479,7 @@ router.get("/po/kebutuhan", requireAuth, requireRole("MITRA", "AKUNTAN"), async 
 
       for (const blok of menu.blok) {
         // Calculate total portions for this block
-        let totalPorsiBlok = 0;
-        const categoriesInBlock = blok.kelompokUmurMenu.kategoriPenerima;
-        for (const kat of categoriesInBlock) {
-          totalPorsiBlok += (porsiPerKategori[kat.id] || 0);
-        }
+        const totalPorsiBlok = getTotalPorsiBlok(blok, porsiPerKategori);
 
         for (const item of blok.menuItem) {
           for (const b of item.bahan) {

@@ -1,6 +1,7 @@
 const express = require("express");
 const prisma = require("../lib/prisma");
 const { requireAuth, requireRole } = require("../middleware/auth");
+const { getTotalPorsiBlok } = require("../lib/porsiHelper");
 
 const router = express.Router();
 
@@ -2871,6 +2872,127 @@ router.post("/po", requireAuth, requireRole("AKUNTAN"), async (req, res) => {
       return res.status(400).json({ error: error.message.replace("[VALIDASI] ", "") });
     }
     res.status(500).json({ error: "Terjadi kesalahan server saat menyimpan PO" });
+  }
+});
+
+// GET /api/akuntan/kebutuhan-hitungan - Get food requirements calculation for a specific date
+router.get("/kebutuhan-hitungan", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async (req, res) => {
+  try {
+    const { periodeId, tanggal } = req.query;
+    if (!periodeId || !tanggal) {
+      return res.status(400).json({ error: "periodeId dan tanggal wajib diisi" });
+    }
+
+    const targetDate = normalizeDateUTC(tanggal);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ error: "Format tanggal tidak valid" });
+    }
+
+    // Query MenuHarian for this date and period
+    const menuHarian = await prisma.menuHarian.findFirst({
+      where: {
+        periodeId,
+        tanggal: targetDate
+      },
+      include: {
+        blok: {
+          include: {
+            kelompokUmurMenu: {
+              include: { kategoriPenerima: true }
+            },
+            menuItem: {
+              include: {
+                bahan: {
+                  include: { bahanPokok: true }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!menuHarian) {
+      return res.json({ success: true, data: [] });
+    }
+
+    // Fetch active InputPenerimaManfaat for the period
+    const activeInputs = await prisma.inputPenerimaManfaat.findMany({
+      where: { periodeId },
+      include: { detail: true }
+    });
+
+    const HARI_MAP = {
+      1: "SENIN",
+      2: "SELASA",
+      3: "RABU",
+      4: "KAMIS",
+      5: "JUMAT",
+      6: "SABTU"
+    };
+
+    const day = targetDate.getUTCDay();
+    const dayOfWeek = HARI_MAP[day];
+    let inputsForDay = [];
+    if (dayOfWeek) {
+      inputsForDay = activeInputs.filter(inp => inp.hariAktif.includes(dayOfWeek));
+    }
+
+    // Calculate porsiPerKategori
+    const porsiPerKategori = {};
+    for (const input of inputsForDay) {
+      for (const det of input.detail) {
+        porsiPerKategori[det.kategoriId] = (porsiPerKategori[det.kategoriId] || 0) + (det.lakiLaki + det.perempuan);
+      }
+    }
+
+    const bahanMap = {};
+
+    for (const blok of menuHarian.blok) {
+      const totalPorsiBlok = getTotalPorsiBlok(blok, porsiPerKategori);
+
+      for (const item of blok.menuItem) {
+        for (const b of item.bahan) {
+          if (b.jumlahHitungan !== null && b.bahanPokok.konversiPerKg !== null) {
+            const valJumlahHitungan = Number(b.jumlahHitungan);
+            const valKonversiPerKg = Number(b.bahanPokok.konversiPerKg);
+            const bid = b.bahanPokokId;
+
+            if (!bahanMap[bid]) {
+              bahanMap[bid] = {
+                bahanPokokId: bid,
+                nama: b.bahanPokok.nama,
+                satuanHitungan: b.bahanPokok.satuanHitungan || "",
+                permintaanAG: 0,
+                konversiPerKg: valKonversiPerKg
+              };
+            }
+
+            bahanMap[bid].permintaanAG += valJumlahHitungan * totalPorsiBlok;
+          }
+        }
+      }
+    }
+
+    const result = Object.values(bahanMap).map(item => {
+      const permintaanAG = Math.round(item.permintaanAG * 100) / 100;
+      const total = Math.round((permintaanAG / item.konversiPerKg) * 100) / 100;
+      const final = Math.ceil(total);
+      return {
+        bahanPokokId: item.bahanPokokId,
+        nama: item.nama,
+        satuanHitungan: item.satuanHitungan,
+        permintaanAG,
+        konversiPerKg: item.konversiPerKg,
+        total,
+        final
+      };
+    });
+
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat mengambil kebutuhan hitungan" });
   }
 });
 

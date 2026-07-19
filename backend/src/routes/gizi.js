@@ -712,7 +712,8 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
       karbohidratGr,
       seratGr,
       bddPersen,
-      beratSatuanGr
+      beratSatuanGr,
+      jumlahHitungan
     } = req.body || {};
 
     // Validate required fields
@@ -747,6 +748,14 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
     if (isNaN(cleanLemak) || cleanLemak < 0) return res.status(400).json({ error: "lemakGr harus berupa angka non-negatif" });
     if (isNaN(cleanKarbo) || cleanKarbo < 0) return res.status(400).json({ error: "karbohidratGr harus berupa angka non-negatif" });
     if (isNaN(cleanSerat) || cleanSerat < 0) return res.status(400).json({ error: "seratGr harus berupa angka non-negatif" });
+
+    let cleanJumlahHitungan = null;
+    if (jumlahHitungan !== undefined && jumlahHitungan !== null && jumlahHitungan !== '') {
+      cleanJumlahHitungan = Number(jumlahHitungan);
+      if (isNaN(cleanJumlahHitungan) || cleanJumlahHitungan < 0) {
+        return res.status(400).json({ error: "jumlahHitungan harus berupa angka non-negatif jika diisi" });
+      }
+    }
 
     const created = await prisma.$transaction(async (tx) => {
       // Validate menuItem exists
@@ -792,7 +801,8 @@ router.post("/menu-item-bahan", requireAuth, requireRole("AHLI_GIZI"), async (re
           beratKotorGr,
           hargaSatuan: cleanHarga,
           beratSatuanGr: cleanBeratSatuan,
-          totalHargaBahan
+          totalHargaBahan,
+          jumlahHitungan: cleanJumlahHitungan
         }
       });
 
@@ -830,7 +840,8 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
       karbohidratGr,
       seratGr,
       bddPersen,
-      beratSatuanGr
+      beratSatuanGr,
+      jumlahHitungan
     } = req.body || {};
 
     const updated = await prisma.$transaction(async (tx) => {
@@ -872,6 +883,19 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
       if (isNaN(cleanKarbo) || cleanKarbo < 0) throw new Error("[VALIDASI] karbohidratGr harus berupa angka non-negatif");
       if (isNaN(cleanSerat) || cleanSerat < 0) throw new Error("[VALIDASI] seratGr harus berupa angka non-negatif");
 
+      let cleanJumlahHitungan = undefined;
+      if (jumlahHitungan !== undefined) {
+        if (jumlahHitungan === null || jumlahHitungan === '') {
+          cleanJumlahHitungan = null;
+        } else {
+          const val = Number(jumlahHitungan);
+          if (isNaN(val) || val < 0) {
+            throw new Error("[VALIDASI] jumlahHitungan harus berupa angka non-negatif jika diisi");
+          }
+          cleanJumlahHitungan = val;
+        }
+      }
+
       const periodeId = existing.menuItem.blok.menuHarian.periodeId;
       const { harga: cleanHarga, isFallback } = await getHargaBahan(tx, periodeId, existing.bahanPokokId);
 
@@ -893,7 +917,8 @@ router.put("/menu-item-bahan/:id", requireAuth, requireRole("AHLI_GIZI"), async 
           beratKotorGr,
           hargaSatuan: cleanHarga,
           beratSatuanGr: cleanBeratSatuan,
-          totalHargaBahan
+          totalHargaBahan,
+          jumlahHitungan: cleanJumlahHitungan !== undefined ? cleanJumlahHitungan : undefined
         }
       });
 

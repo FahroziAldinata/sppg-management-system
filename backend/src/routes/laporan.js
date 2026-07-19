@@ -7,6 +7,7 @@ const { renderLpaHtml } = require("../templates/dokumen/lpa");
 const { renderSptjHtml } = require("../templates/dokumen/sptj");
 const { renderBapsdHtml } = require("../templates/dokumen/bapsd");
 const { renderBkuHtml } = require("../templates/dokumen/bku");
+const { getTotalPorsiBlok } = require("../lib/porsiHelper");
 
 const router = express.Router();
 
@@ -712,10 +713,7 @@ router.get("/kebutuhan-belanja-bahan", requireAuth, requireRole("AKUNTAN", "KEPA
       }
 
       for (const blok of menu.blok) {
-        let totalPorsiBlok = 0;
-        for (const kat of blok.kelompokUmurMenu.kategoriPenerima) {
-          totalPorsiBlok += (porsiPerKategori[kat.id] || 0);
-        }
+        const totalPorsiBlok = getTotalPorsiBlok(blok, porsiPerKategori);
 
         for (const item of blok.menuItem) {
           for (const b of item.bahan) {

@@ -534,6 +534,8 @@ model BahanPokok {
   nama            String          @unique
   satuan          String
   tipePenyimpanan TipePenyimpanan @default(HABIS_HARI_ITU) // [SPEKULATIF] lihat changelog
+  konversiPerKg    Decimal? @db.Decimal(10, 3) // nullable, misal 15 (butir/kg)
+  satuanHitungan   String?  // nullable, misal "BUTIR", "BUAH"
 
   aktif     Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -745,6 +747,7 @@ model MenuItemBahan {
   hargaSatuan     Decimal @db.Decimal(12, 2) // manual
   beratSatuanGr   Decimal @db.Decimal(10, 2) // manual, basis harga (umumnya 1000 = per kg)
   totalHargaBahan Decimal @db.Decimal(14, 2) // FORMULA: beratKotorGr * hargaSatuan / beratSatuanGr
+  jumlahHitungan   Decimal? @db.Decimal(10, 2) // nullable, jumlah per porsi (misal 1 atau 2)
 }
 
 // Target AKG per blok — manual, beda tiap kelompok umur, diisi ulang tiap blok
