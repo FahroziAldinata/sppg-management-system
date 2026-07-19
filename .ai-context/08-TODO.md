@@ -8,10 +8,6 @@ _Tidak ada tugas aktif saat ini._
 
 ## B. Tugas Terbuka (Todo)
 
-### 2. [ ] Gabung Halaman RAB Harian + Anggaran Harian
-- **Deskripsi**: Feedback Akuntan — RAB Harian & Anggaran Harian selalu dikerjain berurutan buat hari yang sama, tapi sekarang di 2 halaman terpisah. Gabung jadi 1 halaman/workflow.
-- **Status**: Belum dikerjakan.
-
 ### 3. [ ] Gabung 9 Halaman Laporan Jadi 1 (Dropdown Selector)
 - **Deskripsi**: 9 laporan (BKU, BP per akun, LPA, SPTJ, BAPSD, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan, StockBarang) masing-masing halaman terpisah. Gabung jadi 1 halaman `LaporanPage` dengan dropdown pilih jenis laporan. Backend endpoint TIDAK berubah, murni restrukturisasi FE routing.
 - **Status**: Belum dikerjakan.
@@ -48,3 +44,4 @@ _Tidak ada tugas aktif saat ini._
 - [x] **RAB Harian Kosong**: Penambahan banner informatif bahwa transaksi bahan makanan diinput langsung oleh Mitra melalui PO.
 - [x] **Isi Cepat Bantuan Pemerintah (BanPer)**: Shortcut otomatis pengisian formulir jurnal masuk.
 - [x] **Konversi Satuan Hitung ke KG**: Badge referensi read-only di RAB Harian, tidak auto-fill QTY manual (sesuai temuan audit Excel: Final≠QTY manual).
+- [x] **Gabung RAB Harian + Anggaran Harian**: Merge dua halaman jadi satu dengan tab RAB/Anggaran. Route `/akuntan/anggaran-harian` render komponen yang sama, default tab sesuai path. Sidebar & dashboard link tetap berfungsi.
