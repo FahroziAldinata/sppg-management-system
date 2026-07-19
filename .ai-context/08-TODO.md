@@ -20,11 +20,6 @@ _Tidak ada tugas aktif saat ini._
 - **Deskripsi**: Penerbitan Dokumen Resmi (LPA/SPTJ/BAPSD) sekarang nyampur di halaman sama dengan laporan BKU (read-only). Pisah jadi halaman `DokumenResmiPage` sendiri.
 - **Status**: Belum dikerjakan.
 
-### 5. [ ] Konversi Satuan Hitung ke KG (Butir/Buah) — Referensi RAB
-- **Deskripsi**: Dikonfirmasi via audit Excel asli (`RAB_P12_..xlsx`) — Ahli Gizi kadang tentuin kebutuhan bahan per HITUNGAN (misal "1 telur/porsi"), tapi Mitra beli per KG. Excel punya kolom bantu "Permintaan AG / KET / Isi / Total / Final" (total hitungan → convert kg via faktor konversi → dibulatkan). TERBUKTI ini REFERENSI doang (Akuntan tetap input QTY final manual — dibuktikan kasus Leci: Final=16 tapi QTY manual=22, tidak auto-match).
-- **Rencana**: Tambah `BahanPokok.konversiPerKg` + `satuanHitungan` (nullable). Tambah `MenuItemBahan.jumlahHitungan` (opsional, pengganti gram utk bahan count-based). Backend hitung & tampilkan badge referensi read-only di halaman RAB (Permintaan AG/Final), TIDAK auto-fill QTY.
-- **Status**: Belum dikerjakan.
-
 ---
 
 ## C. Arsip Tugas Selesai (Completed)
@@ -52,3 +47,4 @@ _Tidak ada tugas aktif saat ini._
 - [x] **`totalDanaDiterima` Setup Periode**: Pembersihan input manual dari form setup periode, beralih ke kalkulasi live aggregate SUM transaksi masuk (DANA) di BKU.
 - [x] **RAB Harian Kosong**: Penambahan banner informatif bahwa transaksi bahan makanan diinput langsung oleh Mitra melalui PO.
 - [x] **Isi Cepat Bantuan Pemerintah (BanPer)**: Shortcut otomatis pengisian formulir jurnal masuk.
+- [x] **Konversi Satuan Hitung ke KG**: Badge referensi read-only di RAB Harian, tidak auto-fill QTY manual (sesuai temuan audit Excel: Final≠QTY manual).
