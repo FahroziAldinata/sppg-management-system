@@ -8,20 +8,27 @@ _Tidak ada tugas aktif saat ini._
 
 ## B. Tugas Terbuka (Todo)
 
-### 1. [ ] Audit Ahli Gizi: Granularitas Kendaraan/Mobil vs Realita Excel
-- **Deskripsi**: Excel membagi kebutuhan per "Mobil 1/2/3" (grouping custom). Sistem saat ini hanya mendukung `PengirimanHarian` per `jenisPorsi` (Kecil/Besar, max 2 mobil).
-- **Tugas Audit**: Tanyakan kepada user apakah butuh pengiriman per Mobil custom atau tetap per porsi sudah cukup.
+### 2. [ ] Gabung Halaman RAB Harian + Anggaran Harian
+- **Deskripsi**: Feedback Akuntan — RAB Harian & Anggaran Harian selalu dikerjain berurutan buat hari yang sama, tapi sekarang di 2 halaman terpisah. Gabung jadi 1 halaman/workflow.
 - **Status**: Belum dikerjakan.
 
-### 2. [ ] Code-splitting bundle size (Belum Urgent)
-- **Deskripsi**: Peringatan build size di Vite (>500kB).
-- **Langkah**: Optimalkan bundle size dengan `React.lazy` atau penataan `manualChunks`.
+### 3. [ ] Gabung 9 Halaman Laporan Jadi 1 (Dropdown Selector)
+- **Deskripsi**: 9 laporan (BKU, BP per akun, LPA, SPTJ, BAPSD, KebutuhanBelanjaBahan, LaporanPerPeriode, LaporanPerBulan, StockBarang) masing-masing halaman terpisah. Gabung jadi 1 halaman `LaporanPage` dengan dropdown pilih jenis laporan. Backend endpoint TIDAK berubah, murni restrukturisasi FE routing.
+- **Status**: Belum dikerjakan.
+
+### 4. [ ] Pisah Halaman Dokumen Resmi dari Laporan BKU
+- **Deskripsi**: Penerbitan Dokumen Resmi (LPA/SPTJ/BAPSD) sekarang nyampur di halaman sama dengan laporan BKU (read-only). Pisah jadi halaman `DokumenResmiPage` sendiri.
+- **Status**: Belum dikerjakan.
+
+### 5. [ ] Konversi Satuan Hitung ke KG (Butir/Buah) — Referensi RAB
+- **Deskripsi**: Dikonfirmasi via audit Excel asli (`RAB_P12_..xlsx`) — Ahli Gizi kadang tentuin kebutuhan bahan per HITUNGAN (misal "1 telur/porsi"), tapi Mitra beli per KG. Excel punya kolom bantu "Permintaan AG / KET / Isi / Total / Final" (total hitungan → convert kg via faktor konversi → dibulatkan). TERBUKTI ini REFERENSI doang (Akuntan tetap input QTY final manual — dibuktikan kasus Leci: Final=16 tapi QTY manual=22, tidak auto-match).
+- **Rencana**: Tambah `BahanPokok.konversiPerKg` + `satuanHitungan` (nullable). Tambah `MenuItemBahan.jumlahHitungan` (opsional, pengganti gram utk bahan count-based). Backend hitung & tampilkan badge referensi read-only di halaman RAB (Permintaan AG/Final), TIDAK auto-fill QTY.
 - **Status**: Belum dikerjakan.
 
 ---
 
 ## C. Arsip Tugas Selesai (Completed)
-
+- [x] **Layout Cetak PO Gabungan Sesuai Format Asli**: Redesign kop surat (logo + token warna), tabel header/total token warna, footer Mitra SPPG, field Kepada/Alamat/Waktu/PM/Menu sesuai referensi Excel. TODO #3 CLOSED.
 - [x] **Guardrail Harga Porsi Real-time di Menu Harian (Ahli Gizi)**: Integrasi backend-frontend untuk membatasi anggaran porsi (KECIL/BESAR) real-time di UI `MenuHarianPage.jsx` beserta optimasi visual accordion kelompok umur, collapse empty menu components, dan sticky workspace header.
 - [x] **PO 2-Tahap (Akuntan→Mitra→Aslap)**: Inisiasi PO oleh Akuntan, partial-save realisasi oleh Mitra (auto-flip DIREALISASI), approval Aslap, modal tambah supplier baru, dan prefill jurnal transaksi.
 - [x] **Jalur 3B PengirimanHarian Opsional**: Mengonfirmasi bahwa model pengiriman bersifat opsional secara teknis di database dan API (relasi 0..*).
@@ -45,4 +52,3 @@ _Tidak ada tugas aktif saat ini._
 - [x] **`totalDanaDiterima` Setup Periode**: Pembersihan input manual dari form setup periode, beralih ke kalkulasi live aggregate SUM transaksi masuk (DANA) di BKU.
 - [x] **RAB Harian Kosong**: Penambahan banner informatif bahwa transaksi bahan makanan diinput langsung oleh Mitra melalui PO.
 - [x] **Isi Cepat Bantuan Pemerintah (BanPer)**: Shortcut otomatis pengisian formulir jurnal masuk.
-- [x] **Layout Cetak PO Gabungan Sesuai Format Asli**: Redesign kop surat (logo + token warna), tabel header/total token warna, footer Mitra SPPG, field Kepada/Alamat/Waktu/PM/Menu sesuai referensi Excel. TODO #3 CLOSED.
