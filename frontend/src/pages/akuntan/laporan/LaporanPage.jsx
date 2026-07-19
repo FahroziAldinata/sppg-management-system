@@ -1,25 +1,77 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useApi } from '../../../hooks/useApi';
 import { useToast } from '../../../context/ToastContext';
 import { Table } from '../../../components/Table';
 import { Skeleton } from '../../../components/Skeleton';
+import { DatePicker } from '../../../components/DatePicker';
 
 export const LaporanPage = () => {
     const { request } = useApi();
-  const toast = useToast();
+    const toast = useToast();
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    // Shared period state
     const [periods, setPeriods] = useState([]);
     const [periodeId, setPeriodeId] = useState('');
+
+    // Shared account state (for BP)
     const [akunList, setAkunList] = useState([]);
     const [akunId, setAkunId] = useState('');
-    
-    const [jenisLaporan, setJenisLaporan] = useState('BKU'); // 'BKU', 'BP', 'LPA', 'SPTJ', atau 'BAPSD'
-    const [reportData, setReportData] = useState([]);
-    const [lpaData, setLpaData] = useState(null);
-    const [sptjData, setSptjData] = useState(null);
-    const [bapsdData, setBapsdData] = useState(null);
-    const [nomorDokumen, setNomorDokumen] = useState('');
+
+    // Loading & PDF state
     const [loading, setLoading] = useState(false);
     const [pdfLoading, setPdfLoading] = useState(false);
+    const [pdfUrl, setPdfUrl] = useState('');
+    const [isPdfModalOpen, setIsPdfModalOpen] = useState(false);
+
+    // 1 & 2. BKU & BP data state
+    const [reportData, setReportData] = useState([]);
+
+    // 3. Stock Barang specific state
+    const [stockTanggal, setStockTanggal] = useState(new Date().toISOString().split('T')[0]);
+    const [stockData, setStockData] = useState([]);
+
+    // 4. Kebutuhan Belanja Bahan specific state
+    const [belanjaTanggalMulai, setBelanjaTanggalMulai] = useState('');
+    const [belanjaTanggalSelesai, setBelanjaTanggalSelesai] = useState('');
+    const [belanjaData, setBelanjaData] = useState(null);
+
+    // 5. Laporan Per Periode specific state
+    const [perPeriodeData, setPerPeriodeData] = useState(null);
+
+    // 6. Laporan Per Bulan specific state
+    const [perBulanData, setPerBulanData] = useState(null);
+
+    // Map URL path to jenisLaporan
+    const getReportFromPath = (path) => {
+        if (path.includes('stock-barang')) return 'STOCK_BARANG';
+        if (path.includes('kebutuhan-belanja-bahan')) return 'BELANJA_BAHAN';
+        if (path.includes('per-periode')) return 'PER_PERIODE';
+        if (path.includes('per-bulan')) return 'PER_BULAN';
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('type') === 'bp') return 'BP';
+        return 'BKU';
+    };
+
+    const jenisLaporan = getReportFromPath(location.pathname);
+
+    const handleReportChange = (e) => {
+        const val = e.target.value;
+        setReportData([]);
+        setStockData([]);
+        setBelanjaData(null);
+        setPerPeriodeData(null);
+        setPerBulanData(null);
+
+        if (val === 'BKU') navigate('/akuntan/laporan');
+        else if (val === 'BP') navigate('/akuntan/laporan?type=bp');
+        else if (val === 'STOCK_BARANG') navigate('/akuntan/laporan/stock-barang');
+        else if (val === 'BELANJA_BAHAN') navigate('/akuntan/laporan/kebutuhan-belanja-bahan');
+        else if (val === 'PER_PERIODE') navigate('/akuntan/laporan/per-periode');
+        else if (val === 'PER_BULAN') navigate('/akuntan/laporan/per-bulan');
+    };
 
     // Fetch periods & accounts on mount
     useEffect(() => {
@@ -29,7 +81,7 @@ export const LaporanPage = () => {
                 setPeriods(d);
                 if (d.length) setPeriodeId(d[0].id);
             })
-            .catch(() => toast.error('Gagal memuat daftar periode'));
+            .catch(() => toast.error('Gagal memuat daftar periode.'));
 
         request('/akuntan/akun')
             .then(r => r.json())
@@ -37,82 +89,10 @@ export const LaporanPage = () => {
                 setAkunList(d);
                 if (d.length) setAkunId(d[0].id);
             })
-            .catch(() => toast.error('Gagal memuat daftar akun'));
+            .catch(() => toast.error('Gagal memuat daftar akun.'));
     }, []);
 
-    // Preview LPA sebagai PDF: fetch dengan header auth, buka blob di tab baru
-    const previewLpaPdf = async () => {
-        if (jenisLaporan !== 'LR' && (!nomorDokumen || !nomorDokumen.trim())) {
-            toast.error('Isi Nomor Dokumen dulu sebelum preview PDF');
-            return;
-        }
-        if (!periodeId) {
-            toast.error('Pilih periode terlebih dahulu');
-            return;
-        }
-        setPdfLoading(true);
-        try {
-            const url = jenisLaporan === 'LR'
-                ? `/laporan/lpa/pdf?periodeId=${periodeId}&isLr=true`
-                : `/laporan/lpa/pdf?periodeId=${periodeId}&nomorDokumen=${encodeURIComponent(nomorDokumen.trim())}`;
-            const r = await request(url);
-            if (!r.ok) {
-                // Error response dari server adalah JSON, bukan PDF
-                const errData = await r.json().catch(() => ({ error: 'Gagal membuat PDF LPA' }));
-                toast.error(errData.error || 'Gagal membuat PDF LPA');
-                return;
-            }
-            const blob = new Blob([await r.blob()], { type: 'application/pdf' });
-            const objectUrl = URL.createObjectURL(blob);
-            const tab = window.open(objectUrl, '_blank');
-            // Revoke setelah 30 detik — cukup waktu browser load PDF,
-            // tidak perlu revoke on-close karena tidak bisa detect tab close secara reliable.
-            setTimeout(() => {
-                URL.revokeObjectURL(objectUrl);
-            }, 30000);
-            if (!tab) {
-                toast.error('Pop-up diblokir browser. Izinkan pop-up untuk halaman ini.');
-            }
-        } catch (err) {
-            toast.error(err.message || 'Terjadi kesalahan saat membuat PDF');
-        } finally {
-            setPdfLoading(false);
-        }
-    };
-
-    // Preview BKU sebagai PDF: fetch dengan header auth, buka blob di tab baru
-    const previewBkuPdf = async () => {
-        if (!periodeId) {
-            toast.error('Pilih periode terlebih dahulu');
-            return;
-        }
-        setPdfLoading(true);
-        try {
-            const r = await request(
-                `/laporan/bku/pdf?periodeId=${periodeId}`
-            );
-            if (!r.ok) {
-                const errData = await r.json().catch(() => ({ error: 'Gagal membuat PDF BKU' }));
-                toast.error(errData.error || 'Gagal membuat PDF BKU');
-                return;
-            }
-            const blob = new Blob([await r.blob()], { type: 'application/pdf' });
-            const objectUrl = URL.createObjectURL(blob);
-            const tab = window.open(objectUrl, '_blank');
-            setTimeout(() => {
-                URL.revokeObjectURL(objectUrl);
-            }, 30000);
-            if (!tab) {
-                toast.error('Pop-up diblokir browser. Izinkan pop-up untuk halaman ini.');
-            }
-        } catch (err) {
-            toast.error(err.message || 'Terjadi kesalahan saat membuat PDF');
-        } finally {
-            setPdfLoading(false);
-        }
-    };
-
-    // Load BKU Laporan
+    // Load BKU
     const loadBKU = async (pid) => {
         if (!pid) return;
         setLoading(true);
@@ -134,7 +114,7 @@ export const LaporanPage = () => {
         }
     };
 
-    // Load BP Laporan
+    // Load BP
     const loadBP = async (pid, aid) => {
         if (!pid || !aid) return;
         setLoading(true);
@@ -156,123 +136,200 @@ export const LaporanPage = () => {
         }
     };
 
-    // Load LPA Laporan
-    const loadLPA = async (pid, nomorDok) => {
-        if (jenisLaporan !== 'LR' && (!nomorDok || !nomorDok.trim())) {
-            toast.error('Isi Nomor Dokumen dulu');
-            setLpaData(null);
-            return;
-        }
-        if (!pid) return;
-
+    // Load Stock Barang
+    const loadStockBarang = async (pid, tgl) => {
+        if (!pid || !tgl) return;
         setLoading(true);
         try {
-            const url = jenisLaporan === 'LR'
-                ? `/laporan/lpa?periodeId=${pid}&isLr=true`
-                : `/laporan/lpa?periodeId=${pid}&nomorDokumen=${encodeURIComponent(nomorDok.trim())}`;
-            const r = await request(url);
+            const r = await request(`/laporan/stock-barang?periodeId=${pid}&tanggal=${tgl}`);
             if (r.ok) {
                 const resJson = await r.json();
-                setLpaData(resJson.data || null);
+                setStockData(resJson.data || []);
             } else {
-                const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Penggunaan Anggaran (LPA)' }));
+                const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Stock Barang' }));
                 toast.error(d.error);
-                setLpaData(null);
+                setStockData([]);
             }
         } catch (err) {
             toast.error(err.message || 'Terjadi kesalahan koneksi');
-            setLpaData(null);
+            setStockData([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // Trigger load berdasarkan perubahan pilihan filter (kecuali nomorDokumen untuk LPA/BAPSD)
+    // Load Kebutuhan Belanja Bahan
+    const loadKebutuhanBelanja = async () => {
+        if (!periodeId) {
+            toast.error('Pilih periode terlebih dahulu');
+            return;
+        }
+        if (!belanjaTanggalMulai || !belanjaTanggalSelesai) {
+            toast.error('Isi tanggal mulai dan tanggal selesai terlebih dahulu');
+            return;
+        }
+        setLoading(true);
+        try {
+            const r = await request(`/laporan/kebutuhan-belanja-bahan?periodeId=${periodeId}&tanggalMulai=${belanjaTanggalMulai}&tanggalSelesai=${belanjaTanggalSelesai}`);
+            if (r.ok) {
+                const resJson = await r.json();
+                setBelanjaData(resJson.data || []);
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Kebutuhan Belanja Bahan' }));
+                toast.error(d.error);
+                setBelanjaData([]);
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+            setBelanjaData([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Load Laporan Per Periode
+    const loadLaporanPerPeriode = async () => {
+        if (!periodeId) {
+            toast.error('Pilih periode terlebih dahulu');
+            return;
+        }
+        setLoading(true);
+        try {
+            const r = await request(`/laporan/per-periode?periodeId=${periodeId}`);
+            if (r.ok) {
+                const resJson = await r.json();
+                setPerPeriodeData(resJson.data || null);
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Per Periode' }));
+                toast.error(d.error);
+                setPerPeriodeData(null);
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+            setPerPeriodeData(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Load Laporan Per Bulan
+    const loadLaporanPerBulan = async () => {
+        if (!periodeId) {
+            toast.error('Pilih periode terlebih dahulu');
+            return;
+        }
+        setLoading(true);
+        try {
+            const r = await request(`/laporan/per-bulan?periodeId=${periodeId}`);
+            if (r.ok) {
+                const resJson = await r.json();
+                setPerBulanData(resJson.data || []);
+            } else {
+                const d = await r.json().catch(() => ({ error: 'Gagal memuat Laporan Per Bulan' }));
+                toast.error(d.error);
+                setPerBulanData(null);
+            }
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan koneksi');
+            setPerBulanData(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Preview BKU sebagai PDF (inline di modal)
+    const previewBkuPdf = async () => {
+        if (!periodeId) {
+            toast.error('Pilih periode terlebih dahulu');
+            return;
+        }
+        setPdfLoading(true);
+        try {
+            const r = await request(`/laporan/bku/pdf?periodeId=${periodeId}`);
+            if (!r.ok) {
+                const errData = await r.json().catch(() => ({ error: 'Gagal membuat PDF BKU' }));
+                toast.error(errData.error || 'Gagal membuat PDF BKU');
+                return;
+            }
+            const blob = new Blob([await r.blob()], { type: 'application/pdf' });
+            const objectUrl = URL.createObjectURL(blob);
+            setPdfUrl(objectUrl);
+            setIsPdfModalOpen(true);
+        } catch (err) {
+            toast.error(err.message || 'Terjadi kesalahan saat membuat PDF');
+        } finally {
+            setPdfLoading(false);
+        }
+    };
+
+    // Helper untuk period change bound auto-fill (Kebutuhan Belanja)
+    const handlePeriodChangeForBelanja = (pid) => {
+        setPeriodeId(pid);
+        const p = periods.find(item => item.id === pid);
+        if (p) {
+            setBelanjaTanggalMulai(p.tanggalMulai);
+            setBelanjaTanggalSelesai(p.tanggalSelesai);
+        }
+    };
+
+    // Helper untuk konversi format Bulan ke Bahasa Indonesia (misal: "2026-01" -> "Januari 2026")
+    const formatIndoMonth = (year, month) => {
+        const namaBulan = [
+            'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+            'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+        ];
+        if (month >= 1 && month <= 12) {
+            return `${namaBulan[month - 1]} ${year}`;
+        }
+        return `${year}-${String(month).padStart(2, '0')}`;
+    };
+
+    // Auto-fetch effects depending on type and filters
     useEffect(() => {
-        if (jenisLaporan === 'BKU') {
+        if (jenisLaporan === 'BKU' && periodeId) {
             loadBKU(periodeId);
-            setLpaData(null);
-            setSptjData(null);
-            setBapsdData(null);
-        } else if (jenisLaporan === 'BP') {
+        }
+    }, [jenisLaporan, periodeId]);
+
+    useEffect(() => {
+        if (jenisLaporan === 'BP' && periodeId && akunId) {
             loadBP(periodeId, akunId);
-            setLpaData(null);
-            setSptjData(null);
-            setBapsdData(null);
-        } else if (jenisLaporan === 'LPA' || jenisLaporan === 'LR') {
-            setReportData([]);
-            setLpaData(null);
-            setSptjData(null);
-            setBapsdData(null);
-        } else if (jenisLaporan === 'SPTJ') {
-            loadSPTJ(periodeId);
-            setReportData([]);
-            setLpaData(null);
-            setBapsdData(null);
-        } else if (jenisLaporan === 'BAPSD') {
-            setReportData([]);
-            setLpaData(null);
-            setSptjData(null);
-            setBapsdData(null);
         }
     }, [jenisLaporan, periodeId, akunId]);
 
-    // Load SPTJ Laporan
-    async function loadSPTJ(pid) {
-        if (!pid) return;
-        setLoading(true);
-        try {
-            const r = await request(`/laporan/sptj?periodeId=${pid}`);
-            if (r.ok) {
-                const resJson = await r.json();
-                setSptjData(resJson.data || null);
-            } else {
-                const d = await r.json().catch(() => ({ error: 'Gagal memuat Surat Pernyataan Tanggung Jawab' }));
-                toast.error(d.error);
-                setSptjData(null);
-            }
-        } catch (err) {
-            toast.error(err.message || 'Terjadi kesalahan koneksi');
-            setSptjData(null);
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        if (jenisLaporan === 'STOCK_BARANG' && periodeId && stockTanggal) {
+            loadStockBarang(periodeId, stockTanggal);
         }
-    }
+    }, [jenisLaporan, periodeId, stockTanggal]);
 
-    // Load BAPSD Laporan
-    async function loadBAPSD(pid, nomorDok) {
-        if (!nomorDok || !nomorDok.trim()) {
-            toast.error('Isi Nomor Dokumen dulu');
-            setBapsdData(null);
-            return;
+    useEffect(() => {
+        if (jenisLaporan === 'PER_PERIODE' && periodeId) {
+            loadLaporanPerPeriode();
         }
-        if (!pid) return;
+    }, [jenisLaporan, periodeId]);
 
-        setLoading(true);
-        try {
-            const r = await request(`/laporan/bapsd?periodeId=${pid}&nomorDokumen=${encodeURIComponent(nomorDok.trim())}`);
-            if (r.ok) {
-                const resJson = await r.json();
-                setBapsdData(resJson.data || null);
-            } else {
-                const d = await r.json().catch(() => ({ error: 'Gagal memuat Berita Acara Pengalihan Sisa Dana (BAPSD)' }));
-                toast.error(d.error);
-                setBapsdData(null);
-            }
-        } catch (err) {
-            toast.error(err.message || 'Terjadi kesalahan koneksi');
-            setBapsdData(null);
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        if (jenisLaporan === 'PER_BULAN' && periodeId) {
+            loadLaporanPerBulan();
         }
-    }
+    }, [jenisLaporan, periodeId]);
+
+    useEffect(() => {
+        if (periodeId && periods.length) {
+            const p = periods.find(item => item.id === periodeId);
+            if (p) {
+                setBelanjaTanggalMulai(p.tanggalMulai);
+                setBelanjaTanggalSelesai(p.tanggalSelesai);
+            }
+        }
+    }, [periodeId, periods]);
 
     return (
         <div>
-            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Laporan Keuangan SPPG</h2>
-            {error && <div style={{ color: 'red', marginBottom: '10px', padding: '8px', border: '1px solid red' }}>{error}</div>}
+            <h2 style={{ color: 'var(--text)', marginBottom: '20px' }}>Laporan Keuangan &amp; Operasional</h2>
 
-            {/* Filter Section Card */}
+            {/* Filter Section */}
             <div style={{
                 border: '1px solid var(--border)',
                 borderRadius: 'var(--radius-md)',
@@ -280,13 +337,13 @@ export const LaporanPage = () => {
                 backgroundColor: 'var(--bg-elevated)',
                 boxShadow: 'var(--shadow)',
                 marginBottom: '30px',
-                width: '40%',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '15px'
+                flexWrap: 'wrap',
+                gap: '16px',
+                alignItems: 'flex-end'
             }}>
                 {/* Pilihan Jenis Laporan */}
-                <div>
+                <div style={{ flex: '1 1 200px' }}>
                     <label style={{
                         textTransform: 'uppercase',
                         fontSize: '11px',
@@ -300,26 +357,20 @@ export const LaporanPage = () => {
                     </label>
                     <select
                         value={jenisLaporan}
-                        onChange={e => {
-                            setJenisLaporan(e.target.value);
-                            setReportData([]);
-                            setLpaData(null);
-                            setSptjData(null);
-                            setBapsdData(null);
-                        }}
+                        onChange={handleReportChange}
                         className="form-field"
                     >
                         <option value="BKU">Buku Kas Umum (BKU)</option>
                         <option value="BP">Buku Pembantu per Akun (BP)</option>
-                        <option value="LPA">Laporan Penggunaan Anggaran (LPA)</option>
-                        <option value="LR">Laporan Resume Penerimaan-Pengeluaran (LR)</option>
-                        <option value="SPTJ">Surat Pernyataan Tanggung Jawab (SPTJ)</option>
-                        <option value="BAPSD">Berita Acara Pengalihan Sisa Dana (BAPSD)</option>
+                        <option value="STOCK_BARANG">Stock Barang (Persediaan)</option>
+                        <option value="BELANJA_BAHAN">Kebutuhan Belanja Bahan</option>
+                        <option value="PER_PERIODE">Laporan Per Periode (Pagu vs Realisasi)</option>
+                        <option value="PER_BULAN">Laporan Kas Bulanan</option>
                     </select>
                 </div>
 
-                {/* Periode */}
-                <div>
+                {/* Pilihan Periode */}
+                <div style={{ flex: '1 1 200px' }}>
                     <label style={{
                         textTransform: 'uppercase',
                         fontSize: '11px',
@@ -333,7 +384,13 @@ export const LaporanPage = () => {
                     </label>
                     <select
                         value={periodeId}
-                        onChange={e => setPeriodeId(e.target.value)}
+                        onChange={e => {
+                            if (jenisLaporan === 'BELANJA_BAHAN') {
+                                handlePeriodChangeForBelanja(e.target.value);
+                            } else {
+                                setPeriodeId(e.target.value);
+                            }
+                        }}
                         className="form-field"
                     >
                         {periods.map(p => (
@@ -344,9 +401,9 @@ export const LaporanPage = () => {
                     </select>
                 </div>
 
-                {/* Conditional BP Akun Filter */}
+                {/* BP-specific Akun Dropdown */}
                 {jenisLaporan === 'BP' && (
-                    <div>
+                    <div style={{ flex: '1 1 200px' }}>
                         <label style={{
                             textTransform: 'uppercase',
                             fontSize: '11px',
@@ -361,16 +418,7 @@ export const LaporanPage = () => {
                         <select
                             value={akunId}
                             onChange={e => setAkunId(e.target.value)}
-                            style={{
-                                width: '100%',
-                                padding: '10px 12px',
-                                borderRadius: 'var(--radius-sm)',
-                                border: '1px solid var(--input-border)',
-                                backgroundColor: 'var(--bg)',
-                                color: 'var(--text)',
-                                fontSize: '14px',
-                                boxSizing: 'border-box'
-                            }}
+                            className="form-field"
                         >
                             <option value="">-- Pilih Akun --</option>
                             {akunList.map(a => (
@@ -382,92 +430,133 @@ export const LaporanPage = () => {
                     </div>
                 )}
 
-                {/* Conditional LPA / BAPSD / LR Document Filter */}
-                {(jenisLaporan === 'LPA' || jenisLaporan === 'BAPSD' || jenisLaporan === 'LR') && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                        {jenisLaporan !== 'LR' && (
-                            <div>
-                                <label style={{
-                                    textTransform: 'uppercase',
-                                    fontSize: '11px',
-                                    fontWeight: 700,
-                                    letterSpacing: '0.07em',
-                                    color: 'var(--text-muted)',
-                                    display: 'block',
-                                    marginBottom: '6px'
-                                }}>
-                                    Nomor Dokumen
-                                </label>
-                                <input
-                                    type="text"
-                                    placeholder="Nomor Dokumen"
-                                    value={nomorDokumen}
-                                    onChange={e => setNomorDokumen(e.target.value)}
-                                    style={{
-                                        width: '100%',
-                                        padding: '10px 12px',
-                                        borderRadius: 'var(--radius-sm)',
-                                        border: '1px solid var(--input-border)',
-                                        backgroundColor: 'var(--bg)',
-                                        color: 'var(--text)',
-                                        fontSize: '14px',
-                                        boxSizing: 'border-box'
-                                    }}
-                                />
-                            </div>
-                        )}
-                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    if (jenisLaporan === 'LPA') {
-                                        loadLPA(periodeId, nomorDokumen);
-                                    } else if (jenisLaporan === 'LR') {
-                                        loadLPA(periodeId, '');
-                                    } else if (jenisLaporan === 'BAPSD') {
-                                        loadBAPSD(periodeId, nomorDokumen);
-                                    }
-                                }}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: 'var(--btn-primary-bg)',
-                                    color: 'var(--btn-primary-text)',
-                                    border: 'none',
-                                    borderRadius: 'var(--radius-sm)',
-                                    cursor: 'pointer',
-                                    fontWeight: '600',
-                                    fontSize: '14px',
-                                }}
-                            >
-                                Tampilkan Laporan
-                            </button>
-                            {(jenisLaporan === 'LPA' || jenisLaporan === 'LR') && (
-                                <button
-                                    type="button"
-                                    id="btn-preview-pdf-lpa"
-                                    onClick={previewLpaPdf}
-                                    disabled={pdfLoading}
-                                    style={{
-                                        padding: '10px 20px',
-                                        backgroundColor: pdfLoading ? 'var(--bg-elevated)' : 'var(--bg-elevated)',
-                                        color: 'var(--text)',
-                                        border: '1px solid var(--border)',
-                                        borderRadius: 'var(--radius-sm)',
-                                        cursor: pdfLoading ? 'not-allowed' : 'pointer',
-                                        fontWeight: '600',
-                                        fontSize: '14px',
-                                        opacity: pdfLoading ? 0.65 : 1,
-                                    }}
-                                >
-                                    {pdfLoading ? 'Membuat PDF…' : '📄 Preview PDF'}
-                                </button>
-                            )}
-                        </div>
+                {/* Stock-specific Date Picker */}
+                {jenisLaporan === 'STOCK_BARANG' && (
+                    <div style={{ flex: '1 1 200px' }}>
+                        <label style={{
+                            textTransform: 'uppercase',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            letterSpacing: '0.07em',
+                            color: 'var(--text-muted)',
+                            display: 'block',
+                            marginBottom: '6px'
+                        }}>
+                            Tanggal Stock
+                        </label>
+                        <DatePicker
+                            value={stockTanggal}
+                            onChange={setStockTanggal}
+                            required
+                        />
                     </div>
                 )}
+
+                {/* Belanja Bahan-specific Date Pickers */}
+                {jenisLaporan === 'BELANJA_BAHAN' && (
+                    <>
+                        <div style={{ flex: '1 1 180px' }}>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Tanggal Mulai
+                            </label>
+                            <DatePicker
+                                value={belanjaTanggalMulai}
+                                onChange={setBelanjaTanggalMulai}
+                                defaultFocusMonth={belanjaTanggalMulai}
+                                required
+                            />
+                        </div>
+                        <div style={{ flex: '1 1 180px' }}>
+                            <label style={{
+                                textTransform: 'uppercase',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                letterSpacing: '0.07em',
+                                color: 'var(--text-muted)',
+                                display: 'block',
+                                marginBottom: '6px'
+                            }}>
+                                Tanggal Selesai
+                            </label>
+                            <DatePicker
+                                value={belanjaTanggalSelesai}
+                                onChange={setBelanjaTanggalSelesai}
+                                defaultFocusMonth={belanjaTanggalSelesai}
+                                required
+                            />
+                        </div>
+                    </>
+                )}
+
+                {/* Buttons depending on report type */}
+                <div style={{ flex: '0 0 auto', display: 'flex', gap: '8px' }}>
+                    {jenisLaporan === 'BKU' && (
+                        <button
+                            type="button"
+                            onClick={previewBkuPdf}
+                            disabled={pdfLoading}
+                            style={{
+                                padding: '10px 20px',
+                                backgroundColor: 'var(--bg-elevated)',
+                                color: 'var(--text)',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-sm)',
+                                cursor: pdfLoading ? 'not-allowed' : 'pointer',
+                                fontWeight: '600',
+                                fontSize: '14px',
+                                opacity: pdfLoading ? 0.65 : 1
+                            }}
+                        >
+                            {pdfLoading ? 'Membuat PDF…' : '📄 Preview PDF'}
+                        </button>
+                    )}
+                    {jenisLaporan === 'STOCK_BARANG' && (
+                        <button
+                            type="button"
+                            onClick={() => loadStockBarang(periodeId, stockTanggal)}
+                            className="btn-secondary"
+                            style={{
+                                padding: '10px 20px',
+                                border: '1px solid var(--border)',
+                                borderRadius: 'var(--radius-sm)',
+                                cursor: 'pointer',
+                                fontWeight: '600',
+                                fontSize: '14px'
+                            }}
+                        >
+                            Refresh
+                        </button>
+                    )}
+                    {jenisLaporan === 'BELANJA_BAHAN' && (
+                        <button
+                            type="button"
+                            onClick={loadKebutuhanBelanja}
+                            style={{
+                                padding: '10px 20px',
+                                backgroundColor: 'var(--btn-primary-bg)',
+                                color: 'var(--btn-primary-text)',
+                                border: 'none',
+                                borderRadius: 'var(--radius-sm)',
+                                cursor: 'pointer',
+                                fontWeight: '600',
+                                fontSize: '14px'
+                            }}
+                        >
+                            Tampilkan Laporan
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {/* Loading Indicator */}
+            {/* Loading Skeleton */}
             {loading && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <Skeleton height="40px" />
@@ -478,341 +567,378 @@ export const LaporanPage = () => {
                 </div>
             )}
 
-            {/* Render Tabel BKU & BP */}
+            {/* Render 1 & 2. BKU & BP Tables */}
             {!loading && (jenisLaporan === 'BKU' || jenisLaporan === 'BP') && (
+                <Table
+                    columns={[
+                        { key: 'tanggal', header: 'Tanggal' },
+                        { key: 'noBukti', header: 'No Bukti' },
+                        { key: 'uraian', header: 'Uraian' },
+                        {
+                            key: 'debet',
+                            header: 'Debet',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'kredit',
+                            header: 'Kredit',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'saldoBerjalan',
+                            header: 'Saldo Berjalan',
+                            align: 'right',
+                            render: (v) => (
+                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                    Rp{Number(v).toLocaleString('id-ID')}
+                                </strong>
+                            )
+                        }
+                    ]}
+                    data={reportData}
+                    emptyText="Tidak ada data untuk laporan terpilih pada periode ini."
+                />
+            )}
+
+            {/* Render 3. Stock Barang Table */}
+            {!loading && jenisLaporan === 'STOCK_BARANG' && (
+                <Table
+                    columns={[
+                        { key: 'nama', header: 'Nama Bahan' },
+                        { key: 'satuan', header: 'Satuan' },
+                        {
+                            key: 'saldoAwalQty',
+                            header: 'Saldo Awal',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {Number(v).toLocaleString('id-ID')}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'totalMasukQty',
+                            header: 'Total Masuk',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ color: 'var(--color-success)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                    {Number(v).toLocaleString('id-ID')}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'totalKeluarQty',
+                            header: 'Total Keluar',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ color: 'var(--color-danger)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                    {Number(v).toLocaleString('id-ID')}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'saldoAkhirQty',
+                            header: 'Saldo Akhir',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                    {Number(v).toLocaleString('id-ID')}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'hargaBeliTerakhir',
+                            header: 'Harga Beli Terakhir',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    Rp{Number(v).toLocaleString('id-ID')}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'nilaiStock',
+                            header: 'Nilai Stock',
+                            align: 'right',
+                            render: (v) => (
+                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                    Rp{Number(v).toLocaleString('id-ID')}
+                                </strong>
+                            )
+                        }
+                    ]}
+                    data={stockData}
+                    emptyText="Tidak ada data stock barang untuk periode dan tanggal terpilih."
+                />
+            )}
+
+            {/* Render 4. Kebutuhan Belanja Bahan Table */}
+            {!loading && jenisLaporan === 'BELANJA_BAHAN' && belanjaData !== null && (
+                <Table
+                    columns={[
+                        { key: 'nama', header: 'Nama Bahan Pokok' },
+                        { key: 'satuan', header: 'Satuan' },
+                        {
+                            key: 'totalBeratKotorGr',
+                            header: 'Berat Kotor (kg)',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {(Number(v) / 1000).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'totalBeratBersihGr',
+                            header: 'Berat Bersih (kg)',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ fontVariantNumeric: 'tabular-nums' }}>
+                                    {(Number(v) / 1000).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'totalEstimasiBiaya',
+                            header: 'Estimasi Biaya',
+                            align: 'right',
+                            render: (v) => (
+                                <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                    Rp{Number(v).toLocaleString('id-ID')}
+                                </strong>
+                            )
+                        }
+                    ]}
+                    data={belanjaData}
+                    emptyText="Tidak ada data kebutuhan belanja bahan untuk periode dan tanggal terpilih."
+                />
+            )}
+            {!loading && jenisLaporan === 'BELANJA_BAHAN' && belanjaData === null && (
+                <p style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
+                    Silakan tentukan rentang tanggal dan klik "Tampilkan Laporan".
+                </p>
+            )}
+
+            {/* Render 5. Laporan Per Periode Table */}
+            {!loading && jenisLaporan === 'PER_PERIODE' && perPeriodeData !== null && (
                 <div>
-                    {jenisLaporan === 'BKU' && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '15px' }}>
-                            <button
-                                type="button"
-                                id="btn-preview-pdf-bku"
-                                onClick={previewBkuPdf}
-                                disabled={pdfLoading}
-                                style={{
-                                    padding: '10px 20px',
-                                    backgroundColor: 'var(--bg-elevated)',
-                                    color: 'var(--text)',
-                                    border: '1px solid var(--border)',
-                                    borderRadius: 'var(--radius-sm)',
-                                    cursor: pdfLoading ? 'not-allowed' : 'pointer',
-                                    fontWeight: '600',
-                                    fontSize: '14px',
-                                    opacity: pdfLoading ? 0.65 : 1,
-                                }}
-                            >
-                                {pdfLoading ? 'Membuat PDF…' : '📄 Preview PDF'}
-                            </button>
-                        </div>
-                    )}
                     <Table
                         columns={[
-                            { key: 'tanggal', header: 'Tanggal' },
-                            { key: 'noBukti', header: 'No Bukti' },
-                            { key: 'uraian', header: 'Uraian' },
+                            { key: 'kategori', header: 'Kategori Pos Anggaran' },
                             {
-                                key: 'debet',
-                                header: 'Debet',
+                                key: 'rab',
+                                header: 'Anggaran (RAB)',
                                 align: 'right',
                                 render: (v) => (
                                     <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                        {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
+                                        Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
                                     </span>
                                 )
                             },
                             {
-                                key: 'kredit',
-                                header: 'Kredit',
+                                key: 'aktual',
+                                header: 'Realisasi (Aktual)',
                                 align: 'right',
-                                render: (v) => (
-                                    <span style={{ fontVariantNumeric: 'tabular-nums' }}>
-                                        {Number(v) > 0 ? `Rp${Number(v).toLocaleString('id-ID')}` : '—'}
+                                render: (v, row) => (
+                                    <span style={{ color: row.isEstimasi ? 'var(--color-primary)' : 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>
+                                        Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}{row.isEstimasi ? ' (estimasi)' : ''}
                                     </span>
                                 )
                             },
                             {
-                                key: 'saldoBerjalan',
-                                header: 'Saldo Berjalan',
+                                key: 'selisih',
+                                header: 'Selisih (Sisa)',
                                 align: 'right',
                                 render: (v) => (
                                     <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
-                                        Rp{Number(v).toLocaleString('id-ID')}
+                                        Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
                                     </strong>
                                 )
                             }
                         ]}
-                        data={reportData}
-                        emptyText="Tidak ada data untuk laporan terpilih pada periode ini."
+                        data={[
+                            {
+                                kategori: 'Bahan Makanan (Pendidikan)',
+                                rab: perPeriodeData.bahanMakanan.pendidikan.rab,
+                                aktual: perPeriodeData.bahanMakanan.pendidikan.aktual,
+                                selisih: perPeriodeData.bahanMakanan.pendidikan.selisih,
+                                isEstimasi: true
+                            },
+                            {
+                                kategori: 'Bahan Makanan (Posyandu)',
+                                rab: perPeriodeData.bahanMakanan.posyandu.rab,
+                                aktual: perPeriodeData.bahanMakanan.posyandu.aktual,
+                                selisih: perPeriodeData.bahanMakanan.posyandu.selisih,
+                                isEstimasi: true
+                            },
+                            {
+                                kategori: 'Biaya Operasional',
+                                rab: perPeriodeData.operasional.rab,
+                                aktual: perPeriodeData.operasional.aktual,
+                                selisih: perPeriodeData.operasional.selisih,
+                                isEstimasi: false
+                            },
+                            {
+                                kategori: 'Biaya Insentif Fasilitas',
+                                rab: perPeriodeData.insentifFasilitas.rab,
+                                aktual: perPeriodeData.insentifFasilitas.aktual,
+                                selisih: perPeriodeData.insentifFasilitas.selisih,
+                                isEstimasi: false
+                            }
+                        ]}
                     />
+                    <p style={{ fontSize: '12px', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '12px' }}>
+                        * Catatan: Realisasi Bahan Makanan untuk Pendidikan &amp; Posyandu dihitung menggunakan metode alokasi proporsional berdasarkan rasio RAB (PROPORSIONAL_RAB).
+                    </p>
                 </div>
             )}
+            {!loading && jenisLaporan === 'PER_PERIODE' && perPeriodeData === null && (
+                <p style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
+                    Silakan klik tombol "Tampilkan Laporan" untuk memuat data.
+                </p>
+            )}
 
-            {/* Render Laporan LPA / LR */}
-            {!loading && (jenisLaporan === 'LPA' || jenisLaporan === 'LR') && (
-                <div>
-                    {!lpaData ? (
-                        <p style={{ fontStyle: 'italic', color: '#666' }}>
-                            {jenisLaporan === 'LR'
-                                ? 'Silakan klik tombol Tampilkan Laporan.'
-                                : (!nomorDokumen.trim() 
-                                    ? 'Silakan masukkan Nomor Dokumen terlebih dahulu, lalu klik Tampilkan Laporan.' 
-                                    : 'Silakan klik tombol Tampilkan Laporan.'
-                                  )
+            {/* Render 6. Laporan Per Bulan Table */}
+            {!loading && jenisLaporan === 'PER_BULAN' && perBulanData !== null && (
+                <Table
+                    columns={[
+                        {
+                            key: 'month',
+                            header: 'Bulan',
+                            render: (_, row) => formatIndoMonth(row.year, row.month)
+                        },
+                        {
+                            key: 'totalMasuk',
+                            header: 'Total Masuk',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ color: 'var(--color-success)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                    Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'totalKeluar',
+                            header: 'Total Keluar',
+                            align: 'right',
+                            render: (v) => (
+                                <span style={{ color: 'var(--color-danger)', fontVariantNumeric: 'tabular-nums', fontWeight: 500 }}>
+                                    Rp{v.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+                                </span>
+                            )
+                        },
+                        {
+                            key: 'key',
+                            header: 'Saldo Bersih',
+                            align: 'right',
+                            render: (_, row) => {
+                                const saldoBersih = row.totalMasuk - row.totalKeluar;
+                                return (
+                                    <strong style={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
+                                        Rp{saldoBersih.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+                                    </strong>
+                                );
                             }
-                        </p>
-                    ) : (
-                        <div style={{ border: '1px solid var(--border)', padding: '15px', backgroundColor: 'var(--bg-elevated)', borderRadius: 'var(--radius-md)' }}>
-                            {/* ponytail: unify shade pastel to bg-elevated */}
-                            <h4 style={{ textAlign: 'center', marginBottom: '20px' }}>
-                                {jenisLaporan === 'LR' 
-                                    ? 'LAPORAN/RESUME PENERIMAAN DAN PENGELUARAN'
-                                    : 'LAPORAN PERTANGGUNGJAWABAN PENGGUNAAN DANA'
-                                }
-                            </h4>
-                            
-                            <table style={{ marginBottom: '20px', fontSize: '14px' }} cellPadding="3">
-                                <tbody>
-                                    <tr>
-                                        <td><strong>Nama Lembaga</strong></td>
-                                        <td>: {lpaData.namaLembaga}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Pejabat/Kepala</strong></td>
-                                        <td>: {lpaData.namaPejabat} ({lpaData.jabatan})</td>
-                                    </tr>
-                                    {jenisLaporan !== 'LR' && (
-                                        <tr>
-                                            <td><strong>Nomor Dokumen</strong></td>
-                                            <td>: {lpaData.nomorDokumen}</td>
-                                        </tr>
-                                    )}
-                                    <tr>
-                                        <td><strong>Periode</strong></td>
-                                        <td>: {lpaData.periodeLabel}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Nomor Rekening VA</strong></td>
-                                        <td>: {lpaData.nomorRekeningVA || '—'}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <Table
-                                 columns={[
-                                     {
-                                         key: 'label',
-                                         header: 'Kategori Penggunaan',
-                                         render: (v, row) => row.isTotal ? <strong>{v}</strong> : v
-                                     },
-                                     {
-                                         key: 'diajukan',
-                                         header: 'Anggaran Diajukan (RAB)',
-                                         align: 'right',
-                                         render: (v, row) => (
-                                             <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: row.isTotal ? 700 : 400 }}>
-                                                 Rp{Number(v).toLocaleString('id-ID')}
-                                             </span>
-                                         )
-                                     },
-                                     {
-                                         key: 'terealisasi',
-                                         header: 'Realisasi (Aktual)',
-                                         align: 'right',
-                                         render: (v, row) => (
-                                             <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: row.isTotal ? 700 : 400 }}>
-                                                 Rp{Number(v).toLocaleString('id-ID')}
-                                             </span>
-                                         )
-                                     },
-                                     {
-                                         key: 'sisa',
-                                         header: 'Sisa Dana',
-                                         align: 'right',
-                                         render: (v, row) => (
-                                             <span style={{ fontVariantNumeric: 'tabular-nums', fontWeight: row.isTotal ? 700 : 400 }}>
-                                                 Rp{Number(v).toLocaleString('id-ID')}
-                                             </span>
-                                         )
-                                     }
-                                 ]}
-                                 data={[
-                                     ...lpaData.rincian,
-                                     {
-                                         label: 'Total',
-                                         diajukan: lpaData.total.diajukan,
-                                         terealisasi: lpaData.total.terealisasi,
-                                         sisa: lpaData.total.sisa,
-                                         isTotal: true
-                                     }
-                                 ]}
-                             />
-                             {false && (<table>
-
-                                <thead>
-                                    <tr style={{ backgroundColor: '#eaeaea' }}>
-                                        <th>Kategori Penggunaan</th>
-                                        <th>Anggaran Diajukan (RAB)</th>
-                                        <th>Realisasi (Aktual)</th>
-                                        <th>Sisa Dana</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {lpaData.rincian.map((item, index) => (
-                                        <tr key={index}>
-                                            <td>{item.label}</td>
-                                            <td style={{ textAlign: 'right' }}>Rp{item.diajukan.toLocaleString('id-ID')}</td>
-                                            <td style={{ textAlign: 'right' }}>Rp{item.terealisasi.toLocaleString('id-ID')}</td>
-                                            <td style={{ textAlign: 'right' }}>Rp{item.sisa.toLocaleString('id-ID')}</td>
-                                        </tr>
-                                    ))}
-                                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
-                                        <td>Total</td>
-                                        <td style={{ textAlign: 'right' }}>Rp{lpaData.total.diajukan.toLocaleString('id-ID')}</td>
-                                        <td style={{ textAlign: 'right' }}>Rp{lpaData.total.terealisasi.toLocaleString('id-ID')}</td>
-                                        <td style={{ textAlign: 'right' }}>Rp{lpaData.total.sisa.toLocaleString('id-ID')}</td>
-                                    </tr>
-                                </tbody>
-                             </table>)}
-                            
-
-                            <div style={{ float: 'right', textAlign: 'center', marginTop: '20px', fontSize: '14px' }}>
-                                <p>{lpaData.tempatPelaporan || 'SPPG'}, {lpaData.tanggalPelaporan ? new Date(lpaData.tanggalPelaporan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</p>
-                                <p style={{ marginBottom: '60px' }}>Kepala SPPG</p>
-                                <p><strong>{lpaData.namaPejabat}</strong></p>
-                            </div>
-                            <div style={{ clear: 'both' }}></div>
-                        </div>
-                    )}
-                </div>
+                        }
+                    ]}
+                    data={perBulanData}
+                    emptyText="Tidak ada data kas bulanan untuk periode terpilih."
+                />
+            )}
+            {!loading && jenisLaporan === 'PER_BULAN' && perBulanData === null && (
+                <p style={{ fontStyle: 'italic', color: 'var(--text-muted)' }}>
+                    Silakan klik tombol "Tampilkan Laporan" untuk memuat data.
+                </p>
             )}
 
-            {/* Render Laporan SPTJ */}
-            {!loading && jenisLaporan === 'SPTJ' && (
-                <div>
-                    {!sptjData ? (
-                        <p style={{ fontStyle: 'italic', color: '#666' }}>
-                            Data SPTJ tidak ditemukan untuk periode ini.
-                        </p>
-                    ) : (
-                        <div style={{ border: '1px solid var(--border)', padding: '15px', backgroundColor: 'var(--bg-elevated)', maxWidth: '650px', margin: '0 auto', borderRadius: 'var(--radius-md)' }}>
-                            {/* ponytail: unify shade pastel to bg-elevated */}
-                            <h4 style={{ textAlign: 'center', marginBottom: '5px' }}>
-                                SURAT PERNYATAAN TANGGUNG JAWAB
-                            </h4>
-                            <p style={{ textAlign: 'center', margin: '0 0 25px 0', fontSize: '13px', color: '#444' }}>
-                                SATUAN PELAYANAN PEMENUHAN GIZI (SPPG)
-                            </p>
-
-                            <p style={{ fontSize: '14px', lineHeight: '1.6' }}>
-                                Yang bertanda tangan di bawah ini, <strong>{sptjData.namaPejabat}</strong> selaku <strong>{sptjData.jabatan}</strong>, menyatakan bertanggung jawab penuh atas penggunaan dana pelayanan gizi pada periode ini dengan rincian sebagai berikut:
-                            </p>
-
-                            <table style={{ margin: '20px auto', fontSize: '14px', borderCollapse: 'collapse', width: '90%' }} cellPadding="8" border="1">
-                                <tbody>
-                                    <tr>
-                                        <td><strong>Jumlah Penerimaan</strong></td>
-                                        <td style={{ textAlign: 'right' }}>Rp{sptjData.jumlahPenerimaan.toLocaleString('id-ID')}</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Jumlah Pengeluaran (Realisasi)</strong></td>
-                                        <td style={{ textAlign: 'right', color: 'red' }}>Rp{sptjData.jumlahPengeluaran.toLocaleString('id-ID')}</td>
-                                    </tr>
-                                    <tr style={{ fontWeight: 'bold', backgroundColor: '#f0f0f0' }}>
-                                        <td><strong>Sisa Dana / Selisih</strong></td>
-                                        <td style={{ textAlign: 'right' }}>Rp{sptjData.sisaDana.toLocaleString('id-ID')}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <p style={{ fontSize: '14px', lineHeight: '1.6' }}>
-                                Demikian surat pernyataan pertanggungjawaban ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.
-                            </p>
-
-                            <div style={{ float: 'right', textAlign: 'center', marginTop: '30px', fontSize: '14px', paddingRight: '20px' }}>
-                                <p>{sptjData.tempatPelaporan || 'SPPG'}, {sptjData.tanggalPelaporan ? new Date(sptjData.tanggalPelaporan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</p>
-                                <p style={{ marginBottom: '60px' }}>Kepala SPPG</p>
-                                <p><strong>{sptjData.namaPejabat}</strong></p>
-                            </div>
-                            <div style={{ clear: 'both' }}></div>
+            {/* PDF Preview Modal */}
+            {isPdfModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 10000,
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        border: '1px solid var(--border)',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '24px',
+                        width: '85%',
+                        maxWidth: '1000px',
+                        height: '85vh',
+                        boxShadow: 'var(--shadow-hover)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '16px'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text)' }}>
+                                Preview PDF Laporan (BKU)
+                            </h3>
+                            <button 
+                                onClick={() => {
+                                    setIsPdfModalOpen(false);
+                                    if (pdfUrl) {
+                                        URL.revokeObjectURL(pdfUrl);
+                                        setPdfUrl('');
+                                    }
+                                }} 
+                                style={{
+                                    border: 'none',
+                                    background: 'transparent',
+                                    color: 'var(--text-muted)',
+                                    fontSize: '24px',
+                                    cursor: 'pointer',
+                                    padding: '0 8px'
+                                }}
+                            >
+                                &times;
+                            </button>
                         </div>
-                    )}
-                </div>
-            )}
-
-            {/* Render Laporan BAPSD */}
-            {!loading && jenisLaporan === 'BAPSD' && (
-                <div>
-                    {!bapsdData ? (
-                        <p style={{ fontStyle: 'italic', color: '#666' }}>
-                            {!nomorDokumen.trim() 
-                                ? 'Silakan masukkan Nomor Dokumen terlebih dahulu, lalu klik Tampilkan Laporan.' 
-                                : 'Silakan klik tombol Tampilkan Laporan.'
-                            }
-                        </p>
-                    ) : (
-                        <div style={{ border: '1px solid var(--border)', padding: '20px', backgroundColor: 'var(--bg-elevated)', maxWidth: '700px', margin: '0 auto', fontSize: '14px', lineHeight: '1.6', borderRadius: 'var(--radius-md)' }}>
-                            {/* ponytail: unify shade pastel to bg-elevated */}
-                            <h4 style={{ textAlign: 'center', marginBottom: '5px', textTransform: 'uppercase' }}>
-                                BERITA ACARA PENGALIHAN SISA DANA
-                            </h4>
-                            <p style={{ textAlign: 'center', margin: '0 0 25px 0', fontSize: '12px', color: '#444' }}>
-                                Nomor Dokumen: {bapsdData.nomorDokumen}
-                            </p>
-
-                            <p>
-                                Berdasarkan hasil perhitungan anggaran dan realisasi penggunaan dana pelayanan gizi pada periode <strong>{bapsdData.periodeLabel}</strong>, maka diterangkan hal-hal sebagai berikut:
-                            </p>
-
-                            <table style={{ margin: '15px auto', width: '90%' }} cellPadding="4">
-                                <tbody>
-                                    <tr>
-                                        <td style={{ width: '40%' }}><strong>Sisa Dana Periode Ini</strong></td>
-                                        <td>: <strong>Rp{bapsdData.sisaDana.toLocaleString('id-ID')}</strong></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Status Dana</strong></td>
-                                        <td>: Dialihkan sepenuhnya untuk operasional periode berikutnya</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Tanggal Awal Penggunaan</strong></td>
-                                        <td>: {bapsdData.tanggalMulaiBerikutnya ? new Date(bapsdData.tanggalMulaiBerikutnya).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            <p>
-                                Pengalihan sisa dana ini telah disetujui bersama oleh pihak Pengurus Yayasan <strong>{bapsdData.namaYayasan}</strong> dan pihak Satuan Pelayanan Pemenuhan Gizi (SPPG).
-                            </p>
-
-                            {/* Tanda Tangan */}
-                            <div style={{ marginTop: '40px' }}>
-                                <p style={{ textAlign: 'right', marginBottom: '20px' }}>
-                                    {bapsdData.tempatPelaporan || 'SPPG'}, {bapsdData.tanggalPelaporan ? new Date(bapsdData.tanggalPelaporan).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
-                                </p>
-                                
-                                <div style={{ display: 'flex', justifyContent: 'space-between', textAlign: 'center' }}>
-                                    <div style={{ width: '45%' }}>
-                                        <p>Yang Menyerahkan,</p>
-                                        <p>Akuntan SPPG</p>
-                                        <div style={{ height: '60px' }}></div>
-                                        <p><strong>{bapsdData.namaAkuntan}</strong></p>
-                                    </div>
-                                    <div style={{ width: '45%' }}>
-                                        <p>Yang Menerima,</p>
-                                        <p>Kepala SPPG</p>
-                                        <div style={{ height: '60px' }}></div>
-                                        <p><strong>{bapsdData.namaPejabat}</strong></p>
-                                    </div>
-                                </div>
-
-                                <div style={{ textAlign: 'center', marginTop: '30px' }}>
-                                    <p>Mengetahui,</p>
-                                    <p>Ketua Yayasan {bapsdData.namaYayasan}</p>
-                                    <div style={{ height: '60px' }}></div>
-                                    <p><strong>{bapsdData.ketuaYayasan}</strong></p>
-                                </div>
-                            </div>
+                        <div style={{ flex: 1, border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+                            <iframe src={pdfUrl} width="100%" height="100%" style={{ border: 'none' }} title="PDF Preview" />
                         </div>
-                    )}
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                            <button 
+                                onClick={() => {
+                                    setIsPdfModalOpen(false);
+                                    if (pdfUrl) {
+                                        URL.revokeObjectURL(pdfUrl);
+                                        setPdfUrl('');
+                                    }
+                                }} 
+                                className="btn-secondary"
+                                style={{
+                                    padding: '10px 20px',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: 'var(--radius-sm)',
+                                    cursor: 'pointer',
+                                    fontWeight: 600,
+                                    backgroundColor: 'transparent',
+                                    color: 'var(--text)'
+                                }}
+                            >
+                                Tutup
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

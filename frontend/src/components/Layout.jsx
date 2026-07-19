@@ -539,11 +539,7 @@ export const Layout = () => {
                 <li style={{ padding: '8px 14px 4px 14px', fontSize: '9px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', borderTop: '1px solid var(--border)', marginTop: '8px' }}>
                   Laporan
                 </li>
-                {renderLink('/akuntan/laporan', 'Laporan BKU', FileText)}
-                {renderLink('/akuntan/laporan/stock-barang', 'Stock Barang', Package)}
-                {renderLink('/akuntan/laporan/kebutuhan-belanja-bahan', 'Belanja Bahan', ShoppingCart)}
-                {renderLink('/akuntan/laporan/per-periode', 'Per Periode', BarChart2)}
-                {renderLink('/akuntan/laporan/per-bulan', 'Per Bulan', CalendarRange)}
+                {renderLink('/akuntan/laporan', 'Laporan Keuangan', FileText)}
               </>
             )}
 

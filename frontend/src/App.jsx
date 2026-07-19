@@ -38,11 +38,8 @@ import { NominatifUpahPage } from './pages/akuntan/NominatifUpahPage';
 
 // Akuntan — Laporan
 import { LaporanPage } from './pages/akuntan/laporan/LaporanPage';
-import { StockBarangPage } from './pages/akuntan/laporan/StockBarangPage';
-import { KebutuhanBelanjaBahanPage } from './pages/akuntan/laporan/KebutuhanBelanjaBahanPage';
-import { LaporanPerPeriodePage } from './pages/akuntan/laporan/LaporanPerPeriodePage';
-import { LaporanPerBulanPage } from './pages/akuntan/laporan/LaporanPerBulanPage';
 import { PeriodeSetupPage } from './pages/akuntan/laporan/PeriodeSetupPage';
+
 
 import { useAuth } from './context/AuthContext';
 function RoleRedirect() {
@@ -197,7 +194,7 @@ function App() {
               path="akuntan/laporan/stock-barang"
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
-                  <StockBarangPage />
+                  <LaporanPage />
                 </ProtectedRoute>
               }
             />
@@ -205,7 +202,7 @@ function App() {
               path="akuntan/laporan/kebutuhan-belanja-bahan"
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
-                  <KebutuhanBelanjaBahanPage />
+                  <LaporanPage />
                 </ProtectedRoute>
               }
             />
@@ -261,7 +258,7 @@ function App() {
               path="akuntan/laporan/per-periode"
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
-                  <LaporanPerPeriodePage />
+                  <LaporanPage />
                 </ProtectedRoute>
               }
             />
@@ -269,7 +266,7 @@ function App() {
               path="akuntan/laporan/per-bulan"
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
-                  <LaporanPerBulanPage />
+                  <LaporanPage />
                 </ProtectedRoute>
               }
             />
