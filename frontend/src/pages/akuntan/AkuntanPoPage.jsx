@@ -37,6 +37,7 @@ export const AkuntanPoPage = () => {
     const [selectedTanggalMulti, setSelectedTanggalMulti] = useState([]);
     const [isMultiPrintModalOpen, setIsMultiPrintModalOpen] = useState(false);
     const [printGabunganData, setPrintGabunganData] = useState(null);
+    const [nomorDokumenGabungan, setNomorDokumenGabungan] = useState('');
 
     const cleanDateStr = (dStr) => dStr ? dStr.split('T')[0] : '';
 
@@ -258,63 +259,51 @@ export const AkuntanPoPage = () => {
                 </div>
 
                 {/* PO Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }}>
-                    <img src="/kop-po.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', paddingBottom: '10px', marginBottom: '20px' }}>
+                    <img src="/kop-po.png" alt="Logo" style={{ height: '90px', objectFit: 'contain' }} />
                     <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '15px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
-                        <div style={{ fontSize: '11px' }}>Gedung E Kompleks Kementrian Pertanian</div>
-                        <div style={{ fontSize: '11px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
+                        <div style={{ fontWeight: 'bold', fontSize: '20px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
+                        <div style={{ fontSize: '13px' }}>Gedung E Kompleks Kementrian Pertanian</div>
+                        <div style={{ fontSize: '13px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
                     </div>
                 </div>
 
-                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', textDecoration: 'underline', marginBottom: '15px' }}>
-                    NOTA PESANAN GABUNGAN BAHAN MAKANAN (MULTI-TANGGAL)
+                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', textDecoration: 'underline', marginBottom: '5px' }}>
+                    NOTA PESANAN BAHAN MAKANAN
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '15px', fontSize: '13px', marginBottom: '10px' }}>
-                    <div>
-                        <table style={{ width: '100%' }}>
-                            <tbody>
-                                <tr>
-                                    <td style={{ width: '100px' }}>SPPG</td>
-                                    <td>: {namaLembaga}</td>
-                                </tr>
-                                <tr>
-                                    <td>ID SPPG</td>
-                                    <td>: {idLembaga}</td>
-                                </tr>
-                                <tr>
-                                    <td>Kepada</td>
-                                    <td>: ALL CV</td>
-                                </tr>
-                                <tr>
-                                    <td>Alamat</td>
-                                    <td>: Ditempat</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div>
-                        <table style={{ width: '100%' }}>
-                            <tbody>
-                                <tr>
-                                    <td style={{ width: '120px' }}>Periode Tanggal</td>
-                                    <td>: {sortedTanggalList.map(tgl => tgl.split('T')[0]).join(', ')}</td>
-                                </tr>
-                                <tr>
-                                    <td>PM</td>
-                                    <td>: SISWA &amp; B3</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', marginBottom: '15px' }}>
+                    NO: {nomorDokumenGabungan || '-'}
                 </div>
 
                 <div style={{ fontSize: '13px', marginBottom: '20px' }}>
                     <table style={{ width: '100%' }}>
                         <tbody>
                             <tr>
-                                <td style={{ width: '100px', verticalAlign: 'top' }}>Menu</td>
+                                <td style={{ width: '120px', verticalAlign: 'top' }}>SPPG</td>
+                                <td style={{ verticalAlign: 'top' }}>: {namaLembaga}</td>
+                            </tr>
+                            <tr>
+                                <td style={{ verticalAlign: 'top' }}>ID SPPG</td>
+                                <td style={{ verticalAlign: 'top' }}>: {idLembaga}</td>
+                            </tr>
+                            <tr>
+                                <td style={{ verticalAlign: 'top' }}>Kepada</td>
+                                <td style={{ verticalAlign: 'top' }}>: ALL CV</td>
+                            </tr>
+                            <tr>
+                                <td style={{ verticalAlign: 'top' }}>Alamat</td>
+                                <td style={{ verticalAlign: 'top' }}>: Ditempat</td>
+                            </tr>
+                            <tr>
+                                <td style={{ verticalAlign: 'top' }}>Waktu</td>
+                                <td style={{ verticalAlign: 'top' }}>: {sortedTanggalList.map(tgl => tgl.split('T')[0]).join(', ')}</td>
+                            </tr>
+                            <tr>
+                                <td style={{ verticalAlign: 'top' }}>PM</td>
+                                <td style={{ verticalAlign: 'top' }}>: SISWA &amp; B3</td>
+                            </tr>
+                            <tr>
+                                <td style={{ verticalAlign: 'top' }}>Menu</td>
                                 <td style={{ verticalAlign: 'top' }}>: {
                                     sortedTanggalList.map(tgl => {
                                         const cleanTgl = tgl.split('T')[0];
@@ -436,12 +425,12 @@ export const AkuntanPoPage = () => {
                 </div>
 
                 {/* PO Header */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }}>
-                    <img src="/kop-po.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', paddingBottom: '10px', marginBottom: '20px' }}>
+                    <img src="/kop-po.png" alt="Logo" style={{ height: '90px', objectFit: 'contain' }} />
                     <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '15px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
-                        <div style={{ fontSize: '11px' }}>Gedung E Kompleks Kementrian Pertanian</div>
-                        <div style={{ fontSize: '11px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
+                        <div style={{ fontWeight: 'bold', fontSize: '20px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
+                        <div style={{ fontSize: '13px' }}>Gedung E Kompleks Kementrian Pertanian</div>
+                        <div style={{ fontSize: '13px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
                     </div>
                 </div>
 
@@ -1177,6 +1166,27 @@ export const AkuntanPoPage = () => {
                         gap: '16px'
                     }}>
                         <h3 style={{ margin: '0 0 10px 0', color: 'var(--text)' }}>Cetak PO Gabungan Multi-Tanggal</h3>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <label style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text)' }}>Nomor Dokumen PO</label>
+                            <input
+                                type="text"
+                                placeholder="Masukkan nomor dokumen (opsional)"
+                                value={nomorDokumenGabungan}
+                                onChange={(e) => setNomorDokumenGabungan(e.target.value)}
+                                style={{
+                                    padding: '8px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    border: '1px solid var(--border)',
+                                    backgroundColor: 'var(--bg)',
+                                    color: 'var(--text)',
+                                    fontSize: '13px',
+                                    outline: 'none',
+                                    fontFamily: 'inherit'
+                                }}
+                            />
+                        </div>
+
                         <p style={{ fontSize: '13px', color: 'var(--text-muted)', margin: 0 }}>
                             Pilih tanggal-tanggal yang ingin digabungkan dalam cetakan PO:
                         </p>
@@ -1214,6 +1224,7 @@ export const AkuntanPoPage = () => {
                                 onClick={() => {
                                     setIsMultiPrintModalOpen(false);
                                     setSelectedTanggalMulti([]);
+                                    setNomorDokumenGabungan('');
                                 }}
                                 style={{
                                     padding: '8px 16px',
