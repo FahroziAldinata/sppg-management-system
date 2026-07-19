@@ -147,7 +147,7 @@ const SHARED_CSS = `
     font-size: 11pt;
     color: #000;
     margin: 0;
-    padding: 0;
+    padding: 0 5mm;
     background: #fff;
   }
   .kop-surat {
