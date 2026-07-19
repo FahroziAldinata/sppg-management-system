@@ -440,9 +440,282 @@ Referensi Excel: `Lap.Keu P1 8-17 jan 2026.xlsx` sheet **Transaksi** (123 entry,
   - Status badge + tombol ubah status (Aktifkan/Selesaikan)
   - Route: `/akuntan/laporan/periode-setup` atau halaman terpisah
 
+### B.12 — [BARU] Redesain Tab "RAB Harian" jadi Rencana Bahan Harian (RAB P12)
+
+**Latar:** Tab RAB Harian saat ini hanya daftar RabHarian kosong (container PO). Padahal sistem sudah punya data menu DISETUJUI + penerima manfaat yang bisa dikalkulasi jadi **kebutuhan bahan per hari** — mirip Excel `RAB P12 (8juni-20juni 2026).xlsx`.
+
+**Alur baru:**
+```
+Menu Ahli Gizi (DISETUJUI) × Input Penerima Manfaat
+        │
+        ▼
+TAB RAB HARIAN (redesain) — budget planning + approval
+  ─ Pagu harian dari jumlah penerima × batas porsi
+  ─ Daftar bahan (dari MenuItemBahan × porsi) dengan qty, harga, jumlah
+  ─ Total & sisa per hari
+  ─ ACC / approve RAB
+        │
+        ▼
+PO (halaman terpisah) — eksekusi
+  ─ Data RAB yg sudah ACC masuk otomatis ke form PO
+  ─ Akuntan pilih supplier, cetak Nota Pesanan
+```
+
+**Data:** sudah ada di `MenuItemBahan.beratKotorGr` + `InputPenerimaManfaatDetail.jumlahPenerima` + `HargaBahanPeriode.harga`. Sama seperti auto-fill PO page, tapi ditampilkan sebagai laporan perencanaan.
+
+Referensi Excel: `D:\RAB P12 (8juni-20juni 2026).xlsx`
+
+- [ ] **Task 12a: Backend — endpoint `GET /api/akuntan/rab-p12/harian?periodeId=X&tanggal=Y`**
+  - Reuse logika `GET /mitra/po/kebutuhan` yang sudah hitung qtySiswa, qtyB3, hargaSatuan per bahan
+  - Tambah pagu harian: `SUM(jumlahPenerima per kategori × batasPorsi)` split KECIL/Rp8k & BESAR/Rp10k
+  - Return:
+    ```json
+    {
+      "tanggal": "2026-06-10",
+      "pagu": 16012000,
+      "totalBiaya": 16003450,
+      "sisa": 8550,
+      "bahan": [
+        { "nama": "Beras", "satuan": "KG", "qtySiswa": 137, "qtyB3": 0, "qtyTotal": 137, "hargaSatuan": 15000, "jumlah": 2055000 }
+      ]
+    }
+    ```
+
+- [ ] **Task 12b: Backend — endpoint `GET /api/akuntan/rab-p12/rekap?periodeId=X`**
+  - Agregasi seluruh hari dalam periode
+  - Per hari: pagu, totalBiaya, sisa
+  - Total: totalPagu, totalBiaya, totalSisa
+  - Sama seperti sheet REKAP di Excel RAB P12
+
+- [ ] **Task 12c: Frontend — ubah tab "RAB Harian" di RabHarianPage.jsx**
+  - Ganti dari daftar RabHarian (daftar tanggal + status) jadi antarmuka RAB P12:
+    - **Pilih Tanggal** → tampil Pagu, Total Bahan, Sisa
+    - **Tabel bahan**: Nama | Satuan | Qty SISWA | Qty B3 | Qty Total | Harga Satuan | Jumlah
+    - **Tombol "Ajukan RAB"** → ubah status jadi DIAJUKAN → notif ke Kepala SPPG
+    - **Status badge** (DRAFT/DIAJUKAN/DISETUJUI/DITOLAK)
+    - **Tombol "Ajukan Approval"** → hanya muncul jika status DRAFT
+  - Integrasi approval: jika DISETUJUI → muncul tombol "Buat PO dari RAB ini"
+
+- [ ] **Task 12d: Frontend — tambah ringkasan rekap di tab RAB Harian**
+  - Di bawah tabel harian, tampilkan REKAP periode:
+    - Tabel: Tanggal | Pagu | Total Biaya | Sisa | Status
+    - Total baris: total pagu, total biaya, total sisa
+  - Filter by date range
+
+- [ ] **Task 12e: Tombol "Buat PO dari RAB" navigasi ke PO page**
+  - Saat RAB sudah DISETUJUI, tombol navigasi ke `/akuntan/po?tanggal=Y`
+  - Data kebutuhan bahan sudah otomatis terisi di form PO (karena PO page sudah auto-fill dari endpoint yg sama)
+
+### B.13 — [BARU] RAB → PO: alur approval & eksekusi
+
+**Latar:** Setelah RAB Harian di-ACC, data harus mengalir ke PO untuk eksekusi. Sekarang PO page auto-fill langsung dari menu tanpa melalui status RAB.
+
+- [ ] **Task 13a: Backend — tambah field `status` dan `approvedAt` di RabHarian response**
+  - Saat ini RabHarian sudah punya `status: StatusApproval` dan `approvals[]`
+  - Pastikan `GET /mitra/po/kebutuhan` hanya return data jika `RabHarian.status = DISETUJUI`
+  - Jika belum DISETUJUI, return error: "RAB harian untuk tanggal ini belum disetujui"
+
+- [ ] **Task 13b: Frontend PO page — validasi RAB harus DISETUJUI**
+  - Saat pilih tanggal di PO form, cek status RabHarian
+  - Jika belum DISETUJUI, tampilkan pesan: "RAB harian tanggal ini belum disetujui. Buka tab RAB Harian untuk mengajukan approval."
+  - Jika DISETUJUI, form PO bisa diisi
+
+- [ ] **Task 13c: Approval flow dari RAB**
+  - Tab RAB Harian: status DRAFT → tombol "Ajukan" → DIAJUKAN → notif ke Kepala SPPG
+  - Kepala SPPG approve via halaman approval (mekanisme existing)
+  - Setelah DISETUJUI: RAB terkunci, data siap di-PO
+
+### B.14 — [BARU] Laporan Harian (Realisasi Penggunaan Dana)
+
+**Latar:** Excel `LAP_hari-minggu-bulan 25MEI-20JUNI 2026.xlsx` sheet 1-2 berisi **Laporan Harian Penggunaan Dana** — per hari: penerima manfaat per sekolah/posyandu (split L/P) + rincian belanja bahan + biaya ops & insentif + tanda tangan. Data mentah sudah ada di sistem, belum ada laporan agregatnya.
+
+**Format Excel per hari:**
+```
+LAPORAN HARIAN PENGGUNAAN DANA PROGRAM MBG TA 2026
+SPPG Sumedang Ujungjaya Palabuan — 25 Mei 2026
+
+A. PESERTA DIDIK
+Kelompok        | Sekolah         | L | P | Jml
+PAUD/TK         | TK Amanah       | 12| 13| 25
+SD Kelas 1-3    | SDN Wanajaya    | 30| 28| 58
+...
+
+B. NON PESERTA (B3)
+Balita          | Posyandu Cempaka| 10| 12| 22
+...
+
+C. RINCIAN PEMBELANJAAN
+Bahan Baku Pangan:
+  Beras       | 137 KG  | Rp15.000 | Rp2.055.000
+  Daging Ayam |  68 KG  | Rp35.000 | Rp2.380.000
+  ...
+Biaya Operasional:                             Rp67.022.000
+Biaya Insentif Fasilitas:                      Rp84.000.000
+
+Pihak Pertama (Mitra)    | Staf Pengawas Keuangan | Kepala SPPG
+Dizhar Priatama          | Windi Amelia W., S.Ak  | Yayang Badruddin, S.E
+```
+
+**Data sumber:**
+- ✅ Penerima per sekolah/posyandu: `InputPenerimaManfaatDetail.lakiLaki` + `.perempuan` per `sekolahId` / `posyanduId`
+- ✅ Rincian belanja bahan: `TransaksiPembelianItem` (qty, hargaSatuan, subtotal) via `TransaksiPembelian.tanggal`
+- ✅ Biaya Ops & Insentif: `JurnalTransaksi` WHERE akunDanaBiaya.kategoriDana = OPERASIONAL / INSENTIF_FASILITAS
+- ✅ Tanda tangan: `SetupLembaga.namaAkuntanSPPG`, `User.nama` role MITRA & KEPALA_SPPG
+
+- [ ] **Task 14a: Backend — endpoint `GET /api/laporan/harian?periodeId=X&tanggal=Y`**
+  - **A. PESERTA DIDIK:** query `InputPenerimaManfaatDetail` + `Sekolah` + `KategoriPenerima` untuk tanggal tsb
+    - Cari `InputPenerimaManfaat` where `periodeId` AND `hariAktif` includes dayOfWeek(tanggal)
+    - Group by kategori (PAUD_TK, SD_1_3, SD_4_6, SMP_1_3, SMA_SMK_4_6, ATS_KURANG_9TH, ATS_9_18TH, PENDIDIK, TENAGA_KEPENDIDIKAN)
+    - Per kategori: list per sekolah dg L/P/Jml
+  - **B. NON PESERTA (B3):** sama, filter kategori BALITA, BUMIL, BUSUI, KADER_POSYANDU, group by posyandu
+  - **C. RINCIAN:** 
+    - Belanja bahan: SUM `TransaksiPembelianItem` per `bahanPokok` WHERE `TransaksiPembelian.tanggal` = target date
+    - Biaya Ops: SUM `JurnalTransaksi.nominal` WHERE tanggal = target AND kategoriDana = OPERASIONAL
+    - Biaya Insentif: SUM JurnalTransaksi WHERE tanggal = target AND kategoriDana = INSENTIF_FASILITAS
+  - Sertakan identitas lembaga + nama pejabat untuk TTD
+  - Response:
+    ```json
+    {
+      "tanggal": "2026-05-25",
+      "identitas": { "namaLembaga": "...", "alamat": "..." },
+      "pesertaDidik": [
+        {
+          "kategori": "PAUD/TK", "kategoriId": "...",
+          "sekolah": [
+            { "nama": "TK Amanah", "lakiLaki": 12, "perempuan": 13, "jumlah": 25 }
+          ]
+        }
+      ],
+      "nonPeserta": [
+        {
+          "kategori": "Balita",
+          "posyandu": [
+            { "nama": "Cempaka 1", "lakiLaki": 10, "perempuan": 12, "jumlah": 22 }
+          ]
+        }
+      ],
+      "pembelanjaan": {
+        "bahanBaku": [
+          { "bahan": "Beras", "satuan": "KG", "qty": 137, "hargaSatuan": 15000, "jumlah": 2055000 }
+        ],
+        "biayaOperasional": 67022000,
+        "biayaInsentifFasilitas": 84000000,
+        "totalPembelanjaan": 153022000
+      },
+      "ttd": {
+        "mitra": "Dizhar Priatama",
+        "akuntan": "Windi Amelia Winengsih, S.Ak",
+        "kepalaSPPG": "Yayang Badruddin, S.E"
+      }
+    }
+    ```
+
+- [ ] **Task 14b: Frontend — tambah opsi "Laporan Harian" di LaporanPage dropdown**
+  - Value: `'LAPORAN_HARIAN'`
+  - Navigasi ke `/akuntan/laporan/harian`
+  - Form filter: Periode + Pilih Tanggal
+  - Render:
+    - Header: judul + identitas lembaga + tanggal
+    - Section A: tabel PESERTA DIDIK (kelompok | sekolah | L | P | Jml) + total
+    - Section B: tabel NON PESERTA (B3) (kategori | posyandu | L | P | Jml) + total
+    - Section C: tabel RINCIAN PEMBELANJAAN (bahan | qty | satuan | harga | jumlah) + biaya ops/insentif + grand total
+    - Footer TTD: 3 kolom tanda tangan (Mitra | Akuntan | Kepala SPPG)
+  - Tombol "Preview PDF"
+
+- [ ] **Task 14c: Template PDF Laporan Harian**
+  - `backend/src/templates/dokumen/laporanHarian.js`
+  - Layout exact Excel: kop surat, tabel penerima (A+B), tabel pembelanjaan (C), footer TTD
+  - Endpoint: `GET /api/laporan/harian/pdf?periodeId=X&tanggal=Y`
+
+### B.15 — [BARU] LRA (Laporan Realisasi Anggaran) + LAP Bulanan + LPD2M
+
+**Latar:** Excel `LAP_hari-minggu-bulan 25MEI-20JUNI 2026.xlsx` sheet 3,6,9,10 berisi 3 laporan terkait yang bisa digabung jadi 1 fitur:
+
+| Sheet | Nama | Fungsi |
+|-------|------|--------|
+| 3,6 | **LRA** | Realisasi Anggaran per periode: PENDAPATAN vs BELANJA = SURPLUS/DEFISIT |
+| 9 | **LPD2M** | Rekap multi-periode (P11+P12): Saldo Awal, Penerimaan, Belanja, Sisa |
+| 10 | **LAP Bulanan** | Laporan bulanan formal cover 2 periode + ttd |
+
+**Sistem sudah punya:**
+- ✅ LR (Laporan Resume) — mirip LRA tapi tanpa PENDAPATAN dan SURPLUS/DEFISIT
+- ✅ LPA — per-periode, bisa di-extend untuk multi-periode
+- ✅ Data: `Periode.totalDanaDiterima`, `AnggaranHarian`, `JurnalTransaksi`
+
+- [ ] **Task 15a: Backend — endpoint `GET /api/laporan/lra?periodeId=X` (LRA per periode)**
+  - Modifikasi dari LR existing:
+    - PENDAPATAN: `Periode.totalDanaDiterima` (dari BGN) + potensi dari Yayasan/Lainnya (0 jika tidak ada)
+    - BELANJA: SUM `AnggaranHarian.aktual` per kategoriDana (BAHAN_MAKANAN, OPERASIONAL, INSENTIF_FASILITAS)
+    - SURPLUS/DEFISIT: Total PENDAPATAN - Total BELANJA
+  - Response:
+    ```json
+    {
+      "periodeLabel": "25 Mei - 6 Juni 2026",
+      "pendapatan": {
+        "dariBGN": 367682750,
+        "dariYayasan": 0,
+        "dariLainnya": 0,
+        "totalPendapatan": 367682750
+      },
+      "belanja": {
+        "bahanPangan": { "diajukan": 180975600, "terealisasi": 180975600 },
+        "operasional": { "diajukan": 126058289, "terealisasi": 126058289 },
+        "sewa": { "diajukan": 60000000, "terealisasi": 60000000 },
+        "totalBelanja": 367033889
+      },
+      "surplusDefisit": 648861,
+      "ttd": { "kepalaSPPG": "...", "akuntan": "..." }
+    }
+    ```
+
+- [ ] **Task 15b: Frontend — opsi "LRA (Realisasi Anggaran)" di LaporanPage**
+  - Value: `'LRA'`
+  - Render tabel: PENDAPATAN section, BELANJA section, SURPLUS/DEFISIT
+  - Tombol "Preview PDF"
+
+- [ ] **Task 15c: Backend — endpoint `GET /api/laporan/rekap-bulanan?periodeIds[]=X&periodeIds[]=Y` (LPD2M multi-periode)**
+  - Terima array periodeId (misal P11 + P12)
+  - Agregasi per periode: Saldo Awal (sisa periode sebelumnya), Penerimaan, Belanja per kategori, Total, Sisa
+  - Response:
+    ```json
+    {
+      "periode": [
+        {
+          "label": "25 Mei - 6 Juni 2026",
+          "saldoAwal": 367682750,
+          "penerimaan": 367682750,
+          "belanja": { "bahanPangan": 180975600, "operasional": 126058289, "sewa": 60000000, "total": 367033889 },
+          "sisa": 648861
+        },
+        { "...period 12..." }
+      ],
+      "grandTotal": {
+        "penerimaan": 874266889,
+        "belanja": 772611029,
+        "sisa": 101655860
+      }
+    }
+    ```
+
+- [ ] **Task 15d: Frontend — opsi "Rekap Bulanan (LPD2M)" di LaporanPage**
+  - Multi-select periode (checkboxes)
+  - Render tabel gabungan dengan grand total
+  - Tombol "Preview PDF"
+
+- [ ] **Task 15e: Frontend — ganti / perluas halaman Dokumen Resmi untuk LAP Bulanan**
+  - Tambah jenis dokumen "LAP Bulanan" di dropdown DokumenResmiPage
+  - Format: mirip LPA tapi multi-periode + cover 2 ttd (Pihak Pertama + Mengetahui)
+  - Nomor dokumen format: `06/LPA/VI/2026` (manual / auto)
+  - Endpoint: reuse LPA dengan flag multi-periode atau endpoint baru
+
+- [ ] **Task 15f: Template PDF LRA + LAP Bulanan**
+  - `templates/dokumen/lra.js` — format realisasi anggaran
+  - `templates/dokumen/lapBulanan.js` — format laporan bulanan formal
+  - Layout ikuti Excel (kop, tabel, footer ttd)
+
 ---
 
-## C. Tugas Non-Bloking (Setelah B.1–B.11)
+## C. Tugas Non-Bloking (Setelah B.1–B.15)
 
 _Cadangan, prioritas rendah_
 
@@ -452,6 +725,15 @@ _Cadangan, prioritas rendah_
 
 ### C.2 — Halaman "Catatan Pengeluaran Bulanan" terpisah
 - Setelah B.3 + B.5, buat halaman/endpoint khusus untuk Catatan (bisa di DokumenResmi atau LaporanPage)
+
+### C.3 — [BARU] PDF RAB P12
+- Template PDF untuk cetak RAB P12 per hari atau per periode
+- Layout mengikuti Excel (kop, tabel bahan, pagu, sisa, rekap)
+- Tombol "Preview PDF" di tab RAB Harian
+
+### C.4 — [BARU] Notifikasi ke Mitra saat RAB disetujui
+- Setelah RAB DISETUJUI, notif ke Mitra: "RAB tanggal Y sudah disetujui, silakan cek PO"
+- Mitra bisa lihat estimasi kebutuhan bahan sebelum PO resmi dibuat
 
 ---
 
@@ -503,12 +785,31 @@ _Cadangan, prioritas rendah_
 
 **Saran:** Buat auto counter per bulan di DB dengan tabel `CounterDokumen`. Tapi bisa juga user isi manual di form generate (default counter dari DB + bisa diedit). Tanya user.
 
+### Z.8 — Redesain Tab RAB Harian: daftar RabHarian dipindah ke PO page
+**Masalah:** Tab RAB Harian saat ini isinya daftar RabHarian (tanggal + status + jumlah PO) — tipis. Mulai sekarang RAB Harian fokus ke **perencanaan bahan** (RAB P12).
+
+**Keputusan:** Tab RAB Harian di-redesain total jadi antarmuka RAB P12 (daftar bahan per hari dari menu × porsi). Daftar RabHarian (daftar container PO) tidak ditampilkan lagi di sini — fungsinya pindah ke PO page yang sudah menampilkan PO per tanggal dengan detail item.
+
+**Dampak:**
+- Tab RAB Harian: sekarang fokus ke **perencanaan + approval** (bahan apa, berapa, setuju?)
+- PO page: tetap untuk **eksekusi** (pilih supplier, cetak PO)
+- Alur: RAB ACC → PO execute — tidak tumpang tindih
+
+### Z.9 — BTT (Bukti Tanda Terima): perlu diimplementasikan?
+**Masalah:** Excel `LAP_hari-minggu-bulan` sheets 4-5,7-8 berisi BTT — dokumen formal tanda terima dana dari BGN ke Mitra. Tidak ada model/template di sistem.
+
+**Saran:** Skip dulu — ini dokumen offline yang ditandatangani manual. Formatnya sederhana (template statis) dan tidak terkait data sistem. Prioritas rendah.
+
 ---
 
 ## ✅ Clear — Sheet/ Fitur tanpa gap
 
 **Sheets Excel** — kolom fully covered, gap non-struktural di B.9:
 `Transaksi` (⚠️ B.10) | `Saldo_Brg` (⚠️ B.9) | `Masuk` | `Keluar` | `Stock_Brg` | `LPA` | `SPTJ` | `BAPSD` | `DafNom`
+
+**Referensi baru yang sudah di-audit:**
+- `D:\RAB P12 (8juni-20juni 2026).xlsx` (⚠️ B.12) — perencanaan bahan harian dari menu × porsi
+- `D:\LAP_hari-minggu-bulan 25MEI-20JUNI 2026.xlsx` (⚠️ B.14 & B.15) — laporan harian realisasi + LRA + LAP Bulanan + LPD2M multi-periode
 
 **Fitur sistem** yang tidak ada sheet Excel-nya (system-native):
 - ✅ **Validasi Stok** (`/akuntan/validasi-stok`) — rekonsiliasi stok gudang (qty sistem vs fisik). Tidak ada sheet Excel terkait — murni fitur operasional sistem.
