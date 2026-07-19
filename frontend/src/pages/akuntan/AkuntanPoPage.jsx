@@ -258,19 +258,20 @@ export const AkuntanPoPage = () => {
                 </div>
 
                 {/* PO Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px', alignItems: 'center' }}>
                     <div>
                         <div style={{ fontWeight: 'bold', fontSize: '15px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
                         <div style={{ fontSize: '11px' }}>Gedung E Kompleks Kementrian Pertanian</div>
                         <div style={{ fontSize: '11px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
                     </div>
+                    <img src="/kop-po.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
                 </div>
 
                 <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', textDecoration: 'underline', marginBottom: '15px' }}>
                     NOTA PESANAN GABUNGAN BAHAN MAKANAN (MULTI-TANGGAL)
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '15px', fontSize: '13px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '15px', fontSize: '13px', marginBottom: '10px' }}>
                     <div>
                         <table style={{ width: '100%' }}>
                             <tbody>
@@ -282,6 +283,14 @@ export const AkuntanPoPage = () => {
                                     <td>ID SPPG</td>
                                     <td>: {idLembaga}</td>
                                 </tr>
+                                <tr>
+                                    <td>Kepada</td>
+                                    <td>: ALL CV</td>
+                                </tr>
+                                <tr>
+                                    <td>Alamat</td>
+                                    <td>: Ditempat</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -292,9 +301,38 @@ export const AkuntanPoPage = () => {
                                     <td style={{ width: '120px' }}>Periode Tanggal</td>
                                     <td>: {sortedTanggalList.map(tgl => tgl.split('T')[0]).join(', ')}</td>
                                 </tr>
+                                <tr>
+                                    <td>PM</td>
+                                    <td>: SISWA &amp; B3</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                <div style={{ fontSize: '13px', marginBottom: '20px' }}>
+                    <table style={{ width: '100%' }}>
+                        <tbody>
+                            <tr>
+                                <td style={{ width: '100px', verticalAlign: 'top' }}>Menu</td>
+                                <td style={{ verticalAlign: 'top' }}>: {
+                                    sortedTanggalList.map(tgl => {
+                                        const cleanTgl = tgl.split('T')[0];
+                                        const parts = cleanTgl.split('-');
+                                        let shortDate = cleanTgl;
+                                        if (parts.length === 3) {
+                                            const day = parseInt(parts[2], 10);
+                                            const monthIndex = parseInt(parts[1], 10) - 1;
+                                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+                                            shortDate = `${day} ${months[monthIndex] || parts[1]}`;
+                                        }
+                                        const menuNames = (printGabunganData.menuByTanggal && printGabunganData.menuByTanggal[cleanTgl]) || (printGabunganData.menuByTanggal && printGabunganData.menuByTanggal[tgl]) || '—';
+                                        return `${shortDate}: ${menuNames}`;
+                                    }).join(' | ')
+                                }</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
 
                 <table border="1" cellPadding="5" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '25px' }}>
@@ -398,12 +436,13 @@ export const AkuntanPoPage = () => {
                 </div>
 
                 {/* PO Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000', paddingBottom: '10px', marginBottom: '20px', alignItems: 'center' }}>
                     <div>
                         <div style={{ fontWeight: 'bold', fontSize: '15px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
                         <div style={{ fontSize: '11px' }}>Gedung E Kompleks Kementrian Pertanian</div>
                         <div style={{ fontSize: '11px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
                     </div>
+                    <img src="/kop-po.png" alt="Logo" style={{ height: '60px', objectFit: 'contain' }} />
                 </div>
 
                 <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '16px', textDecoration: 'underline', marginBottom: '15px' }}>
