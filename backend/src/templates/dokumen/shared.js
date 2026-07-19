@@ -83,8 +83,8 @@ function renderFooterTTD(kolom = [], tempatTanggal = '', opts = {}) {
 
   const cols = kolom.map((k, i) => {
     const dateHtml = (i === 1 && tempatTanggal)
-      ? `<div class="ttd-tempat-tgl" style="margin-bottom: 2px;">${tempatTanggal}</div>`
-      : `<div class="ttd-tempat-tgl-placeholder" style="height: 19px; margin-bottom: 2px;"></div>`;
+      ? `<div class="ttd-tempat-tgl" style="margin-bottom: 1px;">${tempatTanggal}</div>`
+      : `<div class="ttd-tempat-tgl-placeholder" style="height: 12px; margin-bottom: 1px;"></div>`;
 
     return `
       <div class="ttd-kolom" style="width:45%; text-align:left;">
@@ -146,9 +146,9 @@ const SHARED_CSS = `
     font-size: 11pt;
     color: #000;
     margin: 0;
-    padding: 10mm;
+    padding: 5mm;
     background: #fff;
-    min-height: calc(297mm - 60mm);
+    min-height: calc(297mm - 50mm);
   }
   .kop-surat {
     display: flex;
@@ -217,7 +217,7 @@ const SHARED_CSS = `
   .ttd-label { font-weight: bold; font-size: 11pt; margin-bottom: 2px; }
   .ttd-tempat-tgl { font-size: 11pt; }
   .ttd-jabatan { font-size: 11pt; margin-top: 2px; }
-  .ttd-ruang { height: 25px; }
+  .ttd-ruang { height: 15px; }
   .ttd-nama { font-size: 11pt; }
 
   .section-title { font-weight: bold; text-decoration: underline; margin: 4px 0 2px 0; font-size: 11pt; }
