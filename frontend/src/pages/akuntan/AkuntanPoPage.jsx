@@ -296,7 +296,7 @@ export const AkuntanPoPage = () => {
                             </tr>
                             <tr>
                                 <td style={{ verticalAlign: 'top' }}>Waktu</td>
-                                <td style={{ verticalAlign: 'top' }}>: {sortedTanggalList.map(tgl => tgl.split('T')[0]).join(', ')}</td>
+                                <td style={{ verticalAlign: 'top' }}>: {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</td>
                             </tr>
                             <tr>
                                 <td style={{ verticalAlign: 'top' }}>PM</td>
@@ -307,17 +307,10 @@ export const AkuntanPoPage = () => {
                                 <td style={{ verticalAlign: 'top' }}>: {
                                     sortedTanggalList.map(tgl => {
                                         const cleanTgl = tgl.split('T')[0];
-                                        const parts = cleanTgl.split('-');
-                                        let shortDate = cleanTgl;
-                                        if (parts.length === 3) {
-                                            const day = parseInt(parts[2], 10);
-                                            const monthIndex = parseInt(parts[1], 10) - 1;
-                                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
-                                            shortDate = `${day} ${months[monthIndex] || parts[1]}`;
-                                        }
-                                        const menuNames = (printGabunganData.menuByTanggal && printGabunganData.menuByTanggal[cleanTgl]) || (printGabunganData.menuByTanggal && printGabunganData.menuByTanggal[tgl]) || '—';
-                                        return `${shortDate}: ${menuNames}`;
-                                    }).join(' | ')
+                                        return (printGabunganData.menuByTanggal && printGabunganData.menuByTanggal[cleanTgl]) || (printGabunganData.menuByTanggal && printGabunganData.menuByTanggal[tgl]);
+                                    })
+                                    .filter(Boolean)
+                                    .join(', ') || '—'
                                 }</td>
                             </tr>
                         </tbody>
