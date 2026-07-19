@@ -18,10 +18,6 @@ _Tidak ada tugas aktif saat ini._
 - **Langkah**: Optimalkan bundle size dengan `React.lazy` atau penataan `manualChunks`.
 - **Status**: Belum dikerjakan.
 
-### 3. [ ] Layout Cetak PO Gabungan Belum Sesuai Format Asli
-- **Deskripsi**: Layout tabel cetak PO gabungan multi-tanggal saat ini belum 100% sesuai format Excel asli (referensi: sheet "12-13 SISWA B3"). Perlu audit ulang penyesuaian kop surat, urutan kolom, dan styling cetak.
-- **Status**: Belum dikerjakan.
-
 ---
 
 ## C. Arsip Tugas Selesai (Completed)
@@ -49,3 +45,4 @@ _Tidak ada tugas aktif saat ini._
 - [x] **`totalDanaDiterima` Setup Periode**: Pembersihan input manual dari form setup periode, beralih ke kalkulasi live aggregate SUM transaksi masuk (DANA) di BKU.
 - [x] **RAB Harian Kosong**: Penambahan banner informatif bahwa transaksi bahan makanan diinput langsung oleh Mitra melalui PO.
 - [x] **Isi Cepat Bantuan Pemerintah (BanPer)**: Shortcut otomatis pengisian formulir jurnal masuk.
+- [x] **Layout Cetak PO Gabungan Sesuai Format Asli**: Redesign kop surat (logo + token warna), tabel header/total token warna, footer Mitra SPPG, field Kepada/Alamat/Waktu/PM/Menu sesuai referensi Excel. TODO #3 CLOSED.
