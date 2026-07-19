@@ -395,6 +395,8 @@ export const AkuntanPoPage = () => {
         const totalHargaDiminta = printPoData.items.reduce((sum, item) => sum + Number(item.subtotal), 0);
         const totalHargaRealisasi = printPoData.items.reduce((sum, item) => sum + Number(item.subtotalRealisasi || 0), 0);
         const isRealized = printPoData.status !== 'DIAJUKAN';
+        const tempatPelaporan = printPoData?.tempatPelaporan || activePeriod?.setupLembaga?.tempatPelaporan || namaLembaga;
+        const tanggalHariIni = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
         return (
             <div style={{ padding: '25px', backgroundColor: '#fff', minHeight: '100vh', color: '#000', fontFamily: 'Courier New, monospace' }}>
@@ -476,14 +478,14 @@ export const AkuntanPoPage = () => {
 
                 <table border="1" cellPadding="5" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '25px' }}>
                     <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
+                        <tr style={{ backgroundColor: 'var(--color-primary-light)' }}>
                             <th style={{ width: '30px' }} rowspan="2">No</th>
                             <th rowspan="2">Uraian Jenis Bahan Makanan</th>
                             <th rowspan="2" style={{ width: '50px' }}>Satuan</th>
                             <th colSpan="3" style={{ textAlign: 'center' }}>Rencana (PO Diminta)</th>
                             {isRealized && <th colSpan="3" style={{ textAlign: 'center' }}>Realisasi (Belanja Aktual)</th>}
                         </tr>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
+                        <tr style={{ backgroundColor: 'var(--color-primary-light)' }}>
                             <th style={{ width: '70px', textAlign: 'right' }}>Qty</th>
                             <th style={{ width: '90px', textAlign: 'right' }}>Harga Satuan</th>
                             <th style={{ width: '100px', textAlign: 'right' }}>Subtotal</th>
@@ -520,7 +522,7 @@ export const AkuntanPoPage = () => {
                                 )}
                             </tr>
                         ))}
-                        <tr style={{ fontWeight: 'bold', backgroundColor: '#eaeaea' }}>
+                        <tr style={{ fontWeight: 'bold', backgroundColor: 'var(--color-primary-light)' }}>
                             <td colSpan="3" style={{ textAlign: 'right' }}>Total:</td>
                             <td colSpan="3" style={{ textAlign: 'right' }}>Rp{totalHargaDiminta.toLocaleString('id-ID')}</td>
                             {isRealized && <td colSpan="3" style={{ textAlign: 'right' }}>Rp{totalHargaRealisasi.toLocaleString('id-ID')}</td>}
@@ -528,28 +530,13 @@ export const AkuntanPoPage = () => {
                     </tbody>
                 </table>
 
-                <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <div style={{ textAlign: 'center', width: '250px' }}>
-                        <div>Pembuat Pesanan,</div>
-                        <div style={{ fontWeight: '500', marginTop: '5px' }}>Akuntan SPPG</div>
-                        <div style={{ marginTop: '60px', fontWeight: 'bold' }}>
-                            {printPoData.createdBy?.nama || 'Akuntan SPPG'}
-                        </div>
-                    </div>
-                    {isRealized && (
-                        <div style={{ textAlign: 'center', width: '250px' }}>
-                            <div>Penerima &amp; Pembelanja,</div>
-                            <div style={{ fontWeight: '500', marginTop: '5px' }}>Mitra SPPG</div>
-                            <div style={{ marginTop: '60px', textDecoration: 'underline', fontWeight: 'bold' }}>
-                                {ketuaYayasan}
-                            </div>
-                        </div>
-                    )}
-                    <div style={{ textAlign: 'center', width: '250px' }}>
-                        <div>Penanggung Jawab / Aslap,</div>
-                        <div style={{ fontWeight: '500', marginTop: '5px' }}>Asisten Lapangan</div>
-                        <div style={{ marginTop: '60px', textDecoration: 'underline', fontWeight: 'bold' }}>
-                            {printPoData.diterimaOleh?.nama || '—'}
+                <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'flex-end', fontSize: '13px' }}>
+                    <div style={{ textAlign: 'center', width: '300px' }}>
+                        <div>{tempatPelaporan}, {tanggalHariIni}</div>
+                        <div style={{ fontWeight: 'bold', marginTop: '5px' }}>Mitra SPPG {namaLembaga}</div>
+                        <div style={{ height: '70px' }}></div>
+                        <div style={{ fontWeight: 'bold' }}>
+                            ( &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; )
                         </div>
                     </div>
                 </div>
