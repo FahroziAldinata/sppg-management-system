@@ -21,6 +21,7 @@ export const AkuntanPoPage = () => {
     const [menuDescription, setMenuDescription] = useState('');
     const [poItems, setPoItems] = useState([]);
     const [poList, setPoList] = useState([]);
+    const [kebutuhanHitungan, setKebutuhanHitungan] = useState([]);
 
     const [loading, setLoading] = useState(false);
     const [listLoading, setListLoading] = useState(false);
@@ -102,22 +103,34 @@ export const AkuntanPoPage = () => {
         if (!poDate || !selectedPeriodId) {
             setPoItems([]);
             setMenuDescription('');
+            setKebutuhanHitungan([]);
             return;
         }
 
         const fetchKebutuhan = async () => {
             setLoading(true);
             try {
-                const r = await request(`/mitra/po/kebutuhan?tanggal=${poDate}&periodeId=${selectedPeriodId}`);
-                if (r.ok) {
-                    const data = await r.json();
+                const [r1, r2] = await Promise.all([
+                    request(`/mitra/po/kebutuhan?tanggal=${poDate}&periodeId=${selectedPeriodId}`),
+                    request(`/akuntan/kebutuhan-hitungan?periodeId=${selectedPeriodId}&tanggal=${poDate}`)
+                ]);
+
+                if (r1.ok) {
+                    const data = await r1.json();
                     setMenuDescription(data.menuDescription || '—');
                     setPoItems(data.ingredients || []);
                 } else {
-                    const errData = await r.json().catch(() => ({ error: 'Gagal memuat kebutuhan bahan.' }));
+                    const errData = await r1.json().catch(() => ({ error: 'Gagal memuat kebutuhan bahan.' }));
                     toast.error(errData.error);
                     setPoItems([]);
                     setMenuDescription('');
+                }
+
+                if (r2.ok) {
+                    const hitunganData = await r2.json();
+                    setKebutuhanHitungan(hitunganData.data || []);
+                } else {
+                    setKebutuhanHitungan([]);
                 }
             } catch (err) {
                 toast.error('Koneksi server gagal.');
@@ -696,6 +709,35 @@ export const AkuntanPoPage = () => {
                         <Skeleton height="40px" />
                         <Skeleton height="40px" />
                         <Skeleton height="40px" />
+                    </div>
+                )}
+
+                {/* Referensi Konversi Satuan */}
+                {!loading && kebutuhanHitungan.length > 0 && (
+                    <div style={{
+                        border: '1px solid var(--color-primary-light)',
+                        backgroundColor: 'rgba(181, 224, 234, 0.15)',
+                        padding: '16px',
+                        borderRadius: 'var(--radius-sm)',
+                        marginTop: '10px'
+                    }}>
+                        <h4 style={{ margin: '0 0 10px 0', color: 'var(--text)', fontSize: '14px', fontWeight: 600 }}>
+                            📌 Referensi Konversi Satuan (Hitungan &rarr; KG)
+                        </h4>
+                        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                            {kebutuhanHitungan.map((item) => (
+                                <div key={item.bahanPokokId} style={{
+                                    backgroundColor: 'var(--bg-elevated)',
+                                    border: '1px solid var(--border)',
+                                    padding: '8px 12px',
+                                    borderRadius: 'var(--radius-sm)',
+                                    fontSize: '13px',
+                                    color: 'var(--text)'
+                                }}>
+                                    <strong>{item.nama}</strong>: {item.permintaanAG.toLocaleString('id-ID')} {item.satuanHitungan} &rarr; <strong>{item.final}</strong> KG <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>(konversi {item.konversiPerKg}/kg)</span>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
 

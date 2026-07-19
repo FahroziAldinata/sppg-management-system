@@ -553,9 +553,16 @@ export const MenuHarianPage = () => {
         if (f.bahanPokokId === undefined && bahanPokokList[0]) f.bahanPokokId = bahanPokokList[0].id;
         const required = ['bahanPokokId', 'beratBersihGr', 'energiKkal', 'proteinGr', 'lemakGr', 'karbohidratGr', 'seratGr', 'bddPersen', 'beratSatuanGr'];
         if (required.some(k => f[k] === undefined || f[k] === '')) { setError('Semua field bahan wajib diisi kecuali Berat URT'); return; }
+        
+        const payload = {
+            menuItemId,
+            ...f,
+            jumlahHitungan: f.jumlahHitungan !== undefined && f.jumlahHitungan !== '' ? parseFloat(f.jumlahHitungan) : null
+        };
+
         const r = await request('/gizi/menu-item-bahan', {
             method: 'POST',
-            body: JSON.stringify({ menuItemId, ...f })
+            body: JSON.stringify(payload)
         });
         const d = await r.json();
         if (r.ok) {
@@ -754,7 +761,7 @@ export const MenuHarianPage = () => {
                     <table style={{ width: '100%', minWidth: 1120, borderCollapse: 'collapse' }}>
                         <thead>
                             <tr>
-                                {['Bahan', 'Bersih', 'URT', 'BDD', 'Harga', 'Basis', 'Energi', 'Protein', 'Lemak', 'Karbo', 'Serat', 'Total'].map(label => (
+                                {['Bahan', 'Bersih', 'Hitung/Porsi', 'URT', 'BDD', 'Harga', 'Basis', 'Energi', 'Protein', 'Lemak', 'Karbo', 'Serat', 'Total'].map(label => (
                                     <th key={label} style={{ textAlign: 'left', padding: '10px 8px', fontSize: 11, color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>{label}</th>
                                 ))}
                             </tr>
@@ -764,6 +771,7 @@ export const MenuHarianPage = () => {
                                 <tr key={bahan.id}>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{getBahanName(bahan)}</td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.beratBersihGr}</td>
+                                    <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.jumlahHitungan !== null && bahan.jumlahHitungan !== undefined ? Number(bahan.jumlahHitungan).toString() : '-'}</td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.beratURT || '-'}</td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>{bahan.bddPersen}</td>
                                     <td style={{ padding: '10px 8px', borderBottom: '1px solid var(--border)' }}>
@@ -805,6 +813,18 @@ export const MenuHarianPage = () => {
                                         />
                                     </td>
                                     <td><input className="form-field" type="number" style={{ minWidth: 70 }} value={form.beratBersihGr || ''} onChange={e => setBahanField(item.id, 'beratBersihGr', e.target.value)} /></td>
+                                    <td>
+                                        <input 
+                                            className="form-field" 
+                                            type="number" 
+                                            step="0.01"
+                                            style={{ minWidth: 90 }} 
+                                            placeholder="Unit/Porsi" 
+                                            title="Jumlah per porsi (opsional, isi kalau bahan dihitung per unit — misal butir/buah)"
+                                            value={form.jumlahHitungan || ''} 
+                                            onChange={e => setBahanField(item.id, 'jumlahHitungan', e.target.value)} 
+                                        />
+                                    </td>
                                     <td><input className="form-field" style={{ minWidth: 70 }} value={form.beratURT || ''} onChange={e => setBahanField(item.id, 'beratURT', e.target.value)} /></td>
                                     <td><input className="form-field" type="number" style={{ minWidth: 60 }} value={form.bddPersen || ''} onChange={e => setBahanField(item.id, 'bddPersen', e.target.value)} /></td>
                                     <td><input className="form-field" style={{ minWidth: 80, backgroundColor: 'var(--bg-muted)', color: 'var(--text-muted)' }} disabled placeholder="Auto" value="" /></td>

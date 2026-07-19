@@ -23,6 +23,26 @@ router.get("/bahan-pokok", requireAuth, requireRole("MITRA", "ASLAP", "KEPALA_SP
   }
 });
 
+// PUT /api/mitra/bahan-pokok/:id - Update master food ingredient conversion config
+router.put("/bahan-pokok/:id", requireAuth, requireRole("MITRA"), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { konversiPerKg, satuanHitungan } = req.body;
+
+    const data = await prisma.bahanPokok.update({
+      where: { id },
+      data: {
+        konversiPerKg: konversiPerKg !== undefined && konversiPerKg !== null && konversiPerKg !== "" ? parseFloat(konversiPerKg) : null,
+        satuanHitungan: satuanHitungan !== undefined && satuanHitungan !== null && satuanHitungan !== "" ? satuanHitungan.toUpperCase() : null
+      }
+    });
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Terjadi kesalahan server saat memperbarui data bahan pokok" });
+  }
+});
+
 // ==========================================
 // CRUD KENDARAAN (MITRA OWNS LOGISTICS VEHICLE SETUP)
 // ==========================================

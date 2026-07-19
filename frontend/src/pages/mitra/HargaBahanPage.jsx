@@ -20,6 +20,8 @@ export const HargaBahanPage = () => {
   const [formBahanId, setFormBahanId] = useState('');
   const [formHarga, setFormHarga] = useState('');
   const [formIsFallback, setFormIsFallback] = useState(false);
+  const [formSatuanHitungan, setFormSatuanHitungan] = useState('');
+  const [formKonversiPerKg, setFormKonversiPerKg] = useState('');
   // Load master data
   useEffect(() => {
     const loadMaster = async () => {
@@ -71,18 +73,40 @@ export const HargaBahanPage = () => {
     }
   }, [selectedPeriodId]);
 
+  // Auto-populate conversion config when bahan is selected
+  useEffect(() => {
+    if (formBahanId) {
+      const selectedBahan = bahanList.find(b => b.id === formBahanId);
+      if (selectedBahan) {
+        setFormSatuanHitungan(selectedBahan.satuanHitungan || '');
+        setFormKonversiPerKg(selectedBahan.konversiPerKg !== null && selectedBahan.konversiPerKg !== undefined ? String(selectedBahan.konversiPerKg) : '');
+      } else {
+        setFormSatuanHitungan('');
+        setFormKonversiPerKg('');
+      }
+    } else {
+      setFormSatuanHitungan('');
+      setFormKonversiPerKg('');
+    }
+  }, [formBahanId, bahanList]);
+
   const resetForm = () => {
     setEditingId(null);
     setFormBahanId(bahanList[0]?.id || '');
     setFormHarga('');
     setFormIsFallback(false);
+    setFormSatuanHitungan('');
+    setFormKonversiPerKg('');
   };
 
   const handleEditClick = (row) => {
     setEditingId(row.id);
     setFormBahanId(row.bahanPokokId);
     setFormHarga(String(row.harga));
-    setFormIsFallback(row.isFallback);  };
+    setFormIsFallback(row.isFallback);
+    setFormSatuanHitungan(row.bahanPokok?.satuanHitungan || '');
+    setFormKonversiPerKg(row.bahanPokok?.konversiPerKg !== null && row.bahanPokok?.konversiPerKg !== undefined ? String(row.bahanPokok.konversiPerKg) : '');
+  };
 
   const handleDeleteClick = async (id) => {
     setConfirmModal({
@@ -110,11 +134,34 @@ export const HargaBahanPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const payload = editingId
-      ? { bahanPokokId: formBahanId, harga: parseFloat(formHarga), isFallback: formIsFallback }
-      : { periodeId: selectedPeriodId, bahanPokokId: formBahanId, harga: parseFloat(formHarga), isFallback: formIsFallback };
+    if (!formBahanId) {
+      toast.error('Silakan pilih bahan pokok.');
+      return;
+    }
 
     try {
+      // 1. Update BahanPokok conversion config in backend
+      const bpPayload = {
+        satuanHitungan: formSatuanHitungan || null,
+        konversiPerKg: formKonversiPerKg !== '' ? parseFloat(formKonversiPerKg) : null
+      };
+      
+      const bpRes = await request(`/mitra/bahan-pokok/${formBahanId}`, {
+        method: 'PUT',
+        body: JSON.stringify(bpPayload)
+      });
+      
+      if (!bpRes.ok) {
+        const bpErr = await bpRes.json();
+        toast.error(bpErr.error || 'Gagal memperbarui konfigurasi bahan pokok.');
+        return;
+      }
+
+      // 2. Create/Update HargaBahan
+      const payload = editingId
+        ? { bahanPokokId: formBahanId, harga: parseFloat(formHarga), isFallback: formIsFallback }
+        : { periodeId: selectedPeriodId, bahanPokokId: formBahanId, harga: parseFloat(formHarga), isFallback: formIsFallback };
+
       const url = editingId ? `/mitra/harga-bahan/${editingId}` : '/mitra/harga-bahan';
       const method = editingId ? 'PUT' : 'POST';
 
@@ -122,7 +169,13 @@ export const HargaBahanPage = () => {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success(editingId ? 'Harga berhasil diperbarui.' : 'Harga berhasil ditambahkan.');
+        toast.success(editingId ? 'Harga & Konversi berhasil diperbarui.' : 'Harga & Konversi berhasil ditambahkan.');
+        // 3. Refresh bahan list to get updated konversi/satuan hitungan
+        const resB = await request('/mitra/bahan-pokok');
+        if (resB.ok) {
+          const dataB = await resB.json();
+          setBahanList(dataB);
+        }
         resetForm();
         fetchList(selectedPeriodId);
       } else {
@@ -236,6 +289,51 @@ export const HargaBahanPage = () => {
           </div>
         </div>
 
+        <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 200px' }}>
+            <label style={{
+              textTransform: 'uppercase',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.07em',
+              color: 'var(--text-muted)',
+              display: 'block',
+              marginBottom: '6px'
+            }}>
+              Satuan Hitung (opsional, misal: BUTIR, BUAH)
+            </label>
+            <input
+              type="text"
+              className="form-field"
+              placeholder="Contoh: BUTIR"
+              value={formSatuanHitungan}
+              onChange={(e) => setFormSatuanHitungan(e.target.value)}
+            />
+          </div>
+
+          <div style={{ flex: '1 1 200px' }}>
+            <label style={{
+              textTransform: 'uppercase',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '0.07em',
+              color: 'var(--text-muted)',
+              display: 'block',
+              marginBottom: '6px'
+            }}>
+              Konversi per KG (opsional, misal: 15)
+            </label>
+            <input
+              type="number"
+              step="0.001"
+              className="form-field"
+              placeholder="Contoh: 15"
+              value={formKonversiPerKg}
+              onChange={(e) => setFormKonversiPerKg(e.target.value)}
+            />
+          </div>
+        </div>
+
         <div>
           <label style={{
             display: 'inline-flex',
@@ -305,6 +403,18 @@ export const HargaBahanPage = () => {
             align: 'center',
             width: '100px',
             render: (val) => val ? 'Ya' : 'Tidak'
+          },
+          {
+            key: 'satuanHitungan',
+            header: 'Satuan Hitung',
+            align: 'center',
+            render: (_, row) => row.bahanPokok?.satuanHitungan || '—'
+          },
+          {
+            key: 'konversiPerKg',
+            header: 'Konversi/KG',
+            align: 'right',
+            render: (_, row) => row.bahanPokok?.konversiPerKg ? `${row.bahanPokok.konversiPerKg} / kg` : '—'
           },
           { key: 'createdBy', header: 'Diinput oleh', render: (val) => val?.nama || '—' },
           {
