@@ -147,7 +147,6 @@ const SHARED_CSS = `
     color: #000;
     margin: 0;
     padding: 15mm;
-    border: 1.5pt solid #000;
     background: #fff;
     min-height: calc(297mm - 60mm);
   }
