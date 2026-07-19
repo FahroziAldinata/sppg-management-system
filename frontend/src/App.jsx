@@ -31,7 +31,6 @@ import { JurnalTransaksiPage } from './pages/akuntan/JurnalTransaksiPage';
 import { AkuntanPoPage } from './pages/akuntan/AkuntanPoPage';
 import { ValidasiStokPage } from './pages/akuntan/ValidasiStokPage';
 import { RabHarianPage } from './pages/akuntan/RabHarianPage';
-import { AnggaranHarianPage } from './pages/akuntan/AnggaranHarianPage';
 import { SaldoAwalBarangPage } from './pages/akuntan/SaldoAwalBarangPage';
 import { MutasiStokPage } from './pages/akuntan/MutasiStokPage';
 import { DokumenResmiPage } from './pages/akuntan/DokumenResmiPage';
@@ -230,7 +229,7 @@ function App() {
               path="akuntan/anggaran-harian"
               element={
                 <ProtectedRoute allowedRoles={['AKUNTAN']}>
-                  <AnggaranHarianPage />
+                  <RabHarianPage />
                 </ProtectedRoute>
               }
             />
