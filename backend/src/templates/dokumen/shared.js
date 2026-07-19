@@ -146,7 +146,7 @@ const SHARED_CSS = `
     font-size: 11pt;
     color: #000;
     margin: 0;
-    padding: 5mm;
+    padding: 10mm 10mm 1mm 10mm;
     background: #fff;
     min-height: calc(297mm - 50mm);
   }
