@@ -94,10 +94,10 @@ function renderLpaHtml(data) {
 
   <h2 class="judul-dok">${isLr ? 'Laporan/Resume Penerimaan dan Pengeluaran' : 'Laporan Penggunaan Anggaran'}</h2>
   ${isLr ? '' : `<div class="nomor-dok">Nomor: <span class="highlight">${escapeHtml(nomorDokumen)}</span></div>`}
-  <div class="periode-label" style="text-align: left; font-weight: bold; margin-bottom: 8px;">Periode: ${escapeHtml(periodeLabel)}</div>
-  <p style="margin: 0 0 6px 0; font-size: 11pt;">Yang bertanda tangan di bawah ini:</p>
+  <div class="periode-label" style="text-align: left; font-weight: bold; margin-bottom: 4px;">Periode: ${escapeHtml(periodeLabel)}</div>
+  <p style="margin: 0 0 4px 0; font-size: 11pt;">Yang bertanda tangan di bawah ini:</p>
 
-  <table class="identitas-lembaga" style="margin-bottom:10px;">
+  <table class="identitas-lembaga" style="margin-bottom:6px;">
     <tbody>
       <tr>
         <td>Nama Pejabat</td>
@@ -132,9 +132,9 @@ function renderLpaHtml(data) {
   </table>
 
   <div class="keterangan-section">
-    <p class="section-title" style="margin-top: 10px; margin-bottom: 4px;">II. KETERANGAN</p>
-    <p style="margin-bottom: 6px;">Dana yang telah digunakan sesuai dengan kebutuhan kegiatan yang telah direncanakan, dengan rincian sebagai berikut:</p>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 4px; font-size: 11pt; margin-bottom: 8px;">
+    <p class="section-title" style="margin: 0;">II. KETERANGAN</p>
+    <p style="margin-bottom: 4px;">Dana yang telah digunakan sesuai dengan kebutuhan kegiatan yang telah direncanakan, dengan rincian sebagai berikut:</p>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 2px; font-size: 11pt; margin-bottom: 4px;">
       <tbody>
         <tr>
           <td style="width: 210px; padding: 2px 0; vertical-align: top;">Bahan Baku</td>
@@ -156,7 +156,7 @@ function renderLpaHtml(data) {
         ` : ''}
       </tbody>
     </table>
-    <p style="margin-top: 10px;">Sisa dana sebesar Rp${total.sisa},- akan dialihkan ke periode selanjutnya.<br>
+    <p style="margin-top: 4px;">Sisa dana sebesar Rp${total.sisa},- akan dialihkan ke periode selanjutnya.<br>
     Pengalihan sisa dana ini bertujuan untuk mendukung kegiatan yang telah direncanakan.</p>
   </div>
 

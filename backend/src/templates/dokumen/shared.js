@@ -146,15 +146,15 @@ const SHARED_CSS = `
     font-size: 11pt;
     color: #000;
     margin: 0;
-    padding: 15mm;
+    padding: 10mm;
     background: #fff;
     min-height: calc(297mm - 60mm);
   }
   .kop-surat {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 4px;
+    gap: 8px;
+    margin-bottom: 2px;
   }
   .kop-logo-placeholder {
     flex-shrink: 0;
@@ -168,17 +168,17 @@ const SHARED_CSS = `
   .kop-instansi { font-size: 11pt; font-weight: normal; letter-spacing: 0.03em; }
   .kop-lembaga { font-size: 16pt; font-weight: bold; text-transform: uppercase; }
   .kop-alamat { font-size: 10pt; margin-top: 2px; }
-  .kop-garis { border-top: 3px solid #000; margin-bottom: 2px; }
+  .kop-garis { border-top: 3px solid #000; margin-bottom: 0; }
   .kop-garis-tipis { border-top: 1px solid #000; margin-bottom: 8px; }
 
-  h2.judul-dok { text-align: center; font-size: 13pt; font-weight: bold; margin: 8px 0 2px 0; text-transform: uppercase; }
-  .nomor-dok { text-align: center; font-size: 11pt; margin-bottom: 2px; }
+  h2.judul-dok { text-align: center; font-size: 13pt; font-weight: bold; margin: 4px 0 0 0; text-transform: uppercase; }
+  .nomor-dok { text-align: center; font-size: 11pt; margin-bottom: 1px; }
   .nomor-dok span.highlight { background: #ffe000; padding: 0 6px; font-weight: bold; }
-  .periode-label { text-align: center; font-size: 11pt; margin-bottom: 8px; }
+  .periode-label { text-align: center; font-size: 11pt; margin-bottom: 4px; }
 
   table { border-collapse: collapse; width: 100%; margin-bottom: 0; }
   table.tabel-rincian th {
-    padding: 5px 6px;
+    padding: 3px 6px;
     font-size: 11pt;
     font-weight: bold;
   }
@@ -189,7 +189,7 @@ const SHARED_CSS = `
     text-align: right;
   }
   table.tabel-rincian td {
-    padding: 4px 6px;
+    padding: 2px 6px;
     font-size: 11pt;
     line-height: 1.1;
   }
@@ -206,22 +206,22 @@ const SHARED_CSS = `
     border-top: 1.5px solid #000;
     border-bottom: 1.5px solid #000;
   }
-  table.identitas-lembaga td { padding: 2px 6px; font-size: 11pt; vertical-align: top; }
+  table.identitas-lembaga td { padding: 1px 6px; font-size: 11pt; vertical-align: top; }
   table.identitas-lembaga td:first-child { width: 200px; }
 
-  .keterangan-section { margin-top: 10px; font-size: 11pt; line-height: 1.5; }
-  .keterangan-section p { margin: 3px 0; }
+  .keterangan-section { margin-top: 4px; font-size: 11pt; line-height: 1.4; }
+  .keterangan-section p { margin: 2px 0; }
 
-  .footer-ttd { margin-top: 20px; page-break-inside: avoid; }
+  .footer-ttd { margin-top: 5px; page-break-inside: avoid; }
   .ttd-kolom { display: inline-block; text-align: center; }
   .ttd-label { font-weight: bold; font-size: 11pt; margin-bottom: 2px; }
   .ttd-tempat-tgl { font-size: 11pt; }
   .ttd-jabatan { font-size: 11pt; margin-top: 2px; }
-  .ttd-ruang { height: 48px; }
+  .ttd-ruang { height: 25px; }
   .ttd-nama { font-size: 11pt; }
 
-  .section-title { font-weight: bold; text-decoration: underline; margin: 10px 0 4px 0; font-size: 11pt; }
-  .pembuka { font-size: 11pt; line-height: 1.6; margin-bottom: 8px; }
+  .section-title { font-weight: bold; text-decoration: underline; margin: 4px 0 2px 0; font-size: 11pt; }
+  .pembuka { font-size: 11pt; line-height: 1.4; margin-bottom: 4px; }
 `;
 
 module.exports = { renderKopSurat, renderFooterTTD, escapeHtml, formatRupiah, formatNumberTabel, SHARED_CSS };
