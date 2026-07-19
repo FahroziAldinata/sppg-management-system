@@ -213,7 +213,7 @@ const SHARED_CSS = `
   .keterangan-section { margin-top: 10px; font-size: 11pt; line-height: 1.5; }
   .keterangan-section p { margin: 3px 0; }
 
-  .footer-ttd { margin-top: 20px; }
+  .footer-ttd { margin-top: 20px; page-break-inside: avoid; }
   .ttd-kolom { display: inline-block; text-align: center; }
   .ttd-label { font-weight: bold; font-size: 11pt; margin-bottom: 2px; }
   .ttd-tempat-tgl { font-size: 11pt; }
