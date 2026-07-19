@@ -260,11 +260,13 @@ export const AkuntanPoPage = () => {
 
                 {/* PO Header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px', paddingBottom: '10px', marginBottom: '20px' }}>
-                    <img src="/kop-po.png" alt="Logo" style={{ height: '90px', objectFit: 'contain' }} />
-                    <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '20px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
+                    <img src="/kop-po.png" alt="Logo" style={{ height: '117px', objectFit: 'contain' }} />
+                    <div style={{ marginLeft: '30px' }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '20px' }}>
+                            BADAN GIZI NASIONAL <span style={{ color: 'var(--color-primary-light)' }}>(NATIONAL NUTRITION AGENCY)</span>
+                        </div>
                         <div style={{ fontSize: '13px' }}>Gedung E Kompleks Kementrian Pertanian</div>
-                        <div style={{ fontSize: '13px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
+                        <div style={{ fontSize: '13px', textDecoration: 'underline' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
                     </div>
                 </div>
 
@@ -319,7 +321,7 @@ export const AkuntanPoPage = () => {
 
                 <table border="1" cellPadding="5" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', marginBottom: '25px' }}>
                     <thead>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
+                        <tr style={{ backgroundColor: 'var(--color-primary-light)' }}>
                             <th style={{ width: '30px' }} rowSpan="2">No</th>
                             <th rowSpan="2">Uraian Jenis Bahan Makanan</th>
                             <th colSpan={sortedTanggalList.length} style={{ textAlign: 'center' }}>Alokasi SISWA</th>
@@ -329,7 +331,7 @@ export const AkuntanPoPage = () => {
                             <th rowSpan="2" style={{ width: '90px', textAlign: 'right' }}>Harga Satuan</th>
                             <th rowSpan="2" style={{ width: '100px', textAlign: 'right' }}>Jumlah</th>
                         </tr>
-                        <tr style={{ backgroundColor: '#eaeaea' }}>
+                        <tr style={{ backgroundColor: 'var(--color-primary-light)' }}>
                             {sortedTanggalList.map(tgl => (
                                 <th key={`h-siswa-${tgl}`} style={{ textAlign: 'center', fontSize: '10px' }}>
                                     {tgl.split('-')[2]}
@@ -363,7 +365,7 @@ export const AkuntanPoPage = () => {
                                 <td style={{ textAlign: 'right', fontWeight: 'bold' }}>Rp{Number(item.subtotal).toLocaleString('id-ID')}</td>
                             </tr>
                         ))}
-                        <tr style={{ fontWeight: 'bold', backgroundColor: '#eaeaea' }}>
+                        <tr style={{ fontWeight: 'bold', backgroundColor: 'var(--color-primary-light)' }}>
                             <td colSpan={2 + sortedTanggalList.length * 2} style={{ textAlign: 'right' }}>Total:</td>
                             <td style={{ textAlign: 'right' }}>
                                 {printGabunganData.ingredients.reduce((sum, item) => sum + Number(item.qtyTotal), 0).toLocaleString('id-ID')}
@@ -375,19 +377,13 @@ export const AkuntanPoPage = () => {
                     </tbody>
                 </table>
 
-                <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <div style={{ textAlign: 'center', width: '250px' }}>
-                        <div>Pembuat Pesanan,</div>
-                        <div style={{ fontWeight: '500', marginTop: '5px' }}>Akuntan SPPG</div>
-                        <div style={{ marginTop: '60px', fontWeight: 'bold' }}>
-                            {activePeriod?.createdBy?.nama || 'Akuntan SPPG'}
-                        </div>
-                    </div>
-                    <div style={{ textAlign: 'center', width: '250px' }}>
-                        <div>Penanggung Jawab / Aslap,</div>
-                        <div style={{ fontWeight: '500', marginTop: '5px' }}>Asisten Lapangan</div>
-                        <div style={{ marginTop: '60px', textDecoration: 'underline', fontWeight: 'bold' }}>
-                            —
+                <div style={{ marginTop: '50px', display: 'flex', justifyContent: 'flex-end', fontSize: '13px' }}>
+                    <div style={{ textAlign: 'center', width: '300px' }}>
+                        <div>{activePeriod?.setupLembaga?.tempatPelaporan || namaLembaga}, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+                        <div style={{ fontWeight: 'bold', marginTop: '5px' }}>Mitra SPPG {namaLembaga}</div>
+                        <div style={{ height: '70px' }}></div>
+                        <div style={{ fontWeight: 'bold' }}>
+                            ( &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; )
                         </div>
                     </div>
                 </div>
@@ -419,11 +415,13 @@ export const AkuntanPoPage = () => {
 
                 {/* PO Header */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px', paddingBottom: '10px', marginBottom: '20px' }}>
-                    <img src="/kop-po.png" alt="Logo" style={{ height: '90px', objectFit: 'contain' }} />
-                    <div>
-                        <div style={{ fontWeight: 'bold', fontSize: '20px' }}>BADAN GIZI NASIONAL (NATIONAL NUTRITION AGENCY)</div>
+                    <img src="/kop-po.png" alt="Logo" style={{ height: '117px', objectFit: 'contain' }} />
+                    <div style={{ marginLeft: '30px' }}>
+                        <div style={{ fontWeight: 'bold', fontSize: '20px' }}>
+                            BADAN GIZI NASIONAL <span style={{ color: 'var(--color-primary-light)' }}>(NATIONAL NUTRITION AGENCY)</span>
+                        </div>
                         <div style={{ fontSize: '13px' }}>Gedung E Kompleks Kementrian Pertanian</div>
-                        <div style={{ fontSize: '13px' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
+                        <div style={{ fontSize: '13px', textDecoration: 'underline' }}>Jalan Harsono RM Nomor 3 Ragunan, Pasar Minggu Jakarta 12550</div>
                     </div>
                 </div>
 
