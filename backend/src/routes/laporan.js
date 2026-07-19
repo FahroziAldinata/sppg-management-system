@@ -168,7 +168,7 @@ router.get("/bku/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "30mm", right: "30mm", bottom: "30mm", left: "30mm" },
+      margin: { top: "15mm", right: "15mm", bottom: "15mm", left: "15mm" },
     });
 
     res.set({
@@ -401,7 +401,7 @@ router.get("/lpa/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), async
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "30mm", right: "30mm", bottom: "30mm", left: "30mm" },
+      margin: { top: "15mm", right: "15mm", bottom: "15mm", left: "15mm" },
     });
 
     res.set({
@@ -514,7 +514,7 @@ router.get("/sptj/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), asyn
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "30mm", right: "30mm", bottom: "30mm", left: "30mm" },
+      margin: { top: "15mm", right: "15mm", bottom: "15mm", left: "15mm" },
     });
 
     res.set({
@@ -633,7 +633,7 @@ router.get("/bapsd/pdf", requireAuth, requireRole("AKUNTAN", "KEPALA_SPPG"), asy
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: { top: "30mm", right: "30mm", bottom: "30mm", left: "30mm" },
+      margin: { top: "15mm", right: "15mm", bottom: "15mm", left: "15mm" },
     });
 
     res.set({
