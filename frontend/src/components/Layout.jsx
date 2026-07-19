@@ -157,8 +157,7 @@ export const Layout = () => {
     '/gizi/menu-harian': 'Menu Harian',
     '/akuntan': 'Beranda Akuntan',
     '/akuntan/jurnal': 'Jurnal Transaksi',
-    '/akuntan/rab-harian': 'RAB Harian',
-    '/akuntan/anggaran-harian': 'Anggaran Harian',
+    '/akuntan/anggaran-harian': 'RAB & Anggaran Harian',
     '/akuntan/dokumen-resmi': 'Dokumen Resmi',
     '/akuntan/nominatif-upah': 'Nominatif Upah',
     '/akuntan/saldo-awal-barang': 'Saldo Awal Barang',
@@ -526,7 +525,6 @@ export const Layout = () => {
                 {renderLink('/akuntan/laporan/periode-setup', 'Setup Periode', Calendar)}
                 {renderLink('/akuntan/jurnal', 'Jurnal Transaksi', BookOpen)}
                 {renderLink('/akuntan/po', 'Nota Pesanan (PO)', ShoppingCart)}
-                {renderLink('/akuntan/rab-harian', 'RAB Harian', FileSpreadsheet)}
                 {renderLink('/akuntan/anggaran-harian', 'Anggaran Harian', TrendingUp)}
                 {renderLink('/akuntan/dokumen-resmi', 'Dokumen Resmi', Award)}
                 {renderLink('/akuntan/nominatif-upah', 'Nominatif Upah', Users)}
