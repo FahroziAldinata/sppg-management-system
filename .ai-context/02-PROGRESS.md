@@ -166,8 +166,14 @@ Update tiap ada milestone. Urutan kronologis, terbaru di bawah.
 - [x] **Migrasi Layout Header/Tabel/Footer ke Cetak Single PO** — Menyelaraskan visual cetak single PO dengan cetak gabungan: tabel header/total token warna, footer disederhanakan jadi signature "Mitra SPPG" tunggal (menghapus kolom Akuntan/Aslap/Mitra-kondisional lama).
 - [x] **Konversi Satuan Hitung ke KG (Butir/Buah) — SELESAI 2026-07-19**: Badge referensi read-only (bukan auto-fill). Mitra isi `konversiPerKg`+`satuanHitungan` per bahan (`HargaBahanPage.jsx` modal edit). Ahli Gizi isi `jumlahHitungan` per bahan menu (`MenuHarianPage.jsx`). Akuntan liat agregasi `GET /akuntan/kebutuhan-hitungan?periodeId=&tanggal=` di section "Referensi Konversi Satuan" (`RabHarianPage.jsx`) — format `{nama}: {permintaanAG} {satuan} → {final} KG`. Verified end-to-end via screenshot (kasus Bawang Merah: 141.280 BUTIR → 8830 KG, konversi 16/kg).
 - [x] **Gabung RAB Harian + Anggaran Harian — SELESAI 2026-07-19**: `RabHarianPage.jsx` jadi 1 halaman dengan tab switcher (rab/anggaran), route `/akuntan/rab-harian` & `/akuntan/anggaran-harian` sama-sama render komponen ini. Section "Referensi Konversi Satuan" dikonfirmasi tidak hilang saat merge. Sidebar disederhanakan jadi 1 link "Anggaran Harian" (title tab: "RAB & Anggaran Harian"), notifikasi redirect RAB tetap ke path lama (route masih hidup, tidak 404).
-- [x] **Konsolidasi Dashboard Laporan Keuangan (BKU, BP, Stock, Belanja, Per Periode, Per Bulan) — SELESAI 2026-07-19**: Penggabungan 6 halaman laporan terpisah ke dalam 1 halaman `LaporanPage.jsx` dengan dropdown pemilih jenis laporan terintegrasi URL path. Sidebar dirampingkan jadi 1 link "Laporan Keuangan". Mengimplementasikan preview PDF BKU via modal dialog (bukan tab baru).
-- [x] **Penerbitan Dokumen Resmi (LPA, SPTJ, BAPSD) — SELESAI 2026-07-19**: Pemisahan penerbitan dokumen resmi dari dashboard laporan umum ke `DokumenResmiPage.jsx` dengan tabbed view (Penerbitan Baru / Daftar Terbitan), validasi nomor dokumen, penambahan jenis resume LR (read-only preview), pembatalan terbit (DELETE), serta modal PDF preview.
+- [x] **Konsolidasi 6 Laporan + Pemisahan Dokumen Resmi — SELESAI 2026-07-19**: 
+  LaporanPage.jsx jadi 1 halaman dropdown 6 laporan (BKU/BP/StockBarang/
+  KebutuhanBelanja/PerPeriode/PerBulan), path-synced routing (4 route lama 
+  tetap hidup, auto-select dropdown sesuai path). DokumenResmiPage.jsx jadi 
+  2-tab (Penerbitan Baru: LPA/SPTJ/BAPSD/LR + Batal Terbit; Daftar Terbitan). 
+  PDF preview window.open → modal iframe embedded. 4 file lama dihapus 
+  (StockBarangPage, KebutuhanBelanjaBahanPage, LaporanPerPeriodePage, 
+  LaporanPerBulanPage). Sidebar disederhanakan jadi 1 link "Laporan Keuangan".
 
 ## Sedang jalan / berikutnya
 - Belum ada — lihat `08-TODO.md` untuk task terbuka.
